@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/* Pulse surface system — Apple-like calm, not Instagram chrome */
+:root {
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --muted: #ececee;
+  --muted-foreground: #6e6e73;
+  --border: rgba(0, 0, 0, 0.08);
+  --card: #ffffff;
+  --accent: #1d1d1f;
+  --accent-foreground: #f5f5f7;
+  --separator: rgba(0, 0, 0, 0.06);
+  --elevated: rgba(255, 255, 255, 0.72);
+  --radius-lg: 1.25rem;
+  --radius-md: 0.875rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000;
+    --foreground: #f5f5f7;
+    --muted: #1c1c1e;
+    --muted-foreground: #98989d;
+    --border: rgba(255, 255, 255, 0.1);
+    --card: #1c1c1e;
+    --accent: #f5f5f7;
+    --accent-foreground: #1d1d1f;
+    --separator: rgba(255, 255, 255, 0.08);
+    --elevated: rgba(28, 28, 30, 0.78);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Smoother scroll on mobile (native-like) */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  /* PWA standalone: respect safe areas (notch / home indicator) */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0
+    env(safe-area-inset-left);
+}
+
+/* Screen-reader only utility (skip link + a11y) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.sr-only:focus,
+.focus\:not-sr-only:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Improve focus visibility (WCAG 2.2) */
+:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* Soft page transitions where supported (Chrome/Edge/Safari recent) */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+  animation-timing-function: ease-out;
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* Long text clamp helper */
+.line-clamp-feed {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+
+/* Hide scrollbars on media carousel but keep swipe */
+.carousel-x {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.carousel-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* Voice-note seek scrubber */
+.voice-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  margin-top: -5px;
+}
+.voice-seek::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.voice-seek::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+}
+.voice-seek::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+}
+
+/*
+ * File inputs: never use display:none on iOS — programmatic .click() is ignored.
+ * Visually hide but keep “present” for the OS file picker.
+ */
+.file-input-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+}

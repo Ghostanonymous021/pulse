@@ -1,0 +1,28 @@
+{
+  "peso_afinidade": 0.5,
+  "peso_frescor": 0.3,
+  "peso_engajamento": 0.2,
+  "meia_vida_horas": 36,
+  "meia_vida_destaque_horas": 72,
+  "multiplicador_destaque_teto": 1.5,
+  "comentario_peso": 2,
+  "alcance_posts_janela": 10,
+  "alcance_minimo": 5,
+  "shadow_report_threshold": 3,
+  "shadow_limit_factor": 0.3,
+  "frescor_boost_horas_sem_engajamento": 12,
+  "candidate_pool_size": 120,
+  "affinity": {
+    "mutual_follow": 0.85,
+    "following": 0.7,
+    "same_campus": 0.4,
+    "same_course": 0.35,
+    "same_university": 0.25,
+    "none": 0.05,
+    "interaction_cap": 0.3,
+    "w_like": 0.02,
+    "w_comment": 0.06,
+    "w_message": 0.1,
+    "w_profile_visit": 0.04
+  }
+}

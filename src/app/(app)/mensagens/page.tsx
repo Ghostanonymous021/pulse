@@ -1,0 +1,116 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { PageHeader } from "@/components/nav/page-header";
+import { requireUser } from "@/lib/auth/session";
+import { inboxTimeLabel, messagePreview } from "@/lib/chat/preview";
+import { listConversations, openDmWithUsername } from "@/lib/social/messages";
+
+export const metadata = {
+  title: "Mensagens",
+};
+
+export default async function MensagensPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ to?: string; error?: string }>;
+}) {
+  const { to, error: errParam } = await searchParams;
+  const { supabase, user } = await requireUser();
+
+  let openError: string | null = errParam ?? null;
+
+  if (to) {
+    const result = await openDmWithUsername(supabase, to);
+    if ("conversationId" in result) {
+      redirect(`/mensagens/${result.conversationId}`);
+    }
+    openError = result.error;
+  }
+
+  const conversations = await listConversations(supabase, user.id);
+
+  return (
+    <div>
+      <PageHeader title="Mensagens" />
+
+      {openError && (
+        <p className="border-b border-[var(--separator)] px-4 py-3 text-[13px] text-[#ff3b30]">
+          {openError}
+        </p>
+      )}
+
+      {conversations.length === 0 ? (
+        <div className="px-6 py-20 text-center">
+          <p className="text-[17px] font-semibold tracking-[-0.02em]">
+            As tuas conversas
+          </p>
+          <p className="mx-auto mt-2 max-w-[16rem] text-[14px] leading-relaxed text-muted-foreground">
+            Abre um perfil e toca em Mensagem.
+          </p>
+          <Link
+            href="/explorar"
+            className="mt-6 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background transition-opacity hover:opacity-85"
+          >
+            Explorar
+          </Link>
+        </div>
+      ) : (
+        <ul>
+          {conversations.map((c) => {
+            const preview = c.lastMessage
+              ? messagePreview(c.lastMessage)
+              : "Inicia a conversa";
+            const prefix =
+              c.lastMessage && c.lastMessage.sender_id === user.id
+                ? "Tu: "
+                : "";
+            const time = c.lastMessage
+              ? inboxTimeLabel(c.lastMessage.created_at)
+              : null;
+
+            return (
+              <li key={c.id}>
+                <Link
+                  href={`/mensagens/${c.id}`}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors active:bg-muted/50 hover:bg-muted/35"
+                >
+                  <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[15px] font-semibold text-muted-foreground ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
+                    {c.other.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.other.avatar_url}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (c.other.display_name || c.other.username)
+                        .slice(0, 1)
+                        .toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 border-b border-[var(--separator)] pb-3 pt-0.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="truncate text-[16px] font-semibold tracking-[-0.02em]">
+                        {c.other.display_name || c.other.username}
+                      </p>
+                      {time ? (
+                        <span className="shrink-0 text-[12px] tabular-nums text-muted-foreground">
+                          {time}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-0.5 truncate text-[14px] text-muted-foreground">
+                      {prefix}
+                      {preview}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}

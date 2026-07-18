@@ -1,0 +1,41 @@
+# Pulse — Supabase local config (minimal)
+# Full defaults applied by `supabase init` if regenerated.
+# Dev: supabase start (Docker) | fallback: remote free project
+
+[project]
+id = "pulse"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**"]
+enable_signup = true
+
+# Product decision: phone signup without SMS confirmation (sec. 7, 12.1).
+# Compensations: aggressive rate limits, report system, shadow-limiting later.
+[auth.sms]
+enable_signup = true
+enable_confirmations = false
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"

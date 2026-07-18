@@ -1,0 +1,81 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { Check } from "lucide-react";
+
+import type { DmPermission } from "@/lib/settings/prefs";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+
+const OPTIONS: { value: DmPermission; label: string }[] = [
+  { value: "everyone", label: "Todos" },
+  { value: "following", label: "So quem sigo" },
+  { value: "none", label: "Ninguem novo" },
+];
+
+export function DmPermissionForm({
+  initial,
+}: {
+  initial: DmPermission;
+}) {
+  const router = useRouter();
+  const [value, setValue] = useState<DmPermission>(initial);
+  const [pending, startTransition] = useTransition();
+
+  function select(next: DmPermission) {
+    if (next === value) return;
+    const prev = value;
+    setValue(next);
+    startTransition(async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("no session");
+
+        const { error } = await supabase
+          .from("profiles")
+          .update({ dm_permission: next })
+          .eq("id", user.id);
+        if (error) throw error;
+        router.refresh();
+      } catch {
+        setValue(prev);
+      }
+    });
+  }
+
+  return (
+    <ul className="mx-4 overflow-hidden rounded-[12px] bg-card divide-y divide-[var(--separator)]">
+      {OPTIONS.map((opt) => {
+        const selected = value === opt.value;
+        return (
+          <li key={opt.value}>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => select(opt.value)}
+              className={cn(
+                "flex min-h-[48px] w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors",
+                "active:bg-muted/60 hover:bg-muted/40 disabled:opacity-60",
+              )}
+            >
+              <span className="text-[16px] tracking-[-0.01em]">{opt.label}</span>
+              {selected ? (
+                <Check
+                  className="h-5 w-5 shrink-0 text-foreground"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+              ) : (
+                <span className="h-5 w-5 shrink-0" aria-hidden />
+              )}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
