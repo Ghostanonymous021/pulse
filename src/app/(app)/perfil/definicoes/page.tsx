@@ -25,6 +25,7 @@ import { PrivacySwitch } from "@/components/settings/privacy-switch";
 import { SettingsGroup } from "@/components/settings/settings-group";
 import { SettingsRow } from "@/components/settings/settings-row";
 import { SignOutAllRow } from "@/components/settings/sign-out-all-row";
+import { SignOutRow } from "@/components/settings/sign-out-row";
 import { isSyntheticPhoneEmail } from "@/lib/auth/phone";
 import { requireProfile } from "@/lib/auth/session";
 import { getLatestProfessionalRequest } from "@/lib/settings/professional";
@@ -169,6 +170,7 @@ export default async function DefinicoesPage() {
             label="Sessoes activas"
             href="/perfil/definicoes/sessoes"
           />
+          <SignOutRow />
           <SignOutAllRow />
           <SettingsRow
             icon={Shield}

@@ -184,7 +184,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           if (signInError) throw signInError;
         }
 
-        router.push("/onboarding/seguir");
+        router.push("/onboarding");
         router.refresh();
         return;
       } else {

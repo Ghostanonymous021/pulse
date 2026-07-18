@@ -3,18 +3,24 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { signOutThisDevice } from "@/lib/auth/sign-out";
 import { createClient } from "@/lib/supabase/client";
 
+/** Sair so neste dispositivo — nao afecta outros telemoveis / browsers. */
 export function SignOutButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function onClick() {
     setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    try {
+      const supabase = createClient();
+      await signOutThisDevice(supabase);
+      router.push("/login");
+      router.refresh();
+    } catch {
+      setLoading(false);
+    }
   }
 
   return (
@@ -24,7 +30,7 @@ export function SignOutButton() {
       disabled={loading}
       className="flex h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
     >
-      {loading ? "A sair..." : "Terminar sessao"}
+      {loading ? "A sair..." : "Sair"}
     </button>
   );
 }

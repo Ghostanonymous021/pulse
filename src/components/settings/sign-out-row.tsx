@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 
-import { signOutEverywhere } from "@/lib/auth/sign-out";
+import { signOutThisDevice } from "@/lib/auth/sign-out";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 /**
- * Security action only: kill sessions on every device.
- * Default "Sair" uses SignOutRow (local scope).
+ * Default exit: this device only.
+ * "Terminar em todos" stays as SignOutAllRow under Security.
  */
-export function SignOutAllRow() {
+export function SignOutRow() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -20,11 +20,8 @@ export function SignOutAllRow() {
     if (loading) return;
     setLoading(true);
     try {
-      await fetch("/api/settings/sessions", { method: "DELETE" }).catch(
-        () => null,
-      );
       const supabase = createClient();
-      await signOutEverywhere(supabase);
+      await signOutThisDevice(supabase);
       router.push("/login");
       router.refresh();
     } catch {
@@ -44,19 +41,20 @@ export function SignOutAllRow() {
         )}
       >
         <span
-          className="flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7px] bg-[#ff3b30]/10"
+          className="flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7px] bg-muted"
           aria-hidden
         >
-          <LogOut className="h-[17px] w-[17px] text-[#ff3b30]" strokeWidth={1.5} />
+          <LogOut
+            className="h-[17px] w-[17px] text-foreground/85"
+            strokeWidth={1.5}
+          />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[16px] tracking-[-0.01em] text-[#ff3b30]">
-            {loading
-              ? "A terminar..."
-              : "Terminar sessao em todos os dispositivos"}
+          <span className="block truncate text-[16px] tracking-[-0.01em]">
+            {loading ? "A sair..." : "Sair"}
           </span>
-          <span className="block truncate text-[12px] text-[#ff3b30]/80">
-            Inclui telemoveis e browsers
+          <span className="block truncate text-[12px] text-muted-foreground">
+            So neste dispositivo
           </span>
         </span>
       </button>

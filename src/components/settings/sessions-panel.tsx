@@ -62,7 +62,7 @@ export function SessionsPanel({
         await fetch("/api/settings/sessions", { method: "DELETE" });
         const supabase = createClient();
         const { error: signOutError } = await supabase.auth.signOut({
-          scope: "global",
+          scope: "global", // intentional: all devices from Sessions screen
         });
         if (signOutError) throw signOutError;
         router.push("/login");

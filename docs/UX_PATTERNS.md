@@ -53,16 +53,18 @@ Estados do botao (texto minimo, sem tutorial):
 - **Privada → publica (metodo IG):** pedidos pendentes passam a `accepted` (nao ficam no limbo).  
 - Perfil de terceiro: **Seguir** + **Mensagem** lado a lado (doc sec. 9.6).
 
-### 4. Onboarding "seguir pessoas" (Instagram first-open)
+### 4. Onboarding profissional (pos-signup)
 
-**Instagram:** apos criar conta, mostra contas sugeridas; feed vazio e inutil sem follows.
+**Pulse v1:** fluxo multi-ecra em `/onboarding` (chrome none):
 
-**Pulse v1:**
-- Depois do signup bem-sucedido → `/onboarding/seguir` (nao antes do telefone).  
-- Lista por **mesma universidade / campus / curso** (auto-declarado no perfil; se vazio, mostra organizacoes + contas recentes publicas).  
-- Cada linha: avatar, nome, @, meta uni·campus, botao Seguir.  
-- **Continuar** no fundo (mesmo sem seguir ninguem) — zero friccao obrigatoria.  
-- Nao forcar preencher curso no cadastro (sec. 7).
+1. **Bem-vindo** — valor do produto, CTA Comecar + Saltar  
+2. **Campus** — universidade / campus / curso / ano (tudo opcional)  
+3. **Foto** — upload opcional  
+4. **Seguir** — sugestoes por campus/curso/uni + Entrar no Pulse  
+
+- Signup → `/onboarding` (legado `/onboarding/seguir` redireciona).  
+- Zero campos obrigatorios alem do cadastro.  
+- Logout padrao = **so este dispositivo** (`scope: local`). “Todos os dispositivos” so em Seguranca.
 
 ### 5. Explorar (Instagram search + Facebook people search)
 
