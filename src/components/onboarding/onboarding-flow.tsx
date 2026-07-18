@@ -45,7 +45,7 @@ export function OnboardingFlow({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [university, setUniversity] = useState(profile.university ?? "UNISAVE");
+  const [university, setUniversity] = useState(profile.university ?? "");
   const [campus, setCampus] = useState(profile.campus ?? "");
   const [course, setCourse] = useState(profile.course ?? "");
   const [year, setYear] = useState(profile.year ?? "");
@@ -177,7 +177,7 @@ export function OnboardingFlow({
                 label="Universidade"
                 value={university}
                 onChange={setUniversity}
-                placeholder="UNISAVE"
+                placeholder="Nome da tua universidade"
               />
               <Field
                 label="Campus"

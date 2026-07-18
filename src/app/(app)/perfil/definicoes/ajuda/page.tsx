@@ -16,7 +16,7 @@ export default async function AjudaPage() {
               Contacto
             </p>
             <p className="mt-1 text-[14px] text-muted-foreground">
-              suporte@pulse.unisave.local
+              suporte@pulse.app
             </p>
           </li>
           <li className="px-3.5 py-3.5">

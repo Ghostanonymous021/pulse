@@ -26,7 +26,7 @@ export default async function PoliticaPrivacidadePage() {
           Dados de recuperacao (e-mail) so existem se os configurares.
         </p>
         <p className="text-[13px] text-muted-foreground">
-          Versao preliminar · UNISAVE · 2026
+          Versao preliminar · 2026
         </p>
       </article>
     </div>

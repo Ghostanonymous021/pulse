@@ -24,7 +24,7 @@ export default async function TermosPage() {
           a politica de privacidade.
         </p>
         <p className="text-[13px] text-muted-foreground">
-          Versao preliminar · UNISAVE · 2026
+          Versao preliminar · 2026
         </p>
       </article>
     </div>

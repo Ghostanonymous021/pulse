@@ -21,7 +21,7 @@ const COMMON = new Set(
     "letmein123",
     "welcome123",
     "mozambiqu1",
-    "unisave123",
+    "pulse123",
     "pulse12345",
   ].map((s) => s.toLowerCase()),
 );

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   applicationName: "Pulse",
   authors: [{ name: "Pulse" }],
   generator: "Next.js",
-  keywords: ["Pulse", "universidade", "social", "UNISAVE", "estudantes"],
+  keywords: ["Pulse", "universidade", "social", "estudantes"],
   referrer: "strict-origin-when-cross-origin",
   manifest: "/manifest.webmanifest",
   metadataBase: new URL(
