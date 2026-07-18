@@ -68,7 +68,7 @@ export function SuggestFollows({ suggestions }: { suggestions: Suggestion[] }) {
                 </p>
                 <p className="truncate text-[13px] text-muted-foreground">
                   @{s.username}
-                  {s.account_type === "organizacao" ? " · org" : ""}
+                  {s.account_type === "organizacao" ? " · Organização" : ""}
                 </p>
                 {meta ? (
                   <p className="truncate text-[12px] text-muted-foreground">

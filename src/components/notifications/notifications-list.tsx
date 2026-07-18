@@ -109,7 +109,7 @@ export function NotificationsList({
                 {!n.is_read && (
                   <span
                     className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#007AFF] transition-opacity"
-                    aria-label="Nao lida"
+                    aria-label="Não lida"
                   />
                 )}
               </Link>

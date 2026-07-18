@@ -87,7 +87,7 @@ export function OnboardingFlow({
       if (upErr) throw upErr;
       next();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nao foi possivel guardar.");
+      setError(e instanceof Error ? e.message : "Não foi possível guardar.");
     } finally {
       setUploading(false);
     }
@@ -109,7 +109,7 @@ export function OnboardingFlow({
       );
       setAvatarUrl(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Falha no upload.");
+      setError(e instanceof Error ? e.message : "Falha no envio.");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -162,7 +162,7 @@ export function OnboardingFlow({
             subtitle="A camada social da tua universidade. Feed unico, mensagens e perfil — sem ruido."
           >
             <div className="mt-10 flex flex-1 flex-col justify-end gap-3">
-              <PrimaryButton onClick={next} label="Comecar" />
+              <PrimaryButton onClick={next} label="Começar" />
             </div>
           </StepShell>
         )}
@@ -170,7 +170,7 @@ export function OnboardingFlow({
         {step === "campus" && (
           <StepShell
             title="Onde estudas"
-            subtitle="Ajuda o feed a encontrar colegas. Podes alterar depois."
+            subtitle="Ajuda o feed a encontrar colegas. Podes alterar isto depois."
           >
             <div className="mt-8 space-y-3">
               <Field
@@ -209,7 +209,7 @@ export function OnboardingFlow({
                 label={uploading ? "A guardar..." : "Continuar"}
                 disabled={uploading}
               />
-              <GhostButton onClick={next} label="Agora nao" />
+              <GhostButton onClick={next} label="Agora não" />
             </div>
           </StepShell>
         )}
@@ -270,12 +270,12 @@ export function OnboardingFlow({
         {step === "follow" && (
           <StepShell
             title="Segue gente da tua rede"
-            subtitle="O feed comeca a fazer sentido com as pessoas certas."
+            subtitle="O feed começa a fazer sentido com as pessoas certas."
           >
             <ul className="-mx-6 mt-6 max-h-[50vh] flex-1 divide-y divide-[var(--separator)] overflow-y-auto border-y border-[var(--separator)]">
               {suggestions.length === 0 && (
                 <li className="px-6 py-12 text-center text-[14px] text-muted-foreground">
-                  Ainda ha poucas contas. Encontra pessoas no Explorar.
+                  Ainda há poucas contas. Encontra pessoas em Explorar.
                 </li>
               )}
               {suggestions.map((s) => {
@@ -297,7 +297,7 @@ export function OnboardingFlow({
                       </p>
                       <p className="truncate text-[13px] text-muted-foreground">
                         @{s.username}
-                        {s.account_type === "organizacao" ? " · org" : ""}
+                        {s.account_type === "organizacao" ? " · Organização" : ""}
                       </p>
                       {meta ? (
                         <p className="truncate text-[12px] text-muted-foreground">
@@ -322,7 +322,7 @@ export function OnboardingFlow({
                 icon
               />
               <p className="text-center text-[12px] text-muted-foreground">
-                Podes seguir mais gente no Explorar a qualquer altura.
+                Podes seguir mais gente em Explorar a qualquer altura.
               </p>
             </div>
           </StepShell>
