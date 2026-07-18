@@ -7,7 +7,7 @@
 
 ## 1. O problema
 
-A UNISAVE tem campi em Xai-Xai, Maxixe, Massinga e Manhiça. São a mesma universidade, mas funcionam como ilhas:
+A universidade-piloto tem campi em Xai-Xai, Maxixe, Massinga e Manhiça. São a mesma instituição, mas funcionam como ilhas:
 
 - Não há um canal único da universidade para todos os estudantes de uma vez.
 - A informação depende de docentes reencaminharem em grupos de WhatsApp — lenta, incompleta, inconsistente.
@@ -16,7 +16,7 @@ A UNISAVE tem campi em Xai-Xai, Maxixe, Massinga e Manhiça. São a mesma univer
 - Estudantes com pequenos negócios, serviços, ou que procuram quarto/material, não têm onde divulgar.
 - Não existe lugar para mostrar talento — projetos, portfólio, iniciativa — fora do que a nota acadêmica mede.
 
-Isto não é exclusivo da UNISAVE. É o padrão em praticamente qualquer universidade: a vida estudantil acontece fragmentada entre WhatsApp, Facebook, Instagram, Telegram e cartazes físicos.
+Isto não é exclusivo desta universidade. É o padrão em praticamente qualquer universidade: a vida estudantil acontece fragmentada entre WhatsApp, Facebook, Instagram, Telegram e cartazes físicos.
 
 ---
 
@@ -31,9 +31,9 @@ Princípio central:
 > A universidade não é o centro. Os estudantes são.
 > A universidade entra na comunidade — não é dona dela.
 
-O estudante não entra "na UNISAVE". Entra na própria conta. O feed mostra o que faz sentido para ele: colegas, universidade, oportunidades, eventos, gente de outras universidades que ele decidiu seguir. Tudo misturado, como na vida real.
+O estudante não entra "na universidade". Entra na própria conta. O feed mostra o que faz sentido para ele: colegas, universidade, oportunidades, eventos, gente de outras universidades que ele decidiu seguir. Tudo misturado, como na vida real.
 
-**Lançamento:** fechado, multi-campus dentro da UNISAVE primeiro (Xai-Xai, Maxixe, Massinga, Manhiça). Provar o efeito de rede numa universidade antes de expandir para UEM, UP e outras. É o "Harvard do Facebook original" aplicado a Moçambique.
+**Lançamento:** fechado, multi-campus dentro da universidade-piloto primeiro (Xai-Xai, Maxixe, Massinga, Manhiça). Provar o efeito de rede numa universidade antes de expandir para outras. É o "Harvard do Facebook original" aplicado a Moçambique.
 
 ---
 

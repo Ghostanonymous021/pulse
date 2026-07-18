@@ -29,7 +29,7 @@ Este ficheiro não substitui `PULSE_VISAO_PRODUTO.md` — trabalha em conjunto c
 - Supabase (Postgres + Auth + Storage + Realtime), local via CLI em desenvolvimento, remoto em produção
 - RLS (Row Level Security) como linha de defesa primária — não é opcional, não é "para depois"
 
-**Lançamento:** fechado, multi-campus dentro da UNISAVE (Xai-Xai, Maxixe, Massinga, Manhiça) antes de qualquer expansão.
+**Lançamento:** fechado, multi-campus dentro da universidade-piloto (Xai-Xai, Maxixe, Massinga, Manhiça) antes de qualquer expansão.
 
 ---
 
