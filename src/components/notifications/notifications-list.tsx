@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { UserAvatar } from "@/components/profile/user-avatar";
 import {
   formatNotificationCopy,
   type NotificationView,
@@ -83,20 +84,20 @@ export function NotificationsList({
                   !n.is_read && "bg-muted/25",
                 )}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
-                  {n.actor?.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={n.actor.avatar_url}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    (n.actor?.display_name || n.actor?.username || "?")
-                      .slice(0, 1)
-                      .toUpperCase()
-                  )}
-                </div>
+                {n.actor ? (
+                  <UserAvatar
+                    userId={n.actor.id}
+                    avatarUrl={n.actor.avatar_url}
+                    name={
+                      n.actor.display_name || n.actor.username || "?"
+                    }
+                    size={40}
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
+                    ?
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] leading-snug tracking-[-0.01em]">
                     {title}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { UserAvatar } from "@/components/profile/user-avatar";
 import { createClient } from "@/lib/supabase/client";
 
 export type BlockedPerson = {
@@ -72,18 +73,12 @@ function BlockedRow({
         href={`/u/${person.username}`}
         className="flex min-w-0 flex-1 items-center gap-3"
       >
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
-          {person.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={person.avatar_url}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            (person.display_name || person.username).slice(0, 1).toUpperCase()
-          )}
-        </div>
+        <UserAvatar
+          userId={person.id}
+          avatarUrl={person.avatar_url}
+          name={person.display_name || person.username}
+          size={44}
+        />
         <div className="min-w-0">
           <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">
             {person.display_name || person.username}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/nav/page-header";
+import { UserAvatar } from "@/components/profile/user-avatar";
 import { requireUser } from "@/lib/auth/session";
 import { inboxTimeLabel, messagePreview } from "@/lib/chat/preview";
 import { listConversations, openDmWithUsername } from "@/lib/social/messages";
@@ -75,20 +76,13 @@ export default async function MensagensPage({
                   href={`/mensagens/${c.id}`}
                   className="flex items-center gap-3 px-4 py-3 transition-colors active:bg-muted/50 hover:bg-muted/35"
                 >
-                  <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[15px] font-semibold text-muted-foreground ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
-                    {c.other.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={c.other.avatar_url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (c.other.display_name || c.other.username)
-                        .slice(0, 1)
-                        .toUpperCase()
-                    )}
-                  </div>
+                  <UserAvatar
+                    userId={c.other.id}
+                    avatarUrl={c.other.avatar_url}
+                    name={c.other.display_name || c.other.username}
+                    size={52}
+                    className="ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
+                  />
                   <div className="min-w-0 flex-1 border-b border-[var(--separator)] pb-3 pt-0.5">
                     <div className="flex items-baseline justify-between gap-2">
                       <p className="truncate text-[16px] font-semibold tracking-[-0.02em]">

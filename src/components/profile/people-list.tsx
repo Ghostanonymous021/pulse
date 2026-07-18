@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { UserAvatar } from "@/components/profile/user-avatar";
 import type { FollowListPerson } from "@/lib/social/follows";
 
 export function PeopleList({ people }: { people: FollowListPerson[] }) {
@@ -21,18 +22,12 @@ export function PeopleList({ people }: { people: FollowListPerson[] }) {
               href={`/u/${p.username}`}
               className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
-                {p.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.avatar_url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (p.display_name || p.username).slice(0, 1).toUpperCase()
-                )}
-              </div>
+              <UserAvatar
+                userId={p.id}
+                avatarUrl={p.avatar_url}
+                name={p.display_name || p.username}
+                size={44}
+              />
               <div className="min-w-0">
                 <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">
                   {p.display_name || p.username}

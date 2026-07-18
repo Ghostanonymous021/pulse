@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 
 import { MentionField } from "@/components/compose/mention-field";
+import { UserAvatar } from "@/components/profile/user-avatar";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import {
   INITIAL_REPLY_VISIBLE,
@@ -119,8 +120,13 @@ function CommentBlock({
       )}
     >
       <div className="flex gap-2.5">
-        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
-          {name.slice(0, 1).toUpperCase()}
+        <div className="mt-0.5 shrink-0">
+          <UserAvatar
+            userId={node.author_id}
+            avatarUrl={node.author?.avatar_url}
+            name={name}
+            size={32}
+          />
         </div>
         <div className="min-w-0 flex-1">
           <div className="rounded-[var(--radius-md)] bg-muted/60 px-3 py-2">

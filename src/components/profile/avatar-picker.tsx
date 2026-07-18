@@ -1,12 +1,17 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
 
+import {
+  AVATAR_CHANGED_EVENT,
+  type AvatarChangedDetail,
+  readCachedAvatar,
+  withAvatarCacheBust,
+} from "@/lib/profile/avatar";
+import { uploadProfileAvatar } from "@/lib/profile/upload-avatar";
 import { createClient } from "@/lib/supabase/client";
-
-const MAX = 5 * 1024 * 1024;
 
 /**
  * Edit-profile avatar — label opens system gallery (works on iOS/Android).
@@ -23,25 +28,35 @@ export function AvatarPicker({
   const router = useRouter();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(avatarUrl);
+  const [preview, setPreview] = useState<string | null>(() => {
+    const cached = readCachedAvatar(userId);
+    if (cached) return withAvatarCacheBust(cached.url, cached.version);
+    return withAvatarCacheBust(avatarUrl, null);
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const cached = readCachedAvatar(userId);
+    if (cached) {
+      setPreview(withAvatarCacheBust(cached.url, cached.version));
+      return;
+    }
+    setPreview(withAvatarCacheBust(avatarUrl, null));
+  }, [avatarUrl, userId]);
+
+  useEffect(() => {
+    function onChange(e: Event) {
+      const d = (e as CustomEvent<AvatarChangedDetail>).detail;
+      if (!d || d.userId !== userId) return;
+      setPreview(withAvatarCacheBust(d.avatarUrl, d.version));
+    }
+    window.addEventListener(AVATAR_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(AVATAR_CHANGED_EVENT, onChange);
+  }, [userId]);
+
   async function onFile(file: File | null) {
     if (!file) return;
-    const type = file.type || "";
-    const okType =
-      type.startsWith("image/") ||
-      /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name);
-    if (!okType) {
-      setError("Escolhe uma imagem da galeria.");
-      return;
-    }
-    if (file.size > MAX) {
-      setError("Maximo 5 MB.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     const local = URL.createObjectURL(file);
@@ -49,43 +64,12 @@ export function AvatarPicker({
 
     try {
       const supabase = createClient();
-      let contentType = type || "image/jpeg";
-      let ext = "jpg";
-      if (type === "image/png" || /\.png$/i.test(file.name)) {
-        contentType = "image/png";
-        ext = "png";
-      } else if (type === "image/webp" || /\.webp$/i.test(file.name)) {
-        contentType = "image/webp";
-        ext = "webp";
-      } else if (/heic|heif/i.test(type) || /\.heic$/i.test(file.name)) {
-        contentType = type || "image/heic";
-        ext = "heic";
-      }
-
-      const path = `${userId}/avatar.${ext}`;
-
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, {
-          contentType,
-          upsert: true,
-        });
-      if (upErr) throw upErr;
-
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = `${pub.publicUrl}?t=${Date.now()}`;
-
-      const { error: pErr } = await supabase
-        .from("profiles")
-        .update({ avatar_url: url })
-        .eq("id", userId);
-      if (pErr) throw pErr;
-
+      const { url } = await uploadProfileAvatar(supabase, userId, file);
       setPreview(url);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha no upload.");
-      setPreview(avatarUrl);
+      setPreview(withAvatarCacheBust(avatarUrl, null));
     } finally {
       setLoading(false);
       if (inputRef.current) inputRef.current.value = "";

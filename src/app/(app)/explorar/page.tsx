@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { UserAvatar } from "@/components/profile/user-avatar";
 import { VerifiedBadge } from "@/components/social/verified-badge";
 import { requireUser } from "@/lib/auth/session";
 import {
@@ -175,18 +176,12 @@ export default async function ExplorarPage({
                   href={`/u/${a.username}`}
                   className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-semibold text-muted-foreground">
-                    {a.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={a.avatar_url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (a.display_name || a.username).slice(0, 1).toUpperCase()
-                    )}
-                  </div>
+                  <UserAvatar
+                    userId={a.id}
+                    avatarUrl={a.avatar_url}
+                    name={a.display_name || a.username}
+                    size={44}
+                  />
                   <div className="min-w-0">
                     <p className="flex min-w-0 items-center gap-1 truncate text-sm font-semibold">
                       <span className="truncate">

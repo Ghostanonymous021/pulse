@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, ChevronRight } from "lucide-react";
 
+import { UserAvatar } from "@/components/profile/user-avatar";
 import {
   FollowButton,
   type FollowUiState,
@@ -98,25 +99,14 @@ export function OnboardingFlow({
     setUploading(true);
     try {
       const supabase = createClient();
-      const type = file.type || "image/jpeg";
-      const ext =
-        type === "image/png"
-          ? "png"
-          : type === "image/webp"
-            ? "webp"
-            : "jpg";
-      const path = `${profile.id}/avatar.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { contentType: type, upsert: true });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = `${pub.publicUrl}?t=${Date.now()}`;
-      const { error: pErr } = await supabase
-        .from("profiles")
-        .update({ avatar_url: url })
-        .eq("id", profile.id);
-      if (pErr) throw pErr;
+      const { uploadProfileAvatar } = await import(
+        "@/lib/profile/upload-avatar"
+      );
+      const { url } = await uploadProfileAvatar(
+        supabase,
+        profile.id,
+        file,
+      );
       setAvatarUrl(url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha no upload.");
@@ -295,18 +285,12 @@ export function OnboardingFlow({
                     key={s.id}
                     className="flex items-center gap-3 px-4 py-3.5"
                   >
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
-                      {s.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={s.avatar_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        (s.display_name || s.username).slice(0, 1).toUpperCase()
-                      )}
-                    </div>
+                    <UserAvatar
+                      userId={s.id}
+                      avatarUrl={s.avatar_url}
+                      name={s.display_name || s.username}
+                      size={44}
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">
                         {s.display_name || s.username}

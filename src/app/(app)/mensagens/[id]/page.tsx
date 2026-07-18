@@ -54,6 +54,7 @@ export default async function ConversaPage({ params }: Props) {
     <ChatView
       conversationId={id}
       userId={user.id}
+      peerId={peerId ?? null}
       peerName={peerName}
       peerUsername={peerUsername}
       peerAvatarUrl={peerAvatarUrl}

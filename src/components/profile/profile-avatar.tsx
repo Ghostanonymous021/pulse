@@ -5,10 +5,15 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
+import {
+  AVATAR_CHANGED_EVENT,
+  type AvatarChangedDetail,
+  readCachedAvatar,
+  withAvatarCacheBust,
+} from "@/lib/profile/avatar";
+import { uploadProfileAvatar } from "@/lib/profile/upload-avatar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-
-const MAX = 5 * 1024 * 1024;
 
 /**
  * Profile photo:
@@ -34,7 +39,11 @@ export function ProfileAvatar({
   const router = useRouter();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [url, setUrl] = useState(avatarUrl);
+  const [url, setUrl] = useState<string | null>(() => {
+    const cached = readCachedAvatar(userId);
+    if (cached) return withAvatarCacheBust(cached.url, cached.version);
+    return withAvatarCacheBust(avatarUrl, null);
+  });
   const [sheetOpen, setSheetOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -42,7 +51,24 @@ export function ProfileAvatar({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => setMounted(true), []);
-  useEffect(() => setUrl(avatarUrl), [avatarUrl]);
+  useEffect(() => {
+    const cached = readCachedAvatar(userId);
+    if (cached) {
+      setUrl(withAvatarCacheBust(cached.url, cached.version));
+      return;
+    }
+    setUrl(withAvatarCacheBust(avatarUrl, null));
+  }, [avatarUrl, userId]);
+
+  useEffect(() => {
+    function onChange(e: Event) {
+      const d = (e as CustomEvent<AvatarChangedDetail>).detail;
+      if (!d || d.userId !== userId) return;
+      setUrl(withAvatarCacheBust(d.avatarUrl, d.version));
+    }
+    window.addEventListener(AVATAR_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(AVATAR_CHANGED_EVENT, onChange);
+  }, [userId]);
 
   useEffect(() => {
     if (!sheetOpen && !lightboxOpen) return;
@@ -77,20 +103,6 @@ export function ProfileAvatar({
   async function onFile(file: File | null) {
     if (!file) return;
 
-    // Accept image/* from gallery; reject obvious non-images
-    const type = file.type || "";
-    const okType =
-      type.startsWith("image/") ||
-      /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name);
-    if (!okType) {
-      setError("Escolhe uma imagem da galeria.");
-      return;
-    }
-    if (file.size > MAX) {
-      setError("Maximo 5 MB.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     const local = URL.createObjectURL(file);
@@ -99,55 +111,12 @@ export function ProfileAvatar({
 
     try {
       const supabase = createClient();
-      // Normalize content-type for storage (HEIC may arrive as empty type)
-      let contentType = type;
-      let ext = "jpg";
-      if (type === "image/png" || file.name.toLowerCase().endsWith(".png")) {
-        contentType = "image/png";
-        ext = "png";
-      } else if (
-        type === "image/webp" ||
-        file.name.toLowerCase().endsWith(".webp")
-      ) {
-        contentType = "image/webp";
-        ext = "webp";
-      } else if (
-        type === "image/heic" ||
-        type === "image/heif" ||
-        /\.heic$/i.test(file.name)
-      ) {
-        // Prefer re-encode path: store as jpeg name; browser may still upload heic bytes
-        contentType = type || "image/heic";
-        ext = "heic";
-      } else {
-        contentType = type || "image/jpeg";
-        ext = "jpg";
-      }
-
-      const path = `${userId}/avatar.${ext}`;
-
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, {
-          contentType,
-          upsert: true,
-        });
-      if (upErr) throw upErr;
-
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const next = `${pub.publicUrl}?t=${Date.now()}`;
-
-      const { error: pErr } = await supabase
-        .from("profiles")
-        .update({ avatar_url: next })
-        .eq("id", userId);
-      if (pErr) throw pErr;
-
+      const { url: next } = await uploadProfileAvatar(supabase, userId, file);
       setUrl(next);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha no upload.");
-      setUrl(avatarUrl);
+      setUrl(withAvatarCacheBust(avatarUrl, null));
       setSheetOpen(true);
     } finally {
       setLoading(false);

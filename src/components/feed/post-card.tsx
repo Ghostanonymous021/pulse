@@ -13,6 +13,7 @@ import {
   type PostFollowState,
 } from "@/components/feed/post-follow-icon";
 import { PostMenu } from "@/components/feed/post-menu";
+import { UserAvatar } from "@/components/profile/user-avatar";
 import { VerifiedBadge } from "@/components/social/verified-badge";
 import type { LinkPreview } from "@/lib/links/preview";
 import { isAuthorMuted } from "@/lib/social/mute";
@@ -98,18 +99,14 @@ export function PostCard({
       >
         <Link
           href={handle ? `/u/${handle}` : "#"}
-          className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground"
+          className="shrink-0 rounded-full"
         >
-          {post.author?.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.author.avatar_url}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            name.slice(0, 1).toUpperCase()
-          )}
+          <UserAvatar
+            userId={post.author_id}
+            avatarUrl={post.author?.avatar_url}
+            name={name}
+            size={36}
+          />
         </Link>
 
         <div className="min-w-0 flex-1">

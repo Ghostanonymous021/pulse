@@ -9,6 +9,7 @@ import {
   ChatComposer,
   type ChatSendPayload,
 } from "@/components/messages/chat-composer";
+import { UserAvatar } from "@/components/profile/user-avatar";
 import { buildChatRows, sameDay } from "@/lib/chat/dates";
 import type { ChatAttachment, ChatMessage } from "@/lib/chat/types";
 import { uploadChatFile } from "@/lib/chat/upload";
@@ -20,6 +21,7 @@ import { createClient } from "@/lib/supabase/client";
 export function ChatView({
   conversationId,
   userId,
+  peerId,
   peerName,
   peerUsername,
   peerAvatarUrl,
@@ -27,6 +29,7 @@ export function ChatView({
 }: {
   conversationId: string;
   userId: string;
+  peerId?: string | null;
   peerName: string;
   peerUsername?: string | null;
   peerAvatarUrl?: string | null;
@@ -441,18 +444,18 @@ export function ChatView({
           href={peerUsername ? `/u/${peerUsername}` : "/mensagens"}
           className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl py-1 pr-2 transition-opacity hover:opacity-80"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
-            {peerAvatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={peerAvatarUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              peerName.slice(0, 1).toUpperCase()
-            )}
-          </div>
+          {peerId ? (
+            <UserAvatar
+              userId={peerId}
+              avatarUrl={peerAvatarUrl}
+              name={peerName}
+              size={36}
+            />
+          ) : (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
+              {peerName.slice(0, 1).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0">
             <p className="truncate text-[16px] font-semibold tracking-[-0.02em]">
               {peerName}
@@ -477,16 +480,18 @@ export function ChatView({
       >
         {messages.length === 0 && (
           <div className="mx-auto mt-16 max-w-[17rem] text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground">
-              {peerAvatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={peerAvatarUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
+            <div className="mx-auto mb-4 flex justify-center">
+              {peerId ? (
+                <UserAvatar
+                  userId={peerId}
+                  avatarUrl={peerAvatarUrl}
+                  name={peerName}
+                  size={64}
                 />
               ) : (
-                peerName.slice(0, 1).toUpperCase()
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground">
+                  {peerName.slice(0, 1).toUpperCase()}
+                </div>
               )}
             </div>
             <p className="text-[15px] font-semibold tracking-[-0.02em]">
