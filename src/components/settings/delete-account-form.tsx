@@ -5,7 +5,7 @@ import { useState } from "react";
 
 const CONSEQUENCES = [
   "Perfil e dados de conta",
-  "Publicacoes e fotos",
+  "Publicações e fotos",
   "Mensagens e conversas",
   "Seguidores, pedidos e bloqueios",
   "Comentarios e curtidas",
@@ -36,13 +36,13 @@ export function DeleteAccountForm() {
         error?: string;
       } | null;
       if (!res.ok) {
-        throw new Error(body?.error || "Nao foi possivel apagar a conta.");
+        throw new Error(body?.error || "Não foi possível apagar a conta.");
       }
       router.push("/login");
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Nao foi possivel apagar a conta.",
+        err instanceof Error ? err.message : "Não foi possível apagar a conta.",
       );
       setLoading(false);
     }

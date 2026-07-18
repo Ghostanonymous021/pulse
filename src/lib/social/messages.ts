@@ -143,7 +143,7 @@ export async function openDmWithUsername(
     console.error("openDm profile", pErr.message);
     return { error: pErr.message };
   }
-  if (!profile) return { error: "Utilizador nao encontrado." };
+  if (!profile) return { error: "Utilizador não encontrado." };
 
   const { data, error } = await supabase.rpc("get_or_create_dm", {
     other_id: profile.id,
@@ -153,7 +153,7 @@ export async function openDmWithUsername(
     console.error("openDm rpc", error.message, error.details, error.hint);
     return { error: error.message };
   }
-  if (!data) return { error: "Nao foi possivel abrir a conversa." };
+  if (!data) return { error: "Não foi possível abrir a conversa." };
 
   return { conversationId: String(data) };
 }

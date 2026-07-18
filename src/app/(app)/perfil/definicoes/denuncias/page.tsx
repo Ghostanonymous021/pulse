@@ -4,7 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 export const metadata = { title: "Historico de denuncias" };
 
 const TARGET_LABEL: Record<string, string> = {
-  post: "Publicacao",
+  post: "Publicação",
   profile: "Perfil",
   message: "Mensagem",
 };

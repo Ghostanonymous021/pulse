@@ -95,7 +95,7 @@ export function FeedList({
     return (
       <div className="px-6 py-20 text-center">
         <p className="text-[15px] font-medium tracking-[-0.02em]">
-          O teu feed ainda esta quieto
+          O teu feed ainda está quieto
         </p>
         <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
           Segue colegas no Explorar ou publica a primeira coisa do dia.

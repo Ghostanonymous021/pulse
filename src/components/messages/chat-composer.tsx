@@ -211,11 +211,11 @@ export function ChatComposer({
     if (typeof window === "undefined") return;
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setMicError("Este browser nao suporta gravacao de audio.");
+      setMicError("Este browser não suporta gravação de áudio.");
       return;
     }
     if (typeof MediaRecorder === "undefined") {
-      setMicError("Este browser nao suporta MediaRecorder.");
+      setMicError("Este browser não suporta MediaRecorder.");
       return;
     }
 
@@ -681,7 +681,7 @@ export function ChatComposer({
             {/* Mic ⇄ Send morph */}
             <button
               type="button"
-              aria-label={hasContent ? "Enviar" : "Gravar audio"}
+              aria-label={hasContent ? "Enviar" : "Gravar áudio"}
               disabled={hasContent ? !canSend : loading || disabled}
               onClick={() => {
                 if (hasContent) void submit();

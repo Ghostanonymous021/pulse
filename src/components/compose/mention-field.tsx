@@ -163,7 +163,7 @@ export function MentionField(props: TextareaProps | InputProps) {
         <li className="px-3 py-2.5 text-[13px] text-muted-foreground">
           {active.query
             ? "Ninguem que segues com esse nome"
-            : "Segue alguem para mencionar"}
+            : "Segue alguém para mencionar"}
         </li>
       )}
       {items.map((u, i) => (

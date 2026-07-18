@@ -20,7 +20,7 @@ export function VerificationFlow({ profile }: { profile: Profile }) {
 
   return (
     <div className="pb-16">
-      <PageHeader title="Verificacao" backHref="/perfil/definicoes" />
+      <PageHeader title="Verificação" backHref="/perfil/definicoes" />
 
       <div className="flex flex-col items-center px-6 pt-14 text-center">
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
@@ -41,7 +41,7 @@ export function VerificationFlow({ profile }: { profile: Profile }) {
               Conta verificada
             </h1>
             <p className="mt-2 max-w-[280px] text-[15px] leading-snug text-muted-foreground">
-              O teu selo esta activo. Gerido pela equipa Pulse.
+              O teu selo está activo. Gerido pela equipa Pulse.
             </p>
             <div className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 text-[13px] font-medium text-foreground/80">
               <VerifiedBadge accountType={badgeType} size="sm" />
@@ -51,10 +51,10 @@ export function VerificationFlow({ profile }: { profile: Profile }) {
         ) : (
           <>
             <h1 className="text-[22px] font-semibold tracking-[-0.03em] text-foreground">
-              Selo de verificacao
+              Selo de verificação
             </h1>
             <p className="mt-2 max-w-[280px] text-[15px] leading-snug text-muted-foreground">
-              Em breve. Por agora, a verificacao e feita apenas pela equipa.
+              Em breve. Por agora, a verificação é feita apenas pela equipa.
             </p>
             <div className="mt-6 rounded-full bg-muted px-3.5 py-1.5 text-[13px] font-medium text-muted-foreground">
               Em breve

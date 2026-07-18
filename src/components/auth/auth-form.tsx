@@ -146,7 +146,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           );
         }
         if (availability.available === false) {
-          throw new Error("Esse username ja esta em uso. Escolhe outro.");
+          throw new Error("Esse username ja está em uso. Escolhe outro.");
         }
 
         const res = await fetch("/api/auth/signup", {
@@ -167,7 +167,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         };
 
         if (!res.ok) {
-          throw new Error(payload.error || "Nao foi possivel criar a conta.");
+          throw new Error(payload.error || "Não foi possível criar a conta.");
         }
 
         if (payload.login?.kind === "phone") {
@@ -211,7 +211,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       const message =
         err instanceof Error
           ? humanizeAuthError(err.message)
-          : "Nao foi possivel continuar.";
+          : "Não foi possível continuar.";
       setError(message);
     } finally {
       setLoading(false);
@@ -360,7 +360,7 @@ function UsernameStatus({
     return (
       <p className="text-[12px] text-[#ff3b30]">
         Indisponivel
-        {availability.suggestions.length > 0 ? " — escolhe uma opcao:" : ""}
+        {availability.suggestions.length > 0 ? " — escolhe uma opção:" : ""}
       </p>
     );
   }

@@ -15,7 +15,7 @@ export default async function PostarPage() {
 
   return (
     <div>
-      <PageHeader title="Nova publicacao" />
+      <PageHeader title="Nova publicação" />
       <ComposeForm
         canHighlight={isOrg}
         highlightWeeklyLimit={weeklyLimit || 3}

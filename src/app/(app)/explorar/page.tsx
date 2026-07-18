@@ -201,7 +201,7 @@ export default async function ExplorarPage({
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
                       @{a.username}
-                      {a.account_type === "organizacao" ? " · org" : ""}
+                      {a.account_type === "organizacao" ? " · Organização" : ""}
                     </p>
                     {meta && (
                       <p className="truncate text-xs text-muted-foreground">

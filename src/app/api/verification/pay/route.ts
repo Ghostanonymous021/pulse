@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
   let body: { request_id?: string; provider?: string };
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json(
       {
-        error: "Pagamento ainda nao disponivel neste ambiente.",
+        error: "Pagamento ainda não disponivel neste ambiente.",
         code: "PAYMENT_PROVIDER_UNAVAILABLE",
         status: "pending_payment",
       },
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     admin = createAdminClient();
   } catch {
     return NextResponse.json(
-      { error: "Servico de pagamento indisponivel." },
+      { error: "Serviço de pagamento indisponivel." },
       { status: 500 },
     );
   }
@@ -126,10 +126,10 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (reqErr || !reqRow) {
-    return NextResponse.json({ error: "Pedido nao encontrado." }, { status: 404 });
+    return NextResponse.json({ error: "Pedido não encontrado." }, { status: 404 });
   }
   if (reqRow.profile_id !== user.id) {
-    return NextResponse.json({ error: "Sem permissao." }, { status: 403 });
+    return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
   }
   if (
     reqRow.status !== "pending_payment" &&
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
     reqRow.status !== "pending_review"
   ) {
     return NextResponse.json(
-      { error: "Este pedido nao esta pronto para pagamento." },
+      { error: "Este pedido não está pronto para pagamento." },
       { status: 400 },
     );
   }

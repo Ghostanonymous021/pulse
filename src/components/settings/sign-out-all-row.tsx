@@ -53,7 +53,7 @@ export function SignOutAllRow() {
           <span className="block truncate text-[16px] tracking-[-0.01em] text-[#ff3b30]">
             {loading
               ? "A terminar..."
-              : "Terminar sessao em todos os dispositivos"}
+              : "Terminar sessão em todos os dispositivos"}
           </span>
           <span className="block truncate text-[12px] text-[#ff3b30]/80">
             Inclui telemoveis e browsers

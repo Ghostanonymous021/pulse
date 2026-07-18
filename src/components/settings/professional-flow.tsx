@@ -76,7 +76,7 @@ export function ProfessionalFlow({
       return;
     }
     if (tipo === "outro" && cleanDetalhe.length < 2) {
-      setError("Especifica o tipo de organizacao.");
+      setError("Especifica o tipo de organização.");
       return;
     }
     if (cleanDesc.length < 1) {
@@ -84,11 +84,11 @@ export function ProfessionalFlow({
       return;
     }
     if (cleanDesc.length > 200) {
-      setError("Descricao: maximo 200 caracteres.");
+      setError("Descricao: máximo 200 caracteres.");
       return;
     }
     if (cleanContact.length < 3) {
-      setError("Indica um contacto de verificacao.");
+      setError("Indica um contacto de verificação.");
       return;
     }
 
@@ -98,7 +98,7 @@ export function ProfessionalFlow({
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user) throw new Error("Sessao expirada.");
+        if (!user) throw new Error("Sessão expirada.");
 
         const { data, error: insertError } = await supabase
           .from("professional_requests")
@@ -122,7 +122,7 @@ export function ProfessionalFlow({
         router.refresh();
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Nao foi possivel enviar.",
+          err instanceof Error ? err.message : "Não foi possível enviar.",
         );
       }
     });
@@ -217,7 +217,7 @@ function IntroStep({ onContinue }: { onContinue: () => void }) {
           Modo profissional
         </h1>
         <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-          Conta de organizacao na rede — com destaque no feed.
+          Conta de organização na rede — com destaque no feed.
         </p>
       </div>
 
@@ -225,17 +225,17 @@ function IntroStep({ onContinue }: { onContinue: () => void }) {
         <IntroPoint
           icon={Megaphone}
           title="O que muda"
-          body="Selo de organizacao e possibilidade de destacar publicacoes no feed."
+          body="Selo de organização e possibilidade de destacar publicações no feed."
         />
         <IntroPoint
           icon={Building2}
-          title="Beneficios"
-          body="Alcance garantido em publicacoes destacadas e presenca como pagina institucional."
+          title="Benefícios"
+          body="Alcance garantido em publicações destacadas e presença como página institucional."
         />
         <IntroPoint
           icon={ShieldAlert}
           title="Responsabilidades"
-          body="Maximo 3 destaques por semana. Conteudo deve representar a organizacao. Uso indevido pode remover o estatuto."
+          body="Máximo 3 destaques por semana. Conteúdo deve representar a organização. Uso indevido pode remover o estatuto."
         />
       </ul>
 
@@ -316,7 +316,7 @@ function FormStep({
     >
       <h1 className="text-[22px] font-semibold tracking-[-0.03em]">Pedido</h1>
       <p className="text-[15px] leading-relaxed text-muted-foreground">
-        Dados da organizacao para revisao manual.
+        Dados da organização para revisão manual.
       </p>
 
       <Field label="Nome oficial">
@@ -326,7 +326,7 @@ function FormStep({
           maxLength={120}
           autoComplete="organization"
           className={fieldClass}
-          placeholder="Nome da organizacao"
+          placeholder="Nome da organização"
         />
       </Field>
 
@@ -354,7 +354,7 @@ function FormStep({
             onChange={(e) => onTipoDetalhe(e.target.value.slice(0, 80))}
             maxLength={80}
             className={fieldClass}
-            placeholder="Tipo de organizacao"
+            placeholder="Tipo de organização"
             autoFocus
           />
         </Field>
@@ -367,7 +367,7 @@ function FormStep({
           maxLength={200}
           rows={3}
           className={cn(fieldClass, "min-h-[88px] resize-none py-3")}
-          placeholder="O que a organizacao representa"
+          placeholder="O que a organização representa"
         />
         <p
           className={cn(
@@ -379,14 +379,14 @@ function FormStep({
         </p>
       </Field>
 
-      <Field label="Contacto de verificacao">
+      <Field label="Contacto de verificação">
         <input
           value={contacto}
           onChange={(e) => onContacto(e.target.value)}
           maxLength={200}
           autoComplete="email"
           className={fieldClass}
-          placeholder="Email, site ou pagina oficial"
+          placeholder="Email, site ou página oficial"
         />
       </Field>
 
@@ -444,7 +444,7 @@ function StatusStep({
       <StatusBlock
         icon={Check}
         title="Modo profissional activo"
-        body="A conta tem estatuto de organizacao e pode destacar publicacoes."
+        body="A conta tem estatuto de organização e pode destacar publicações."
       />
     );
   }
@@ -457,7 +457,7 @@ function StatusStep({
         body={
           request?.nome_organizacao
             ? `${request.nome_organizacao} — aguarda decisao.`
-            : "O pedido esta a ser analisado."
+            : "O pedido está a ser analisado."
         }
       />
     );
@@ -469,7 +469,7 @@ function StatusStep({
         <StatusBlock
           icon={XCircle}
           title="Pedido recusado"
-          body="Nao foi possivel activar o modo profissional com este pedido."
+          body="Não foi possível activar o modo profissional com este pedido."
         />
         <div className="px-5 pt-6">
           <button

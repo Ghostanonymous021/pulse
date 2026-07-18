@@ -67,7 +67,7 @@ export function MediaFrame({
         role="link"
         tabIndex={0}
         aria-label={
-          mode === "feed" ? "Abrir publicacao" : "Ver foto em ecran cheio"
+          mode === "feed" ? "Abrir publicação" : "Ver foto em ecrã cheio"
         }
         onClick={openPrimary}
         onKeyDown={(e) => {

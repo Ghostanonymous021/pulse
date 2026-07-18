@@ -69,7 +69,7 @@ export function SessionsPanel({
         router.refresh();
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Nao foi possivel terminar.",
+          err instanceof Error ? err.message : "Não foi possível terminar.",
         );
       }
     });
@@ -134,7 +134,7 @@ export function SessionsPanel({
         >
           {pending
             ? "A terminar..."
-            : "Terminar sessao em todos os dispositivos"}
+            : "Terminar sessão em todos os dispositivos"}
         </button>
         {error && (
           <p className="mt-2 text-center text-[13px] text-[#ff3b30]" role="alert">

@@ -8,7 +8,7 @@ export async function downloadFromUrl(
   fileName: string,
 ): Promise<void> {
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Nao foi possivel descarregar.");
+  if (!res.ok) throw new Error("Não foi possível descarregar.");
   const blob = await res.blob();
   await saveBlob(blob, fileName);
 }

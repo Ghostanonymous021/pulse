@@ -38,7 +38,7 @@ export function ProfileLinksEditor({
       return;
     }
     if (links.length >= MAX_PROFILE_LINKS) {
-      setError(`No maximo ${MAX_PROFILE_LINKS} links.`);
+      setError(`No máximo ${MAX_PROFILE_LINKS} links.`);
       return;
     }
 

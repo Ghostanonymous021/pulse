@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
   // Per-user cap (abuse isolation even if IP is shared on campus NAT)
@@ -78,12 +78,12 @@ export async function POST(request: Request) {
 
   if (postErr || !post) {
     return NextResponse.json(
-      { error: "Publicacao nao encontrada." },
+      { error: "Publicação não encontrada." },
       { status: 404 },
     );
   }
   if (post.author_id !== user.id) {
-    return NextResponse.json({ error: "Sem permissao." }, { status: 403 });
+    return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
   }
 
   const urls = extractUrls(post.body as string | null, 2);

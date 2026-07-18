@@ -55,7 +55,7 @@ export function ProfileHeader({
             </h1>
             <p className="text-[14px] text-muted-foreground">
               @{profile.username}
-              {profile.account_type === "organizacao" ? " · org" : ""}
+              {profile.account_type === "organizacao" ? " · Organização" : ""}
             </p>
           </div>
         </div>

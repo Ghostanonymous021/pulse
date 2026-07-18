@@ -41,7 +41,7 @@ export function PasswordForm() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Sessao expirada.");
+      if (!user) throw new Error("Sessão expirada.");
 
       const authEmail =
         user.email ||
@@ -60,7 +60,7 @@ export function PasswordForm() {
       setPhase("next");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Nao foi possivel verificar.",
+        err instanceof Error ? err.message : "Não foi possível verificar.",
       );
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export function PasswordForm() {
       return;
     }
     if (password !== confirm) {
-      setError("As senhas nao coincidem.");
+      setError("As senhas não coincidem.");
       return;
     }
     if (password === current) {
@@ -102,7 +102,7 @@ export function PasswordForm() {
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Nao foi possivel alterar.",
+        err instanceof Error ? err.message : "Não foi possível alterar.",
       );
     } finally {
       setLoading(false);

@@ -35,7 +35,7 @@ export function FollowButton({
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      setError("Inicia sessao.");
+      setError("Inicia sessão.");
       return;
     }
 

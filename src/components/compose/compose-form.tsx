@@ -44,7 +44,7 @@ export function ComposeForm({
         continue;
       }
       if (next.length >= maxPostImages()) {
-        setError(`No maximo ${maxPostImages()} imagens.`);
+        setError(`No máximo ${maxPostImages()} imagens.`);
         break;
       }
       next.push(file);
@@ -77,7 +77,7 @@ export function ComposeForm({
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Sessao expirada.");
+      if (!user) throw new Error("Sessão expirada.");
 
       const { data: post, error: insertError } = await supabase
         .from("posts")
@@ -112,7 +112,7 @@ export function ComposeForm({
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Nao foi possivel publicar.",
+        err instanceof Error ? err.message : "Não foi possível publicar.",
       );
     } finally {
       setLoading(false);

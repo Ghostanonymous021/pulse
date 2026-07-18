@@ -34,7 +34,7 @@ export function RecoveryEmailForm({
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Sessao expirada.");
+      if (!user) throw new Error("Sessão expirada.");
 
       await supabase.auth.updateUser({ email: value });
       const { error: updateError } = await supabase
@@ -46,7 +46,7 @@ export function RecoveryEmailForm({
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Nao foi possivel guardar.",
+        err instanceof Error ? err.message : "Não foi possível guardar.",
       );
     } finally {
       setLoading(false);

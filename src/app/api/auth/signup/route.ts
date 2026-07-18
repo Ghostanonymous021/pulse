@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
     if (taken) {
       return NextResponse.json(
-        { error: "Esse username ja esta em uso." },
+        { error: "Esse username ja está em uso." },
         { status: 409 },
       );
     }
@@ -174,7 +174,7 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Nao foi possivel criar a conta.";
+      err instanceof Error ? err.message : "Não foi possível criar a conta.";
     securityLog("signup_failed", { reason: message.slice(0, 80) });
     return NextResponse.json({ error: message }, { status: 500 });
   }

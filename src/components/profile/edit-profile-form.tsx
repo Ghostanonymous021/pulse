@@ -71,7 +71,7 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
 
       if (updateError) {
         if (updateError.message.toLowerCase().includes("username")) {
-          throw new Error("Esse username ja esta em uso.");
+          throw new Error("Esse username ja está em uso.");
         }
         throw updateError;
       }
@@ -80,7 +80,7 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Nao foi possivel guardar.",
+        err instanceof Error ? err.message : "Não foi possível guardar.",
       );
     } finally {
       setLoading(false);

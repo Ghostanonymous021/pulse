@@ -66,9 +66,9 @@ export function NotificationBell({
 
   return (
     <Link
-      href="/notificacoes"
+      href="/notificações"
       aria-label={
-        badge ? `Notificacoes, ${badge} nao lidas` : "Notificacoes"
+        badge ? `Notificações, ${badge} não lidas` : "Notificações"
       }
       className={cn(
         "relative rounded-full p-2.5 text-foreground/80 transition-colors hover:bg-muted hover:text-foreground",

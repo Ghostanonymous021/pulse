@@ -27,18 +27,18 @@ export function formatDuration(totalSec: number) {
 export function humanizeMicError(err: unknown): string {
   if (err instanceof DOMException) {
     if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-      return "Permite o microfone nas definicoes do browser para gravar audio.";
+      return "Permite o microfone nas definições do browser para gravar áudio.";
     }
     if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
       return "Nenhum microfone encontrado.";
     }
     if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-      return "O microfone esta a ser usado por outra app.";
+      return "O microfone está a ser usado por outra app.";
     }
     if (err.name === "SecurityError") {
       return "Microfone bloqueado neste contexto (usa HTTPS).";
     }
   }
   if (err instanceof Error && err.message) return err.message;
-  return "Nao foi possivel gravar audio.";
+  return "Não foi possível gravar áudio.";
 }

@@ -44,7 +44,7 @@ export const metadata = {
 const DM_LABEL: Record<DmPermission, string> = {
   everyone: "Todos",
   following: "So quem sigo",
-  none: "Ninguem novo",
+  none: "Ninguém novo",
 };
 
 /**
@@ -76,7 +76,7 @@ export default async function DefinicoesPage() {
   const isOrg = profile.account_type === "organizacao";
   const verified = isVerificationActive(profile);
 
-  const verificationLabel = "Selo de verificacao";
+  const verificationLabel = "Selo de verificação";
   const verificationValue = verified ? "Activo" : "Em breve";
 
   const proLabel = (() => {
@@ -113,7 +113,7 @@ export default async function DefinicoesPage() {
           />
           <SettingsRow
             icon={Phone}
-            label="Numero de telefone"
+            label="Número de telefone"
             value={profile.phone || "—"}
           />
           <SettingsRow
@@ -130,7 +130,7 @@ export default async function DefinicoesPage() {
           <SettingsRow
             icon={BadgeCheck}
             label={verificationLabel}
-            href="/perfil/definicoes/verificacao"
+            href="/perfil/definicoes/verificação"
             value={verificationValue}
           />
         </SettingsGroup>
@@ -156,19 +156,19 @@ export default async function DefinicoesPage() {
           <SettingsRow
             icon={Users}
             label="Seguidores e a seguir"
-            href="/perfil/definicoes/conexoes"
+            href="/perfil/definicoes/conexões"
           />
         </SettingsGroup>
 
         {/* —— Notificacoes (toggles individuais) —— */}
-        <NotificationToggles initial={notifPrefs} title="Notificacoes" />
+        <NotificationToggles initial={notifPrefs} title="Notificações" />
 
         {/* —— Seguranca —— */}
         <SettingsGroup title="Seguranca">
           <SettingsRow
             icon={Smartphone}
-            label="Sessoes activas"
-            href="/perfil/definicoes/sessoes"
+            label="Sessões activas"
+            href="/perfil/definicoes/sessões"
           />
           <SignOutRow />
           <SignOutAllRow />
@@ -180,7 +180,7 @@ export default async function DefinicoesPage() {
         </SettingsGroup>
 
         {/* —— Conteudo e dados —— */}
-        <SettingsGroup title="Conteudo e dados">
+        <SettingsGroup title="Conteúdo e dados">
           <SettingsRow
             icon={Download}
             label="Descarregar os meus dados"

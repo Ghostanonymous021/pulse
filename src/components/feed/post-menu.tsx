@@ -138,7 +138,7 @@ export function PostMenu({
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Acoes da publicacao"
+            aria-label="Ações da publicação"
             className="relative z-10 w-full max-w-lg px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-3"
           >
             <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--separator)] bg-[var(--elevated)] shadow-xl backdrop-blur-xl">
@@ -153,7 +153,7 @@ export function PostMenu({
                   {isOwner ? (
                     <>
                       <SheetAction
-                        label="Apagar publicacao"
+                        label="Apagar publicação"
                         destructive
                         disabled={busy}
                         onClick={() => setConfirmDelete(true)}
@@ -225,7 +225,7 @@ export function PostMenu({
                   {[
                     "Spam",
                     "Assedio ou abuso",
-                    "Conteudo enganoso",
+                    "Conteúdo enganoso",
                     "Outro",
                   ].map((reason) => (
                     <SheetAction
@@ -253,7 +253,7 @@ export function PostMenu({
     <>
       <button
         type="button"
-        aria-label="Mais acoes"
+        aria-label="Mais ações"
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}

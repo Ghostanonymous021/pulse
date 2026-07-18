@@ -14,7 +14,7 @@ export function validateImageFile(file: File): string | null {
     return "Usa JPEG, PNG, WebP ou GIF.";
   }
   if (file.size > MAX_BYTES) {
-    return "Cada imagem deve ter no maximo 10 MB.";
+    return "Cada imagem deve ter no máximo 10 MB.";
   }
   return null;
 }

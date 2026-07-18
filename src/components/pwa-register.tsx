@@ -184,7 +184,7 @@ export function PwaRegister() {
                 Instalar Pulse
               </p>
               <p className="text-[12px] text-muted-foreground">
-                Acesso rapido no ecran inicial
+                Acesso rápido no ecrã inicial
               </p>
             </div>
             <button

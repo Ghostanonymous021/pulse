@@ -123,7 +123,7 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Nao foi possivel verificar.";
+      err instanceof Error ? err.message : "Não foi possível verificar.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
