@@ -78,11 +78,14 @@ export default async function PostDetailPage({ params }: Props) {
   const tree = buildCommentTree(flat);
 
   return (
-    <div className="pb-10">
+    <div className="min-h-dvh">
       <PageHeader title="Publicacao" backHref="/home" />
       <PostCard post={post} variant="detail" />
       <section className="border-t border-[var(--separator)] px-4 pt-5">
-        <h2 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+        <h2
+          data-app-chrome
+          className="mb-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+        >
           Conversas
         </h2>
         <CommentThread postId={id} tree={tree} />

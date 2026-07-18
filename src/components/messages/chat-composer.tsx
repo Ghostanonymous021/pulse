@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 
+import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { formatDuration, humanizeMicError, pickAudioMime } from "@/lib/chat/audio";
 import { STICKER_PACK } from "@/lib/chat/types";
 import type { ChatMessage } from "@/lib/chat/types";
@@ -367,11 +368,11 @@ export function ChatComposer({
   const atLimit = pending.length >= MAX_CHAT_ATTACHMENTS;
 
   return (
-    <div
-      ref={rootRef}
-      className="fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--separator)] bg-[var(--elevated)] backdrop-blur-xl backdrop-saturate-150"
+    <FixedBottomBar
+      className="z-30"
+      innerClassName="relative"
     >
-      <div className="mx-auto w-full max-w-lg pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div ref={rootRef}>
         {replyTo && !recording && (
           <div className="flex items-start gap-2 border-b border-[var(--separator)] px-3 py-2.5">
             <div className="min-w-0 flex-1 border-l-[3px] border-l-[#007AFF] pl-2.5">
@@ -714,7 +715,7 @@ export function ChatComposer({
           </div>
         )}
       </div>
-    </div>
+    </FixedBottomBar>
   );
 }
 

@@ -6,18 +6,19 @@ import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 
 import { MentionField } from "@/components/compose/mention-field";
+import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import {
   INITIAL_REPLY_VISIBLE,
   type CommentNode,
 } from "@/lib/comments/tree";
 import { contentSegments } from "@/lib/mentions/segments";
 import { createClient } from "@/lib/supabase/client";
+import { useKeyboardInset } from "@/lib/ui/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 
 /**
  * Comments: max 2 visual levels (root + replies).
- * Deeper data is flattened with "Respondendo a @name".
- * Replies paginated (first 3, then "Ver mais").
+ * Composer tracks virtual keyboard (no fixed-bottom dance).
  */
 export function CommentThread({
   postId,
@@ -30,10 +31,16 @@ export function CommentThread({
     id: string;
     label: string;
   } | null>(null);
+  const keyboard = useKeyboardInset();
+  // Reserve space so last comments stay above the bar (+ keyboard)
+  const bottomPad = Math.max(keyboard + 88, 112);
 
   return (
-    <div className="relative flex min-h-[50vh] flex-col">
-      <div className="min-h-0 flex-1 space-y-5 pb-28">
+    <div className="relative flex min-h-[40vh] flex-col">
+      <div
+        className="min-h-0 flex-1 space-y-5"
+        style={{ paddingBottom: bottomPad }}
+      >
         {tree.length === 0 && (
           <p className="py-6 text-center text-[14px] text-muted-foreground">
             Ainda sem comentarios.
@@ -50,34 +57,32 @@ export function CommentThread({
         ))}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--separator)] bg-[var(--elevated)] backdrop-blur-xl">
-        <div className="mx-auto max-w-lg px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
-          {replyTo && (
-            <div className="mb-2 flex items-center justify-between rounded-lg bg-muted/60 px-3 py-1.5 text-[12px]">
-              <span className="truncate text-muted-foreground">
-                A responder a <strong>{replyTo.label}</strong>
-              </span>
-              <button
-                type="button"
-                className="ml-2 font-medium"
-                onClick={() => setReplyTo(null)}
-              >
-                Cancelar
-              </button>
-            </div>
-          )}
-          <CommentComposer
-            postId={postId}
-            parentId={replyTo?.id}
-            onDone={() => setReplyTo(null)}
-            placeholder={
-              replyTo
-                ? `Resposta a ${replyTo.label}`
-                : "Escreve um comentario..."
-            }
-          />
-        </div>
-      </div>
+      <FixedBottomBar innerClassName="px-3 pt-2">
+        {replyTo && (
+          <div className="mb-2 flex items-center justify-between rounded-lg bg-muted/60 px-3 py-1.5 text-[12px]">
+            <span className="truncate text-muted-foreground">
+              A responder a <strong>{replyTo.label}</strong>
+            </span>
+            <button
+              type="button"
+              className="ml-2 font-medium"
+              onClick={() => setReplyTo(null)}
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+        <CommentComposer
+          postId={postId}
+          parentId={replyTo?.id}
+          onDone={() => setReplyTo(null)}
+          placeholder={
+            replyTo
+              ? `Resposta a ${replyTo.label}`
+              : "Escreve um comentario..."
+          }
+        />
+      </FixedBottomBar>
     </div>
   );
 }
@@ -349,7 +354,20 @@ function CommentComposer({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex gap-2">
+    <form
+      onSubmit={onSubmit}
+      className="flex items-end gap-2"
+      // Prevent iOS zoom thrash + keep bar stable while typing
+      onFocusCapture={() => {
+        // After keyboard settles, keep the focused field in view without jumping the whole page
+        window.setTimeout(() => {
+          const el = document.activeElement;
+          if (el instanceof HTMLElement) {
+            el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        }, 80);
+      }}
+    >
       <div className="min-w-0 flex-1">
         <MentionField
           as="input"
@@ -358,13 +376,15 @@ function CommentComposer({
           placeholder={placeholder}
           maxLength={2000}
           listPlacement="above"
-          className="h-11 w-full rounded-full border border-[var(--separator)] bg-card px-4 text-[14px] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
+          enterKeyHint="send"
+          autoComplete="off"
+          className="h-11 w-full rounded-full border border-[var(--separator)] bg-card px-4 text-[16px] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
         />
       </div>
       <button
         type="submit"
         disabled={loading || !body.trim()}
-        className="h-11 shrink-0 px-2 text-[14px] font-semibold tracking-[-0.01em] disabled:opacity-35"
+        className="mb-0.5 h-11 shrink-0 px-2 text-[15px] font-semibold tracking-[-0.01em] disabled:opacity-35"
       >
         Publicar
       </button>
