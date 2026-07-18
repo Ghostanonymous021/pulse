@@ -34,6 +34,7 @@ export function ExpandableText({
   if (expanded || open) {
     return (
       <p
+        data-user-content
         className={cn(
           "whitespace-pre-wrap text-[15px] leading-[1.5] tracking-[-0.01em] text-foreground",
           className,
@@ -48,6 +49,7 @@ export function ExpandableText({
     <div className={className}>
       <p
         ref={ref}
+        data-user-content
         className="line-clamp-feed whitespace-pre-wrap text-[15px] leading-[1.5] tracking-[-0.01em] text-foreground"
       >
         {text}

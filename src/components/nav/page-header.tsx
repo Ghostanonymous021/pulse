@@ -30,6 +30,7 @@ export function PageHeader({
 
   return (
     <header
+      data-app-chrome
       className={cn(
         "sticky top-0 z-20 flex h-12 shrink-0 items-center bg-[var(--elevated)] px-3 backdrop-blur-xl backdrop-saturate-150",
         border && "border-b border-[var(--separator)]",

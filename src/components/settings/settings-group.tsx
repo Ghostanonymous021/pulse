@@ -14,7 +14,7 @@ export function SettingsGroup({
   className?: string;
 }) {
   return (
-    <section className={cn("px-4", className)}>
+    <section data-app-chrome className={cn("px-4", className)}>
       {title ? (
         <h2 className="mb-1.5 px-3.5 text-[13px] font-normal tracking-[-0.01em] text-muted-foreground">
           {title}

@@ -36,6 +36,7 @@ export function SettingsRow({
   const content = (
     <>
       <span
+        data-app-chrome
         className={cn(
           "flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7px] bg-muted",
           destructive && "bg-[#ff3b30]/10",

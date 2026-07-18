@@ -92,7 +92,10 @@ export function PostCard({
       )}
     >
       {/* Header — single-line name, no @username */}
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div
+        data-app-chrome
+        className="flex items-center gap-3 px-4 py-3"
+      >
         <Link
           href={handle ? `/u/${handle}` : "#"}
           className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground"

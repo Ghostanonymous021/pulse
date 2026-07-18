@@ -32,7 +32,10 @@ export function ProfileHeader({
 
   return (
     <div className="pb-1">
-      <div className="flex items-start justify-between px-4 pt-5">
+      <div
+        data-app-chrome
+        className="flex items-start justify-between px-4 pt-5"
+      >
         <div className="flex min-w-0 gap-4">
           <ProfileAvatar
             userId={profile.id}
@@ -69,18 +72,26 @@ export function ProfileHeader({
 
       <div className="mt-4 px-4">
         {profile.bio && (
-          <p className="text-[15px] leading-[1.45] tracking-[-0.01em]">
+          <p
+            data-user-content
+            className="text-[15px] leading-[1.45] tracking-[-0.01em]"
+          >
             {profile.bio}
           </p>
         )}
         {metaLine && (
-          <p className="mt-1.5 text-[13px] text-muted-foreground">{metaLine}</p>
+          <p
+            data-app-chrome
+            className="mt-1.5 text-[13px] text-muted-foreground"
+          >
+            {metaLine}
+          </p>
         )}
 
         <ProfileLinksRow links={links} />
 
         {/* Counts — followers/following open lists (IG pattern) */}
-        <div className="mt-4 flex gap-5 text-[14px]">
+        <div data-app-chrome className="mt-4 flex gap-5 text-[14px]">
           <span>
             <strong className="font-semibold tabular-nums tracking-tight">
               {counts.posts}

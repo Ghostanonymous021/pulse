@@ -50,6 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {showFooter && (
         <nav
+          data-app-chrome
           aria-label="Principal"
           className="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--separator)] bg-[var(--elevated)] backdrop-blur-xl backdrop-saturate-150"
         >

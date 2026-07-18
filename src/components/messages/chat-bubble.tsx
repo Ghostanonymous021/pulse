@@ -658,6 +658,7 @@ function MessageBody({
 
       {message.body ? (
         <p
+          data-user-content
           className={cn(
             "whitespace-pre-wrap text-[15px] leading-[1.35] tracking-[-0.01em]",
             imageWithText ? "px-3 pt-2" : "",

@@ -17,7 +17,10 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-lg flex-col justify-between px-6 py-16">
+    <div
+      data-app-chrome
+      className="mx-auto flex min-h-full w-full max-w-lg flex-col justify-between px-6 py-16"
+    >
       <div className="space-y-3 pt-12">
         <p className="text-sm font-medium text-muted-foreground">Pulse</p>
         <h1 className="text-3xl font-semibold tracking-tight">

@@ -99,6 +99,56 @@ body {
   outline-offset: 2px;
 }
 
+/*
+ * Text selection — app-like chrome vs user content
+ * Chrome (nav, headers, logos, labels, buttons): not selectable / no iOS callout.
+ * User content (posts, comments, DMs, captions): still selectable and copyable.
+ */
+.app-chrome,
+nav,
+header,
+[data-app-chrome],
+button,
+[role="tablist"],
+[role="toolbar"],
+[role="menubar"],
+[role="navigation"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Fields always allow selection (login, compose, chat, settings) */
+input,
+textarea,
+select,
+[contenteditable="true"],
+[contenteditable=""] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Explicit user-generated content */
+.user-content,
+[data-user-content] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default;
+}
+
+/* Utility mirrors (Tailwind-friendly) */
+.select-app {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.select-content {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 /* Soft page transitions where supported (Chrome/Edge/Safari recent) */
 @view-transition {
   navigation: auto;

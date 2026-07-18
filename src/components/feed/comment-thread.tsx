@@ -140,7 +140,10 @@ function CommentBlock({
                 </Link>
               </p>
             )}
-            <p className="mt-0.5 whitespace-pre-wrap text-[14px] leading-[1.45] tracking-[-0.01em]">
+            <p
+              data-user-content
+              className="mt-0.5 whitespace-pre-wrap text-[14px] leading-[1.45] tracking-[-0.01em]"
+            >
               <CommentBody text={node.body} />
             </p>
           </div>
