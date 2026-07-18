@@ -8,17 +8,6 @@ import { rememberFeedScroll } from "@/components/feed/feed-list";
 import type { PostMediaView } from "@/components/feed/post-card";
 import { cn } from "@/lib/utils";
 
-/**
- * Feed media frame.
- *
- * Big networks:
- * - Instagram: fixed ratio + object-cover (crops edges; user crops at compose).
- * - Facebook / X: prefer showing the full photo; letterbox when needed.
- *
- * Pulse: stable 4:5 box (scroll doesn’t jump) + object-contain so the whole
- * photo is visible. Bars use muted background — never zoom-crop the image.
- * Lightbox still shows full resolution without crop.
- */
 export function MediaFrame({
   media,
   postId,
@@ -77,41 +66,36 @@ export function MediaFrame({
           }
         }}
         className={cn(
-          "relative w-full cursor-pointer overflow-hidden bg-muted",
-          // Stable height (IG-style). Image fits inside without crop.
-          "aspect-[4/5]",
+          "relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-muted",
+          "max-h-[70vh]",
           mode === "detail" && "cursor-zoom-in",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/25",
         )}
       >
         {total === 1 ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={media[0].url!}
             alt=""
             loading="lazy"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-contain object-center"
+            className="block max-h-[70vh] w-full object-contain object-center"
             draggable={false}
           />
         ) : (
           <div
             ref={scroller}
             onScroll={onScroll}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className="carousel-x absolute inset-0 flex snap-x snap-mandatory overflow-x-auto"
+            onClick={(e) => e.stopPropagation()}
+            className="carousel-x flex w-full snap-x snap-mandatory overflow-x-auto"
           >
             {media.map((m) => (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={m.id}
                 src={m.url!}
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="h-full w-full min-w-full shrink-0 snap-center object-contain object-center"
+                className="block max-h-[70vh] w-full min-w-full shrink-0 snap-center object-contain object-center"
                 draggable={false}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -127,6 +111,7 @@ export function MediaFrame({
             <div className="pointer-events-none absolute right-3 top-3 rounded-full bg-black/40 px-2 py-0.5 text-[11px] font-medium tabular-nums text-white">
               {index + 1}/{total}
             </div>
+
             <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1">
               {media.map((m, i) => (
                 <span
@@ -155,6 +140,7 @@ export function MediaFrame({
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
           </button>
+
           <button
             type="button"
             aria-label="Seguinte"
