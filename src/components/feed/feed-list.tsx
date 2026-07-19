@@ -1,17 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Sparkles } from "lucide-react";
+import { ArrowUp, Sparkles } from "lucide-react";
 
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Spinner } from "@/components/ui/spinner";
 import { FEED_PAGE_SIZE } from "@/lib/posts/feed";
 
 const SCROLL_KEY = "pulse:feed-scroll";
+const NEW_POSTS_POLL_MS = 25_000;
+const NEAR_TOP_PX = 80;
 
 /**
  * Infinite feed + scroll restore when returning from /p/[id].
  * Initial page from RSC; more via /api/feed (no full document reload).
+ * Polls for new posts at the top; if the user is scrolled down,
+ * shows a "novas publicações" pill instead of shifting content
+ * under them (Twitter/X pattern).
  */
 export function FeedList({
   initialPosts,
@@ -24,8 +30,14 @@ export function FeedList({
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [newPosts, setNewPosts] = useState<PostWithAuthor[]>([]);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadingMore = useRef(false);
+  const postsRef = useRef(posts);
+
+  useEffect(() => {
+    postsRef.current = posts;
+  }, [posts]);
 
   useEffect(() => {
     setPosts(initialPosts);
@@ -93,6 +105,47 @@ export function FeedList({
     return () => io.disconnect();
   }, [loadMore, nextOffset]);
 
+  // Poll for new posts at the top of the feed.
+  useEffect(() => {
+    if (posts.length === 0) return;
+
+    async function checkForNew() {
+      try {
+        const res = await fetch(`/api/feed?offset=0&limit=${FEED_PAGE_SIZE}`);
+        if (!res.ok) return;
+        const body = (await res.json()) as { posts?: PostWithAuthor[] };
+        const latest = body.posts ?? [];
+        const known = new Set(postsRef.current.map((p) => p.id));
+        const fresh = latest.filter((p) => !known.has(p.id));
+        if (fresh.length === 0) return;
+
+        if (window.scrollY < NEAR_TOP_PX) {
+          // Already at the top — safe to insert directly, nothing shifts under the reader.
+          setPosts((prev) => [...fresh, ...prev]);
+        } else {
+          setNewPosts((prev) => {
+            const seen = new Set(prev.map((p) => p.id));
+            return [...prev, ...fresh.filter((p) => !seen.has(p.id))];
+          });
+        }
+      } catch {
+        /* silent — next poll retries */
+      }
+    }
+
+    const id = setInterval(checkForNew, NEW_POSTS_POLL_MS);
+    return () => clearInterval(id);
+  }, [posts.length]);
+
+  function showNewPosts() {
+    setPosts((prev) => {
+      const seen = new Set(prev.map((p) => p.id));
+      return [...newPosts.filter((p) => !seen.has(p.id)), ...prev];
+    });
+    setNewPosts([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   if (posts.length === 0) {
     return (
       <EmptyState
@@ -106,14 +159,29 @@ export function FeedList({
 
   return (
     <>
+      {newPosts.length > 0 && (
+        <div className="sticky top-12 z-30 flex justify-center py-2">
+          <button
+            type="button"
+            onClick={showNewPosts}
+            className="flex items-center gap-1.5 rounded-full bg-[#FF9F0A] px-4 py-2 text-[13px] font-semibold text-black shadow-lg transition-transform active:scale-95"
+          >
+            <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
+            {newPosts.length === 1
+              ? "1 nova publicação"
+              : `${newPosts.length} novas publicações`}
+          </button>
+        </div>
+      )}
+
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
       <div ref={sentinel} className="h-8" aria-hidden />
       {pending && (
-        <p className="py-4 text-center text-[13px] text-muted-foreground">
-          A carregar...
-        </p>
+        <div className="flex justify-center py-4">
+          <Spinner className="h-4 w-4 text-muted-foreground" />
+        </div>
       )}
       {error && (
         <button
