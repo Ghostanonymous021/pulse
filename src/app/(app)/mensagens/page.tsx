@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { requireUser } from "@/lib/auth/session";
 import { inboxTimeLabel, messagePreview } from "@/lib/chat/preview";
 import { listConversations, openDmWithUsername } from "@/lib/social/messages";
+import { cn } from "@/lib/utils";
 
 export const metadata = {
   title: "Mensagens",
@@ -79,19 +80,46 @@ export default async function MensagensPage({
                   />
                   <div className="min-w-0 flex-1 border-b border-[var(--separator)] pb-3 pt-0.5">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="truncate text-[16px] font-semibold tracking-[-0.02em]">
+                      <p
+                        className={cn(
+                          "truncate text-[16px] tracking-[-0.02em]",
+                          c.unread ? "font-bold" : "font-semibold",
+                        )}
+                      >
                         {c.other.display_name || c.other.username}
                       </p>
                       {time ? (
-                        <span className="shrink-0 text-[12px] tabular-nums text-muted-foreground">
+                        <span
+                          className={cn(
+                            "shrink-0 text-[12px] tabular-nums",
+                            c.unread
+                              ? "font-semibold text-[#FF9F0A]"
+                              : "text-muted-foreground",
+                          )}
+                        >
                           {time}
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-0.5 truncate text-[14px] text-muted-foreground">
-                      {prefix}
-                      {preview}
-                    </p>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <p
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-[14px]",
+                          c.unread
+                            ? "font-medium text-foreground"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {prefix}
+                        {preview}
+                      </p>
+                      {c.unread && (
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#FF9F0A]"
+                          aria-label="Não lida"
+                        />
+                      )}
+                    </div>
                   </div>
                 </Link>
               </li>

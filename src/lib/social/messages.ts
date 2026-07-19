@@ -13,6 +13,7 @@ export type ConversationListItem = {
     message_type: MessageType;
     deleted_at: string | null;
   } | null;
+  unread: boolean;
 };
 
 export async function listConversations(
@@ -21,7 +22,7 @@ export async function listConversations(
 ): Promise<ConversationListItem[]> {
   const { data: memberships, error } = await supabase
     .from("conversation_participants")
-    .select("conversation_id")
+    .select("conversation_id, last_read_at")
     .eq("user_id", userId);
 
   if (error) {
@@ -31,6 +32,9 @@ export async function listConversations(
   if (!memberships?.length) return [];
 
   const convIds = memberships.map((m) => m.conversation_id);
+  const lastReadByConv = new Map(
+    memberships.map((m) => [m.conversation_id, m.last_read_at as string]),
+  );
 
   // Two-step: avoid fragile nested embeds across RLS
   const { data: participants, error: pErr } = await supabase
@@ -107,6 +111,11 @@ export async function listConversations(
     if (!otherId) continue;
     const other = profileById.get(otherId);
     if (!other) continue;
+    const lastReadAt = lastReadByConv.get(id);
+    const unread = Boolean(
+      last.sender_id !== userId &&
+        (!lastReadAt || new Date(last.created_at) > new Date(lastReadAt)),
+    );
     items.push({
       id,
       other: {
@@ -116,6 +125,7 @@ export async function listConversations(
         avatar_url: other.avatar_url,
       },
       lastMessage: last,
+      unread,
     });
   }
 
@@ -126,6 +136,18 @@ export async function listConversations(
   });
 
   return items;
+}
+
+export async function markConversationRead(
+  supabase: SupabaseClient,
+  conversationId: string,
+): Promise<void> {
+  const { error } = await supabase.rpc("mark_conversation_read", {
+    conv_id: conversationId,
+  });
+  if (error) {
+    console.error("markConversationRead", error.message);
+  }
 }
 
 export async function openDmWithUsername(

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ChatView } from "@/components/messages/chat-view";
 import { loadConversationMessages } from "@/lib/chat/load";
 import { requireUser } from "@/lib/auth/session";
+import { markConversationRead } from "@/lib/social/messages";
 import type { Profile } from "@/types/database";
 
 type Props = { params: Promise<{ id: string }> };
@@ -17,6 +18,11 @@ export default async function ConversaPage({ params }: Props) {
     .eq("conversation_id", id)
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (membership) {
+    // Fire-and-forget: don't block render on this.
+    void markConversationRead(supabase, id);
+  }
 
   if (!membership) notFound();
 

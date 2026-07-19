@@ -532,12 +532,17 @@ type Tables = {
       conversation_id: string;
       user_id: string;
       joined_at: string;
+      last_read_at: string;
     };
     Insert: {
       conversation_id: string;
       user_id: string;
     };
-    Update: Partial<{ conversation_id: string; user_id: string }>;
+    Update: Partial<{
+      conversation_id: string;
+      user_id: string;
+      last_read_at: string;
+    }>;
     Relationships: [];
   };
   messages: {
@@ -650,6 +655,14 @@ export type Database = {
       get_or_create_dm: {
         Args: { other_id: string };
         Returns: string;
+      };
+      mark_conversation_read: {
+        Args: { conv_id: string };
+        Returns: undefined;
+      };
+      unread_conversations_count: {
+        Args: Record<string, never>;
+        Returns: number;
       };
     };
     Enums: {

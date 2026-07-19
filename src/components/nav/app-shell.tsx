@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { getChromeMode } from "@/components/nav/chrome";
+import { MessagesBadge } from "@/components/nav/messages-badge";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { cn } from "@/lib/utils";
 
@@ -70,13 +71,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   aria-label={label}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
+                    "relative flex h-11 w-11 items-center justify-center rounded-full transition-colors",
                     active
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <Icon className="h-6 w-6" strokeWidth={active ? 2 : 1.5} />
+                  {href === "/mensagens" && <MessagesBadge />}
                 </Link>
               );
             })}
