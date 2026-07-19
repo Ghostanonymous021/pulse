@@ -107,7 +107,7 @@ export default async function PublicProfilePage({ params }: Props) {
             Conta privada
           </p>
           <p className="mt-1 text-[14px] text-muted-foreground">
-            Segue para ver as publicacoes.
+            Segue para ver as publicações.
           </p>
         </div>
       ) : (

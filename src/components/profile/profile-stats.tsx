@@ -1,5 +1,7 @@
 /**
  * Basic verified-org analytics — not a dashboard.
+ * Deliberately understated: this is a secondary detail for the
+ * profile owner, never competing visually with identity/counts.
  */
 export function ProfileStats({
   profileViews,
@@ -9,23 +11,22 @@ export function ProfileStats({
   postReach: number;
 }) {
   return (
-    <div className="mx-4 mt-4 grid grid-cols-2 gap-2">
-      <StatCard label="Visualizacoes" value={profileViews} />
-      <StatCard label="Alcance" value={postReach} />
+    <div className="mx-4 mt-3 flex items-center gap-4 rounded-[10px] border border-[var(--separator)] bg-card px-3.5 py-2.5">
+      <Stat label="Visualizações" value={profileViews} />
+      <div className="h-6 w-px bg-[var(--separator)]" aria-hidden />
+      <Stat label="Alcance" value={postReach} />
     </div>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-[12px] border border-[var(--separator)] bg-card px-3.5 py-3">
-      <p className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
+    <p className="text-[12px] text-muted-foreground">
+      <span className="font-semibold tabular-nums text-foreground">
         {formatCompact(value)}
-      </p>
-    </div>
+      </span>{" "}
+      {label.toLowerCase()}
+    </p>
   );
 }
 

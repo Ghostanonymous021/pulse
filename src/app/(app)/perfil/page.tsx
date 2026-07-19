@@ -1,3 +1,7 @@
+import { Settings } from "lucide-react";
+import Link from "next/link";
+
+import { PageHeader } from "@/components/nav/page-header";
 import { ProfileCompleteBanner } from "@/components/profile/profile-complete-banner";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileStats } from "@/components/profile/profile-stats";
@@ -50,6 +54,19 @@ export default async function PerfilPage() {
 
   return (
     <div className="pb-4">
+      <PageHeader
+        title={profile.display_name || profile.username}
+        right={
+          <Link
+            href="/perfil/definicoes"
+            aria-label="Definicoes"
+            className="rounded-full p-2.5 text-foreground/80 transition-colors hover:bg-muted"
+          >
+            <Settings className="h-5 w-5" strokeWidth={1.5} />
+          </Link>
+        }
+      />
+
       <ProfileHeader
         profile={profile}
         isOwn
@@ -61,14 +78,14 @@ export default async function PerfilPage() {
         }}
       />
 
+      <ProfileCompleteBanner profile={profile} />
+
       {stats && (
         <ProfileStats
           profileViews={stats.profile_views}
           postReach={stats.post_reach}
         />
       )}
-
-      <ProfileCompleteBanner profile={profile} />
 
       <ProfileTabs posts={posts} />
     </div>

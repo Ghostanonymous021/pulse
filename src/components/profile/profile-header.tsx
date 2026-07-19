@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Settings } from "lucide-react";
 
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { ProfileLinksRow } from "@/components/profile/profile-links-row";
@@ -32,42 +31,26 @@ export function ProfileHeader({
 
   return (
     <div className="pb-1">
-      <div
-        data-app-chrome
-        className="flex items-start justify-between px-4 pt-5"
-      >
-        <div className="flex min-w-0 gap-4">
-          <ProfileAvatar
-            userId={profile.id}
-            avatarUrl={profile.avatar_url}
-            name={profile.display_name || profile.username}
-            isOwn={isOwn}
-            size={76}
-          />
-          <div className="min-w-0 space-y-0.5 pt-1.5">
-            <h1 className="flex min-w-0 items-center gap-1.5 text-[20px] font-semibold tracking-[-0.03em]">
-              <span className="truncate">
-                {profile.display_name || profile.username}
-              </span>
-              {verified && (
-                <VerifiedBadge accountType={badgeType} size="md" />
-              )}
-            </h1>
-            <p className="text-[14px] text-muted-foreground">
-              @{profile.username}
-              {profile.account_type === "organizacao" ? " · Organização" : ""}
-            </p>
-          </div>
+      <div data-app-chrome className="flex items-start px-4 pt-5">
+        <ProfileAvatar
+          userId={profile.id}
+          avatarUrl={profile.avatar_url}
+          name={profile.display_name || profile.username}
+          isOwn={isOwn}
+          size={76}
+        />
+        <div className="min-w-0 flex-1 space-y-0.5 pt-1.5">
+          <h1 className="flex min-w-0 items-center gap-1.5 text-[20px] font-semibold tracking-[-0.03em]">
+            <span className="truncate">
+              {profile.display_name || profile.username}
+            </span>
+            {verified && <VerifiedBadge accountType={badgeType} size="md" />}
+          </h1>
+          <p className="text-[14px] text-muted-foreground">
+            @{profile.username}
+            {profile.account_type === "organizacao" ? " · Organização" : ""}
+          </p>
         </div>
-        {isOwn && (
-          <Link
-            href="/perfil/definicoes"
-            aria-label="Definicoes"
-            className="rounded-full p-2.5 text-foreground/80 transition-colors hover:bg-muted"
-          >
-            <Settings className="h-5 w-5" strokeWidth={1.5} />
-          </Link>
-        )}
       </div>
 
       <div className="mt-4 px-4">
@@ -96,7 +79,7 @@ export function ProfileHeader({
             <strong className="font-semibold tabular-nums tracking-tight">
               {counts.posts}
             </strong>{" "}
-            <span className="text-muted-foreground">publicacoes</span>
+            <span className="text-muted-foreground">publicações</span>
           </span>
           <Link
             href={`${base}/seguidores`}
