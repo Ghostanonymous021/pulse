@@ -478,6 +478,29 @@ type Tables = {
     Update: Partial<{ user_id: string; comment_id: string }>;
     Relationships: [];
   };
+  push_subscriptions: {
+    Row: {
+      id: string;
+      profile_id: string;
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+      created_at: string;
+    };
+    Insert: {
+      id?: string;
+      profile_id: string;
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+    };
+    Update: Partial<{
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+    }>;
+    Relationships: [];
+  };
   reports: {
     Row: {
       id: string;

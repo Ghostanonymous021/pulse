@@ -21,6 +21,7 @@ import {
 
 import { PageHeader } from "@/components/nav/page-header";
 import { NotificationToggles } from "@/components/settings/notification-toggles";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { PrivacySwitch } from "@/components/settings/privacy-switch";
 import { SettingsGroup } from "@/components/settings/settings-group";
 import { SettingsRow } from "@/components/settings/settings-row";
@@ -160,11 +161,12 @@ export default async function DefinicoesPage() {
           />
         </SettingsGroup>
 
-        {/* —— Notificacoes (toggles individuais) —— */}
+        {/* —— Notificações (toggles individuais) —— */}
+        <PushToggle />
         <NotificationToggles initial={notifPrefs} title="Notificações" />
 
-        {/* —— Seguranca —— */}
-        <SettingsGroup title="Seguranca">
+        {/* —— Segurança —— */}
+        <SettingsGroup title="Segurança">
           <SettingsRow
             icon={Smartphone}
             label="Sessões activas"

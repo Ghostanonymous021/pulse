@@ -6,7 +6,6 @@ import {
   AtSign,
   Heart,
   MessageCircle,
-  MessageSquare,
   UserPlus,
   type LucideIcon,
 } from "lucide-react";
@@ -22,9 +21,8 @@ type Key = keyof Omit<NotificationPrefs, "user_id">;
 const ITEMS: { key: Key; label: string; icon: LucideIcon }[] = [
   { key: "new_followers", label: "Novos seguidores", icon: UserPlus },
   { key: "likes", label: "Curtidas", icon: Heart },
-  { key: "comments", label: "Comentarios", icon: MessageCircle },
-  { key: "messages", label: "Mensagens", icon: MessageSquare },
-  { key: "mentions", label: "Mencoes", icon: AtSign },
+  { key: "comments", label: "Comentários", icon: MessageCircle },
+  { key: "mentions", label: "Menções", icon: AtSign },
 ];
 
 export function NotificationToggles({

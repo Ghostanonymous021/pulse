@@ -76,6 +76,51 @@ self.addEventListener("sync", (event) => {
   }
 });
 
+// Real push notifications — sound + vibration come from the OS/browser
+// once a Notification is shown; we don't control the sound file itself,
+// only trigger it via showNotification.
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = { title: "Pulse", body: event.data ? event.data.text() : "" };
+  }
+
+  const title = payload.title || "Pulse";
+  const options = {
+    body: payload.body || "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-maskable-192.png",
+    vibrate: [80, 40, 80],
+    tag: payload.tag || undefined,
+    renotify: Boolean(payload.tag),
+    data: { url: payload.url || "/notificacoes" },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/notificacoes";
+  event.waitUntil(
+    (async () => {
+      const clientsList = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      const existing = clientsList.find((c) => "focus" in c);
+      if (existing) {
+        await existing.focus();
+        existing.postMessage({ type: "PULSE_NOTIFICATION_CLICK", url });
+        return;
+      }
+      await self.clients.openWindow(url);
+    })(),
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -136,7 +181,7 @@ async function navigationNetworkOnly(req) {
     const offline = await caches.match("/offline");
     if (offline) return offline;
     return new Response(
-      "<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\"><title>Pulse</title><body style=\"font-family:system-ui;padding:2rem;text-align:center;background:#0a0a0b;color:#f5f5f7\"><h1>Sem ligacao</h1><p>Toca em tentar de novo quando a rede voltar.</p><p><a href=\"/home\" style=\"color:#7B6CFF\">Tentar de novo</a></p></body>",
+      "<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\"><title>Pulse</title><body style=\"font-family:system-ui;padding:2rem;text-align:center;background:#0a0a0b;color:#f5f5f7\"><h1>Sem ligação</h1><p>Toca em tentar de novo quando a rede voltar.</p><p><a href=\"/home\" style=\"color:#7B6CFF\">Tentar de novo</a></p></body>",
       {
         status: 503,
         headers: { "Content-Type": "text/html; charset=utf-8" },
