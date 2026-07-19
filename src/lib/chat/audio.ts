@@ -17,6 +17,18 @@ export function pickAudioMime(): { mime: string; ext: string } {
   return { mime: "", ext: "webm" };
 }
 
+/**
+ * Strip codec parameters (e.g. ";codecs=opus") from a MIME type.
+ * MediaRecorder.mimeType often includes codec info, but the Supabase
+ * Storage bucket's allowed_mime_types list only has the bare type
+ * (e.g. "audio/webm"). An exact-match check on the full string with
+ * codecs attached silently rejects the upload — this keeps what we
+ * send as Content-Type aligned with what the bucket actually allows.
+ */
+export function stripMimeParams(mime: string): string {
+  return mime.split(";")[0].trim();
+}
+
 export function formatDuration(totalSec: number) {
   const s = Math.max(0, Math.floor(totalSec));
   const m = Math.floor(s / 60);

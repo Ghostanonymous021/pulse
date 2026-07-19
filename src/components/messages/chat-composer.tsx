@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
-import { formatDuration, humanizeMicError, pickAudioMime } from "@/lib/chat/audio";
+import { formatDuration, humanizeMicError, pickAudioMime, stripMimeParams } from "@/lib/chat/audio";
 import { STICKER_PACK } from "@/lib/chat/types";
 import type { ChatMessage } from "@/lib/chat/types";
 import { messagePreview } from "@/lib/chat/preview";
@@ -154,7 +154,7 @@ export function ChatComposer({
 
   async function sendAudioBlob(blob: Blob, durationSec: number) {
     const { mime, ext } = mimeRef.current;
-    const type = blob.type || mime || "audio/webm";
+    const type = stripMimeParams(blob.type || mime || "audio/webm");
     const file = new File([blob], `audio-${Date.now()}.${ext}`, { type });
     const previewUrl = URL.createObjectURL(blob);
 
@@ -247,7 +247,9 @@ export function ChatComposer({
           Math.round((Date.now() - startedAtRef.current) / 1000),
         );
         const blob = new Blob(chunksRef.current, {
-          type: recorder.mimeType || mimeRef.current.mime || "audio/webm",
+          type: stripMimeParams(
+            recorder.mimeType || mimeRef.current.mime || "audio/webm",
+          ),
         });
         chunksRef.current = [];
         mediaRecorderRef.current = null;
