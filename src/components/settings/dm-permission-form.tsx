@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 
 const OPTIONS: { value: DmPermission; label: string }[] = [
   { value: "everyone", label: "Todos" },
-  { value: "following", label: "So quem sigo" },
-  { value: "none", label: "Ninguem novo" },
+  { value: "following", label: "Só quem sigo" },
+  { value: "none", label: "Ninguém novo" },
 ];
 
 export function DmPermissionForm({

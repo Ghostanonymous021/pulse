@@ -9,6 +9,7 @@ import { requireUser } from "@/lib/auth/session";
 import { listProfileLinks } from "@/lib/links/profile-links";
 import { loadFeedPosts } from "@/lib/posts/feed";
 import { getFollowState } from "@/lib/social/follow";
+import { cn } from "@/lib/utils";
 import type { Profile } from "@/types/database";
 
 type Props = { params: Promise<{ username: string }> };
@@ -41,6 +42,17 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const canSeeContent =
     isOwn || !p.is_private || followState === "accepted";
+
+  const targetFollowsMe =
+    !isOwn && p.dm_permission === "following"
+      ? (await getFollowState(supabase, p.id, user.id)) === "accepted"
+      : false;
+
+  const canMessage =
+    !isOwn &&
+    (p.dm_permission === "everyone" ||
+      p.dm_permission == null ||
+      (p.dm_permission === "following" && targetFollowsMe));
 
   const [
     { count: postsCount },
@@ -90,14 +102,21 @@ export default async function PublicProfilePage({ params }: Props) {
       />
 
       {!isOwn && (
-        <div className="mt-3 grid grid-cols-2 gap-2 px-4 pb-2">
+        <div
+          className={cn(
+            "mt-3 grid gap-2 px-4 pb-2",
+            canMessage ? "grid-cols-2" : "grid-cols-1",
+          )}
+        >
           <FollowButton targetUserId={p.id} initialState={followState} />
-          <Link
-            href={`/mensagens?to=${p.username}`}
-            className="flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--separator)] text-[14px] font-medium transition-colors hover:bg-muted"
-          >
-            Mensagem
-          </Link>
+          {canMessage && (
+            <Link
+              href={`/mensagens?to=${p.username}`}
+              className="flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--separator)] text-[14px] font-medium transition-colors hover:bg-muted"
+            >
+              Mensagem
+            </Link>
+          )}
         </div>
       )}
 

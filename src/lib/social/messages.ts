@@ -173,6 +173,14 @@ export async function openDmWithUsername(
 
   if (error) {
     console.error("openDm rpc", error.message, error.details, error.hint);
+    if (error.message.includes("messages_disabled")) {
+      return { error: "Esta pessoa não está a aceitar mensagens novas." };
+    }
+    if (error.message.includes("messages_restricted")) {
+      return {
+        error: "Esta pessoa só recebe mensagens de quem já segue.",
+      };
+    }
     return { error: error.message };
   }
   if (!data) return { error: "Não foi possível abrir a conversa." };
