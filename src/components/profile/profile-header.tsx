@@ -31,7 +31,7 @@ export function ProfileHeader({
 
   return (
     <div className="pb-1">
-      <div data-app-chrome className="flex items-start px-4 pt-5">
+      <div data-app-chrome className="flex items-start gap-4 px-4 pt-5">
         <ProfileAvatar
           userId={profile.id}
           avatarUrl={profile.avatar_url}
