@@ -66,7 +66,7 @@ export function NotificationBell({
 
   return (
     <Link
-      href="/notificações"
+      href="/notificacoes"
       aria-label={
         badge ? `Notificações, ${badge} não lidas` : "Notificações"
       }

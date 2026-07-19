@@ -130,7 +130,7 @@ export default async function DefinicoesPage() {
           <SettingsRow
             icon={BadgeCheck}
             label={verificationLabel}
-            href="/perfil/definicoes/verificação"
+            href="/perfil/definicoes/verificacao"
             value={verificationValue}
           />
         </SettingsGroup>
@@ -156,7 +156,7 @@ export default async function DefinicoesPage() {
           <SettingsRow
             icon={Users}
             label="Seguidores e a seguir"
-            href="/perfil/definicoes/conexões"
+            href="/perfil/definicoes/conexoes"
           />
         </SettingsGroup>
 
@@ -168,7 +168,7 @@ export default async function DefinicoesPage() {
           <SettingsRow
             icon={Smartphone}
             label="Sessões activas"
-            href="/perfil/definicoes/sessões"
+            href="/perfil/definicoes/sessoes"
           />
           <SignOutRow />
           <SignOutAllRow />
