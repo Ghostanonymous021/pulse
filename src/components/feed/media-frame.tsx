@@ -78,7 +78,7 @@ export function MediaFrame({
             alt=""
             loading="lazy"
             decoding="async"
-            className="block max-h-[70vh] w-full object-contain object-center"
+            className="block max-h-[70vh] max-w-full object-contain object-center"
             draggable={false}
           />
         ) : (
@@ -95,7 +95,7 @@ export function MediaFrame({
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="block max-h-[70vh] w-full min-w-full shrink-0 snap-center object-contain object-center"
+                className="block h-[70vh] max-h-[70vh] w-full min-w-full shrink-0 snap-center object-cover object-center"
                 draggable={false}
                 onClick={(e) => {
                   e.stopPropagation();
