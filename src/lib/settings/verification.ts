@@ -119,27 +119,6 @@ export async function hasPriorVerificationPayment(
   return (count ?? 0) > 0;
 }
 
-export async function getProfileStats(
-  supabase: SupabaseClient,
-  profileId: string,
-): Promise<{ profile_views: number; post_reach: number } | null> {
-  const { data, error } = await supabase
-    .from("profile_stats")
-    .select("profile_views, post_reach")
-    .eq("profile_id", profileId)
-    .maybeSingle();
-
-  if (error) {
-    console.error("getProfileStats", error.message);
-    return null;
-  }
-  if (!data) return { profile_views: 0, post_reach: 0 };
-  return {
-    profile_views: Number(data.profile_views ?? 0),
-    post_reach: Number(data.post_reach ?? 0),
-  };
-}
-
 export async function listProfileAdmins(
   supabase: SupabaseClient,
   profileId: string,
