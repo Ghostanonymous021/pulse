@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Bell } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import {
   formatNotificationCopy,
@@ -48,9 +50,11 @@ export function NotificationsList({
 
   if (items.length === 0) {
     return (
-      <div className="px-4 py-14 text-center">
-        <p className="text-[14px] text-muted-foreground">Sem actividade.</p>
-      </div>
+      <EmptyState
+        icon={Bell}
+        title="Sem actividade"
+        description="Curtidas, comentários e seguidores novos aparecem aqui."
+      />
     );
   }
 

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { Spinner } from "@/components/ui/spinner";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -84,13 +85,13 @@ export function FollowButton({
         disabled={pending}
         onClick={() => startTransition(run)}
         className={cn(
-          "h-9 rounded-lg px-4 text-sm font-medium transition-colors disabled:opacity-50",
+          "flex h-9 items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors disabled:opacity-60",
           filled
             ? "bg-accent text-accent-foreground hover:opacity-90"
             : "border border-border hover:bg-muted",
         )}
       >
-        {pending ? "..." : label}
+        {pending ? <Spinner className="h-3.5 w-3.5" /> : label}
       </button>
       {error && (
         <p className="text-center text-xs text-red-600 dark:text-red-400">

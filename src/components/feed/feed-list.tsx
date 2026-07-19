@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Sparkles } from "lucide-react";
 
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FEED_PAGE_SIZE } from "@/lib/posts/feed";
 
 const SCROLL_KEY = "pulse:feed-scroll";
@@ -93,14 +95,12 @@ export function FeedList({
 
   if (posts.length === 0) {
     return (
-      <div className="px-6 py-20 text-center">
-        <p className="text-[15px] font-medium tracking-[-0.02em]">
-          O teu feed ainda está quieto
-        </p>
-        <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-          Segue colegas no Explorar ou publica a primeira coisa do dia.
-        </p>
-      </div>
+      <EmptyState
+        icon={Sparkles}
+        title="O teu feed ainda está quieto"
+        description="Segue colegas no Explorar ou publica a primeira coisa do dia."
+        action={{ label: "Explorar pessoas", href: "/explorar" }}
+      />
     );
   }
 

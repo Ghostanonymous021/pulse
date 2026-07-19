@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 
 import { PageHeader } from "@/components/nav/page-header";
 import { UserAvatar } from "@/components/profile/user-avatar";
+import { EmptyState } from "@/components/ui/empty-state";
 import { requireUser } from "@/lib/auth/session";
 import { inboxTimeLabel, messagePreview } from "@/lib/chat/preview";
 import { listConversations, openDmWithUsername } from "@/lib/social/messages";
@@ -42,20 +44,12 @@ export default async function MensagensPage({
       )}
 
       {conversations.length === 0 ? (
-        <div className="px-6 py-20 text-center">
-          <p className="text-[17px] font-semibold tracking-[-0.02em]">
-            As tuas conversas
-          </p>
-          <p className="mx-auto mt-2 max-w-[16rem] text-[14px] leading-relaxed text-muted-foreground">
-            Abre um perfil e toca em Mensagem.
-          </p>
-          <Link
-            href="/explorar"
-            className="mt-6 inline-flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background transition-opacity hover:opacity-85"
-          >
-            Explorar
-          </Link>
-        </div>
+        <EmptyState
+          icon={MessageCircle}
+          title="As tuas conversas"
+          description="Abre um perfil e toca em Mensagem."
+          action={{ label: "Explorar", href: "/explorar" }}
+        />
       ) : (
         <ul>
           {conversations.map((c) => {

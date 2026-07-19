@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import {
   Home,
   MessageCircle,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { getChromeMode } from "@/components/nav/chrome";
+import { RouteProgress } from "@/components/ui/route-progress";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,6 +45,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-lg flex-col bg-background">
+      <Suspense fallback={null}>
+        <RouteProgress />
+      </Suspense>
+
       <main className={cn("flex-1", showFooter && "pb-[4.5rem]")}>
         {children}
       </main>

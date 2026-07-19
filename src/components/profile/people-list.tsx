@@ -1,14 +1,18 @@
 import Link from "next/link";
+import { Users } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import type { FollowListPerson } from "@/lib/social/follows";
 
 export function PeopleList({ people }: { people: FollowListPerson[] }) {
   if (people.length === 0) {
     return (
-      <p className="px-4 py-16 text-center text-[14px] text-muted-foreground">
-        Ninguem aqui ainda.
-      </p>
+      <EmptyState
+        icon={Users}
+        title="Ninguém aqui ainda"
+        action={{ label: "Explorar pessoas", href: "/explorar" }}
+      />
     );
   }
 
