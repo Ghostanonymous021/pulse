@@ -4,7 +4,16 @@ import type { Profile } from "@/types/database";
 
 export type FollowListPerson = Pick<
   Profile,
-  "id" | "username" | "display_name" | "avatar_url" | "university" | "campus"
+  | "id"
+  | "username"
+  | "display_name"
+  | "avatar_url"
+  | "university"
+  | "campus"
+  | "account_type"
+  | "is_verified"
+  | "verified_type"
+  | "verification_expires_at"
 >;
 
 export async function listFollowers(
@@ -16,7 +25,8 @@ export async function listFollowers(
     .select(
       `
       follower:profiles!follows_follower_id_fkey (
-        id, username, display_name, avatar_url, university, campus
+        id, username, display_name, avatar_url, university, campus,
+        account_type, is_verified, verified_type, verification_expires_at
       )
     `,
     )
@@ -46,7 +56,8 @@ export async function listFollowing(
     .select(
       `
       following:profiles!follows_following_id_fkey (
-        id, username, display_name, avatar_url, university, campus
+        id, username, display_name, avatar_url, university, campus,
+        account_type, is_verified, verified_type, verification_expires_at
       )
     `,
     )
