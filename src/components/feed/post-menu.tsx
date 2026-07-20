@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 /**
  * Post overflow menu (⋯) — no follow (follow lives as header icon).
  * Own post: Apagar, Copiar ligacao.
- * Others: Ver perfil, Denunciar, Silenciar, Copiar ligacao.
+ * Others: Ver perfil, Denunciar, Silenciar, Bloquear, Copiar ligação.
  */
 export function PostMenu({
   postId,
@@ -27,15 +27,13 @@ export function PostMenu({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [busy, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmBlock, setConfirmBlock] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -70,6 +68,7 @@ export function PostMenu({
   function close() {
     setOpen(false);
     setConfirmDelete(false);
+    setConfirmBlock(false);
     setReportOpen(false);
     setMessage(null);
   }
@@ -106,7 +105,7 @@ export function PostMenu({
       reason,
     });
     if (error) throw error;
-    setMessage("Denuncia enviada.");
+    setMessage("Denúncia enviada.");
     setReportOpen(false);
     setTimeout(close, 900);
   }
@@ -114,7 +113,7 @@ export function PostMenu({
   async function copyLink() {
     const url = `${window.location.origin}/p/${postId}`;
     await navigator.clipboard.writeText(url);
-    setMessage("Ligacao copiada.");
+    setMessage("Ligação copiada.");
     setTimeout(() => setMessage(null), 1200);
   }
 
@@ -125,7 +124,22 @@ export function PostMenu({
     setTimeout(close, 700);
   }
 
-  const sheet = open && mounted
+  async function blockAuthor() {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase
+      .from("blocks")
+      .insert({ blocker_id: user.id, blocked_id: authorId });
+    if (error) throw error;
+    onMuted?.();
+    close();
+    router.refresh();
+  }
+
+  const sheet = open
     ? createPortal(
         <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center">
           <button
@@ -148,7 +162,7 @@ export function PostMenu({
                 </p>
               )}
 
-              {!confirmDelete && !reportOpen && (
+              {!confirmDelete && !confirmBlock && !reportOpen && (
                 <ul className="divide-y divide-[var(--separator)]">
                   {isOwner ? (
                     <>
@@ -159,7 +173,7 @@ export function PostMenu({
                         onClick={() => setConfirmDelete(true)}
                       />
                       <SheetAction
-                        label="Copiar ligacao"
+                        label="Copiar ligação"
                         disabled={busy}
                         onClick={() => run(copyLink)}
                       />
@@ -188,7 +202,13 @@ export function PostMenu({
                         onClick={() => run(async () => silenceAuthor())}
                       />
                       <SheetAction
-                        label="Copiar ligacao"
+                        label="Bloquear"
+                        destructive
+                        disabled={busy}
+                        onClick={() => setConfirmBlock(true)}
+                      />
+                      <SheetAction
+                        label="Copiar ligação"
                         disabled={busy}
                         onClick={() => run(copyLink)}
                       />
@@ -201,7 +221,7 @@ export function PostMenu({
               {confirmDelete && (
                 <ul className="divide-y divide-[var(--separator)]">
                   <li className="px-4 py-3 text-center text-[13px] text-muted-foreground">
-                    Apagar esta publicacao? Nao da para reverter.
+                    Apagar esta publicação? Não dá para reverter.
                   </li>
                   <SheetAction
                     label="Apagar"
@@ -217,14 +237,34 @@ export function PostMenu({
                 </ul>
               )}
 
+              {confirmBlock && (
+                <ul className="divide-y divide-[var(--separator)]">
+                  <li className="px-4 py-3 text-center text-[13px] text-muted-foreground">
+                    Bloquear esta conta? Deixam de se seguir, de se ver
+                    publicações e de trocar mensagens.
+                  </li>
+                  <SheetAction
+                    label="Bloquear"
+                    destructive
+                    disabled={busy}
+                    onClick={() => run(blockAuthor)}
+                  />
+                  <SheetAction
+                    label="Voltar"
+                    muted
+                    onClick={() => setConfirmBlock(false)}
+                  />
+                </ul>
+              )}
+
               {reportOpen && (
                 <ul className="divide-y divide-[var(--separator)]">
                   <li className="px-4 py-3 text-center text-[13px] text-muted-foreground">
-                    Motivo da denuncia
+                    Motivo da denúncia
                   </li>
                   {[
                     "Spam",
-                    "Assedio ou abuso",
+                    "Assédio ou abuso",
                     "Conteúdo enganoso",
                     "Outro",
                   ].map((reason) => (

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/nav/page-header";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { ProfileMenu } from "@/components/profile/profile-menu";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
 import { FollowButton } from "@/components/social/follow-button";
 import { requireUser } from "@/lib/auth/session";
@@ -88,6 +89,7 @@ export default async function PublicProfilePage({ params }: Props) {
       <PageHeader
         title={p.display_name || p.username}
         backHref="/explorar"
+        right={!isOwn && <ProfileMenu userId={p.id} />}
       />
 
       <ProfileHeader
