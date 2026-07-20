@@ -2,18 +2,29 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { Check, CheckCheck, ChevronLeft, Pin, Search, X } from "lucide-react";
 
 import { ChatBubble } from "@/components/messages/chat-bubble";
 import {
   ChatComposer,
   type ChatSendPayload,
 } from "@/components/messages/chat-composer";
+import { ForwardSheet } from "@/components/messages/forward-sheet";
 import { UserAvatar } from "@/components/profile/user-avatar";
+import {
+  hideMessageForMe,
+  loadPinnedMessage,
+  pinMessage,
+  searchMessagesInConversation,
+  unpinMessage,
+} from "@/lib/chat/actions";
 import { buildChatRows, sameDay } from "@/lib/chat/dates";
 import type { ChatAttachment, ChatMessage } from "@/lib/chat/types";
 import { uploadChatFile } from "@/lib/chat/upload";
+import { extractUrls } from "@/lib/links/urls";
+import { markConversationDelivered } from "@/lib/social/messages";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 /**
  * Immersive 1:1 thread — WA interaction patterns, Apple surface language.
@@ -37,6 +48,13 @@ export function ChatView({
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const [forwardMsg, setForwardMsg] = useState<ChatMessage | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<
+    { id: string; body: string | null; created_at: string; sender_id: string }[]
+  >([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
   /** Abort controllers for in-flight uploads (cancel send) */
@@ -52,6 +70,63 @@ export function ChatView({
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages]);
+
+  useEffect(() => {
+    void loadPinnedMessage(createClient(), conversationId).then((pinned) =>
+      setPinnedId(pinned?.messageId ?? null),
+    );
+  }, [conversationId]);
+
+  // Delivery tick: my messages reached the peer's client. Marked once
+  // when they open the thread (not "seen" — no timing/scroll signal).
+  useEffect(() => {
+    void markConversationDelivered(createClient(), conversationId);
+  }, [conversationId]);
+
+  // Track the peer's last_delivered_at so I can show a delivery tick
+  // on my own sent messages (never a read/"seen" signal — out of v1).
+  const [peerDeliveredAt, setPeerDeliveredAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!peerId) return;
+    const supabase = createClient();
+    let active = true;
+
+    void supabase
+      .from("conversation_participants")
+      .select("last_delivered_at")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", peerId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) setPeerDeliveredAt(data?.last_delivered_at ?? null);
+      });
+
+    const channel = supabase
+      .channel(`chat-delivery:${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversation_participants",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            user_id: string;
+            last_delivered_at: string;
+          };
+          if (row.user_id === peerId) setPeerDeliveredAt(row.last_delivered_at);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [conversationId, peerId]);
 
   useEffect(() => {
     stickToBottom.current = true;
@@ -138,6 +213,21 @@ export function ChatView({
                 ),
               );
             });
+          }
+
+          // Peer's link preview is fetched server-side on their send;
+          // it can land slightly after this INSERT event.
+          if (row.message_type === "text" && extractUrls(row.body, 1).length) {
+            setTimeout(() => {
+              void hydrateLinkPreview(row.id).then((preview) => {
+                if (!preview) return;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === row.id ? { ...m, link_preview: preview } : m,
+                  ),
+                );
+              });
+            }, 1200);
           }
         },
       )
@@ -333,6 +423,30 @@ export function ChatView({
             : m,
         ),
       );
+
+      // Unfurl once after send (cached). Never blocks the bubble; a
+      // failed fetch just leaves the URL as a plain clickable link.
+      if (payload.type === "text" && extractUrls(payload.body, 1).length) {
+        void fetch("/api/messages/link-previews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message_id: msg.id }),
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            const ok = data?.previews?.[0]?.ok;
+            if (!ok) return;
+            void hydrateLinkPreview(msg.id).then((preview) => {
+              if (!preview) return;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === msg.id ? { ...m, link_preview: preview } : m,
+                ),
+              );
+            });
+          })
+          .catch(() => {});
+      }
     } catch (err) {
       const aborted =
         err instanceof DOMException && err.name === "AbortError";
@@ -439,6 +553,58 @@ export function ChatView({
     void navigator.clipboard.writeText(text);
   }
 
+  async function handleDeleteForMe(messageId: string) {
+    if (messageId.startsWith("temp-")) {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      return;
+    }
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    await hideMessageForMe(createClient(), messageId, userId);
+  }
+
+  async function handlePin(message: ChatMessage) {
+    const supabase = createClient();
+    if (pinnedId === message.id) {
+      setPinnedId(null);
+      await unpinMessage(supabase, conversationId);
+    } else {
+      setPinnedId(message.id);
+      await pinMessage(supabase, conversationId, message.id, userId);
+    }
+  }
+
+  function handleForward(message: ChatMessage) {
+    setForwardMsg(message);
+  }
+
+  async function handleSearch(query: string) {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const results = await searchMessagesInConversation(
+      createClient(),
+      conversationId,
+      query,
+    );
+    setSearchResults(results);
+  }
+
+  function jumpToMessage(messageId: string) {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("chat-highlight");
+      setTimeout(() => el.classList.remove("chat-highlight"), 1500);
+    }
+  }
+
+  const pinnedMessage = pinnedId ? messages.find((m) => m.id === pinnedId) : null;
+
   const rows = useMemo(() => buildChatRows(messages), [messages]);
   const byId = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
   const clusterOf = useMemo(() => computeClusters(messages), [messages]);
@@ -481,7 +647,87 @@ export function ChatView({
             ) : null}
           </div>
         </Link>
+
+        <button
+          type="button"
+          aria-label="Pesquisar na conversa"
+          onClick={() => setSearchOpen((v) => !v)}
+          className={cn(
+            "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-70",
+            searchOpen ? "text-[#007AFF] dark:text-[#0A84FF]" : "text-foreground/90",
+          )}
+        >
+          <Search className="h-5 w-5" strokeWidth={1.5} />
+        </button>
       </header>
+
+      {searchOpen && (
+        <div className="sticky top-14 z-10 border-b border-[var(--separator)] bg-[var(--elevated)] px-3 py-2 backdrop-blur-xl">
+          <div className="flex items-center gap-2 rounded-full bg-muted/70 px-3 py-1.5">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+            <input
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => void handleSearch(e.target.value)}
+              placeholder="Pesquisar mensagens"
+              className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                aria-label="Limpar pesquisa"
+                onClick={() => void handleSearch("")}
+                className="text-muted-foreground"
+              >
+                <X className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <div className="mt-2 max-h-64 overflow-y-auto rounded-2xl border border-[var(--separator)] bg-card">
+              {searchResults.length === 0 ? (
+                <p className="px-3 py-3 text-[13px] text-muted-foreground">
+                  Sem resultados.
+                </p>
+              ) : (
+                searchResults.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => jumpToMessage(r.id)}
+                    className="block w-full border-b border-[var(--separator)] px-3 py-2 text-left last:border-b-0 hover:bg-muted/50"
+                  >
+                    <p className="truncate text-[13px]">{r.body}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {r.sender_id === userId ? "Tu" : peerName}
+                    </p>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {pinnedMessage && !searchOpen && (
+        <button
+          type="button"
+          onClick={() => jumpToMessage(pinnedMessage.id)}
+          className="sticky top-14 z-10 flex w-full items-center gap-2 border-b border-[var(--separator)] bg-[var(--elevated)] px-3.5 py-2 text-left backdrop-blur-xl"
+        >
+          <Pin className="h-3.5 w-3.5 shrink-0 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={1.5} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-medium text-[#007AFF] dark:text-[#0A84FF]">
+              Mensagem fixada
+            </p>
+            <p className="truncate text-[13px] text-foreground/80">
+              {pinnedMessage.deleted_at
+                ? "Mensagem apagada"
+                : pinnedMessage.body || typeLabelForPin(pinnedMessage.message_type)}
+            </p>
+          </div>
+        </button>
+      )}
 
       <div
         className="min-h-0 flex-1 overflow-y-auto px-3 py-2 pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
@@ -529,19 +775,41 @@ export function ChatView({
           }
           const m = byId.get(row.messageId);
           if (!m) return null;
+          const mine = m.sender_id === userId;
+          const isLastMine =
+            mine && messages[messages.length - 1]?.id === m.id && !m.pending;
           return (
-            <ChatBubble
-              key={m.id}
-              message={m}
-              mine={m.sender_id === userId}
-              peerName={peerName}
-              cluster={clusterOf.get(m.id) ?? "single"}
-              onReply={setReplyTo}
-              onReact={handleReact}
-              onDelete={handleDelete}
-              onCopy={handleCopy}
-              onCancelSend={handleCancelSend}
-            />
+            <div key={m.id} id={`msg-${m.id}`} className="scroll-mt-24">
+              <ChatBubble
+                message={m}
+                mine={mine}
+                peerName={peerName}
+                cluster={clusterOf.get(m.id) ?? "single"}
+                pinned={pinnedId === m.id}
+                onReply={setReplyTo}
+                onReact={handleReact}
+                onDelete={handleDelete}
+                onDeleteForMe={handleDeleteForMe}
+                onCopy={handleCopy}
+                onCancelSend={handleCancelSend}
+                onPin={handlePin}
+                onForward={handleForward}
+              />
+              {isLastMine && (
+                <div className="mt-0.5 flex items-center justify-end gap-1 pr-1 text-muted-foreground">
+                  <span className="text-[10px]">
+                    {peerDeliveredAt && peerDeliveredAt >= m.created_at
+                      ? "Entregue"
+                      : "Enviado"}
+                  </span>
+                  {peerDeliveredAt && peerDeliveredAt >= m.created_at ? (
+                    <CheckCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                  ) : (
+                    <Check className="h-3.5 w-3.5" strokeWidth={2} />
+                  )}
+                </div>
+              )}
+            </div>
           );
         })}
         <div ref={bottomRef} className="h-1" />
@@ -552,8 +820,40 @@ export function ChatView({
         onCancelReply={() => setReplyTo(null)}
         onSend={handleSend}
       />
+
+      {forwardMsg && (
+        <ForwardSheet
+          message={forwardMsg}
+          userId={userId}
+          onClose={() => setForwardMsg(null)}
+        />
+      )}
     </div>
   );
+}
+
+function typeLabelForPin(type: ChatMessage["message_type"]) {
+  if (type === "image") return "Foto";
+  if (type === "document") return "Documento";
+  if (type === "sticker") return "Sticker";
+  if (type === "audio") return "Audio";
+  return "Mensagem";
+}
+
+async function hydrateLinkPreview(messageId: string) {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("message_link_previews")
+    .select("url, titulo, imagem_url, dominio")
+    .eq("message_id", messageId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    url: data.url as string,
+    titulo: data.titulo as string | null,
+    imagem_url: data.imagem_url as string | null,
+    dominio: data.dominio as string | null,
+  };
 }
 
 async function hydrateAttachments(messageId: string) {

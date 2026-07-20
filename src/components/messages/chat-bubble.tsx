@@ -4,10 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Download,
+  ExternalLink,
   FileText,
+  Forward,
   Copy,
   Loader2,
   Pause,
+  Pin,
   Play,
   Reply,
   SmilePlus,
@@ -21,6 +24,7 @@ import { downloadFromUrl, formatBytes } from "@/lib/chat/download";
 import { timeLabel } from "@/lib/chat/dates";
 import type { ChatAttachment, ChatMessage } from "@/lib/chat/types";
 import { REACTION_EMOJIS } from "@/lib/chat/types";
+import { domainFromUrl } from "@/lib/links/urls";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -37,23 +41,34 @@ export function ChatBubble({
   mine,
   peerName,
   cluster,
+  pinned,
   onReply,
   onReact,
   onDelete,
+  onDeleteForMe,
   onCopy,
   onCancelSend,
+  onPin,
+  onForward,
 }: {
   message: ChatMessage;
   mine: boolean;
   peerName: string;
   /** Position in consecutive same-sender cluster */
   cluster: "single" | "first" | "middle" | "last";
+  /** This message is the conversation's pinned message */
+  pinned?: boolean;
   onReply: (m: ChatMessage) => void;
   onReact: (messageId: string, emoji: string) => void;
+  /** Delete for everyone (sender-only, server-enforced) */
   onDelete: (messageId: string) => void;
+  /** Delete for me only (any participant) */
+  onDeleteForMe: (messageId: string) => void;
   onCopy: (text: string) => void;
   /** Cancel in-flight upload (sender, pending) */
   onCancelSend?: (messageId: string) => void;
+  onPin?: (m: ChatMessage) => void;
+  onForward?: (m: ChatMessage) => void;
 }) {
   const [menu, setMenu] = useState(false);
   const [reactOpen, setReactOpen] = useState(false);
@@ -227,6 +242,18 @@ export function ChatBubble({
             if (longPressTimer.current) clearTimeout(longPressTimer.current);
           }}
         >
+          {message.forwarded && !deleted && (
+            <p
+              className={cn(
+                "px-3 pt-2 text-[11px] italic",
+                mine ? "text-white/60" : "text-muted-foreground",
+                hasReply || imageOnly || isSticker ? "px-2" : "",
+              )}
+            >
+              Reencaminhada
+            </p>
+          )}
+
           {hasReply && (
             <div
               className={cn(
@@ -466,10 +493,39 @@ export function ChatBubble({
                   }}
                 />
               )}
+              {onForward && (
+                <MenuItem
+                  icon={<Forward className="h-4 w-4" strokeWidth={1.5} />}
+                  label="Reencaminhar"
+                  onClick={() => {
+                    onForward(message);
+                    closeAll();
+                  }}
+                />
+              )}
+              {onPin && (
+                <MenuItem
+                  icon={<Pin className="h-4 w-4" strokeWidth={1.5} />}
+                  label={pinned ? "Desafixar" : "Fixar"}
+                  onClick={() => {
+                    onPin(message);
+                    closeAll();
+                  }}
+                />
+              )}
+              <MenuItem
+                icon={<Trash2 className="h-4 w-4" strokeWidth={1.5} />}
+                label="Apagar para mim"
+                destructive
+                onClick={() => {
+                  onDeleteForMe(message.id);
+                  closeAll();
+                }}
+              />
               {mine && (
                 <MenuItem
                   icon={<Trash2 className="h-4 w-4" strokeWidth={1.5} />}
-                  label="Apagar"
+                  label="Apagar para todos"
                   destructive
                   onClick={() => {
                     onDelete(message.id);
@@ -668,6 +724,52 @@ function MessageBody({
           {message.body}
         </p>
       ) : null}
+
+      {message.link_preview && (message.link_preview.titulo || message.link_preview.imagem_url) && (
+        <a
+          href={message.link_preview.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "mt-1.5 block overflow-hidden rounded-xl border",
+            imageWithText ? "mx-3 mb-2" : "",
+            mine
+              ? "border-white/20 bg-black/10"
+              : "border-[var(--separator)] bg-muted/40",
+          )}
+        >
+          {message.link_preview.imagem_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={message.link_preview.imagem_url}
+              alt=""
+              className="aspect-[1.91/1] w-full object-cover bg-black/10"
+            />
+          )}
+          <div className="flex items-start gap-2 px-2.5 py-2">
+            <div className="min-w-0 flex-1">
+              <p
+                className={cn(
+                  "truncate text-[11px]",
+                  mine ? "text-white/60" : "text-muted-foreground",
+                )}
+              >
+                {message.link_preview.dominio || domainFromUrl(message.link_preview.url)}
+              </p>
+              <p className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug">
+                {message.link_preview.titulo || message.link_preview.url}
+              </p>
+            </div>
+            <ExternalLink
+              className={cn(
+                "mt-0.5 h-3.5 w-3.5 shrink-0",
+                mine ? "text-white/60" : "text-muted-foreground",
+              )}
+              strokeWidth={1.5}
+            />
+          </div>
+        </a>
+      )}
     </div>
   );
 }

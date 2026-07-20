@@ -54,7 +54,9 @@ export default async function ConversaPage({ params }: Props) {
     }
   }
 
-  const messages = await loadConversationMessages(supabase, id);
+  const messages = await loadConversationMessages(supabase, id, {
+    userId: user.id,
+  });
 
   return (
     <ChatView

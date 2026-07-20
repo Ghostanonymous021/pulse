@@ -14,6 +14,9 @@ export type ConversationListItem = {
     deleted_at: string | null;
   } | null;
   unread: boolean;
+  muted: boolean;
+  pinned: boolean;
+  archived: boolean;
 };
 
 export async function listConversations(
@@ -22,7 +25,7 @@ export async function listConversations(
 ): Promise<ConversationListItem[]> {
   const { data: memberships, error } = await supabase
     .from("conversation_participants")
-    .select("conversation_id, last_read_at")
+    .select("conversation_id, last_read_at, muted, pinned_at, archived_at")
     .eq("user_id", userId);
 
   if (error) {
@@ -35,6 +38,7 @@ export async function listConversations(
   const lastReadByConv = new Map(
     memberships.map((m) => [m.conversation_id, m.last_read_at as string]),
   );
+  const membershipById = new Map(memberships.map((m) => [m.conversation_id, m]));
 
   // Two-step: avoid fragile nested embeds across RLS
   const { data: participants, error: pErr } = await supabase
@@ -116,6 +120,7 @@ export async function listConversations(
       last.sender_id !== userId &&
         (!lastReadAt || new Date(last.created_at) > new Date(lastReadAt)),
     );
+    const membership = membershipById.get(id);
     items.push({
       id,
       other: {
@@ -126,16 +131,71 @@ export async function listConversations(
       },
       lastMessage: last,
       unread,
+      muted: Boolean(membership?.muted),
+      pinned: Boolean(membership?.pinned_at),
+      archived: Boolean(membership?.archived_at),
     });
   }
 
+  // Pinned first (most recently pinned on top), then by last activity.
+  // Archived conversations are still returned here — the inbox UI
+  // splits them into a separate "Arquivadas" section rather than
+  // hiding them from this query, so muting/unmuting doesn't need a
+  // second round-trip.
   items.sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     const ta = a.lastMessage?.created_at ?? "";
     const tb = b.lastMessage?.created_at ?? "";
     return tb.localeCompare(ta);
   });
 
   return items;
+}
+
+export async function setConversationMuted(
+  supabase: SupabaseClient,
+  conversationId: string,
+  value: boolean,
+): Promise<void> {
+  const { error } = await supabase.rpc("set_conversation_muted", {
+    conv_id: conversationId,
+    value,
+  });
+  if (error) console.error("setConversationMuted", error.message);
+}
+
+export async function setConversationPinned(
+  supabase: SupabaseClient,
+  conversationId: string,
+  value: boolean,
+): Promise<void> {
+  const { error } = await supabase.rpc("set_conversation_pinned", {
+    conv_id: conversationId,
+    value,
+  });
+  if (error) console.error("setConversationPinned", error.message);
+}
+
+export async function setConversationArchived(
+  supabase: SupabaseClient,
+  conversationId: string,
+  value: boolean,
+): Promise<void> {
+  const { error } = await supabase.rpc("set_conversation_archived", {
+    conv_id: conversationId,
+    value,
+  });
+  if (error) console.error("setConversationArchived", error.message);
+}
+
+export async function markConversationDelivered(
+  supabase: SupabaseClient,
+  conversationId: string,
+): Promise<void> {
+  const { error } = await supabase.rpc("mark_conversation_delivered", {
+    conv_id: conversationId,
+  });
+  if (error) console.error("markConversationDelivered", error.message);
 }
 
 export async function markConversationRead(

@@ -123,10 +123,17 @@ Conta pública: follow cria `accepted` direto. Conta privada: `pending` até apr
 DM 1:1 na v1.
 
 - `conversations`: `id`, `created_at`
-- `conversation_participants`: `conversation_id`, `user_id`, PK composta; exatamente 2 participantes (enforce app + partial unique em par ordenado se necessário)
-- `messages`: `id`, `conversation_id`, `sender_id`, `body`, `created_at`
+- `conversation_participants`: `conversation_id`, `user_id`, PK composta; exatamente 2 participantes (enforce app + partial unique em par ordenado se necessário); `last_read_at`, `last_delivered_at` (tick de entrega, nunca "visto"), `muted`, `pinned_at`, `archived_at` (ações de inbox, por participante)
+- `messages`: `id`, `conversation_id`, `sender_id`, `body`, `message_type`, `reply_to_id`, `deleted_at`, `forwarded`, `created_at`
+- `message_attachments`, `message_reactions`: anexos (imagem/documento/audio/sticker) e reações por mensagem
+- `message_hides`: "apagar para mim" (por utilizador, não afeta a cópia do remetente/outro participante)
+- `conversation_pinned_messages`: mensagem fixada na conversa (partilhada entre participantes, PK em `conversation_id`)
+- `message_link_previews`: preview OG por mensagem de texto, gerado uma vez server-side após envio (nunca no render path), mesmo padrão de `link_previews` dos posts
 
-**RLS:** só participantes leem/escrevem.
+**RLS:** só participantes leem/escrevem. Ações de inbox (mute/pin/archive) e delivery são sempre por linha do próprio utilizador em `conversation_participants` (não afetam a linha do outro participante).
+
+**Fora do escopo v1 (decisão de produto, ver `docs/UX_CHAT.md`):** grupos, chamada de vídeo, "visto" (read receipts), encriptação E2E anunciada, indicador "a escrever...".
+
 
 ### `projects` (portfólio leve)
 

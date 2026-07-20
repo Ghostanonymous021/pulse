@@ -13,14 +13,14 @@ export const CHAT_PAGE_SIZE = 50;
 export async function loadConversationMessages(
   supabase: SupabaseClient,
   conversationId: string,
-  opts?: { limit?: number; before?: string },
+  opts?: { limit?: number; before?: string; userId?: string },
 ): Promise<ChatMessage[]> {
   const limit = opts?.limit ?? CHAT_PAGE_SIZE;
 
   let query = supabase
     .from("messages")
     .select(
-      "id, conversation_id, sender_id, body, message_type, reply_to_id, deleted_at, created_at",
+      "id, conversation_id, sender_id, body, message_type, reply_to_id, deleted_at, created_at, forwarded",
     )
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: false })
@@ -47,10 +47,31 @@ export async function loadConversationMessages(
     reply_to_id: string | null;
     deleted_at: string | null;
     created_at: string;
+    forwarded: boolean | null;
   };
 
   // Chronological order for UI
-  const list = ([...raw] as MsgRow[]).reverse();
+  let list = ([...raw] as MsgRow[]).reverse();
+
+  // "Apagar para mim": drop messages I've individually hidden, without
+  // touching the sender's copy or the other participant's view.
+  if (opts?.userId) {
+    const { data: hidden, error: hideErr } = await supabase
+      .from("message_hides")
+      .select("message_id")
+      .eq("user_id", opts.userId)
+      .in(
+        "message_id",
+        list.map((m) => m.id),
+      );
+    if (hideErr) {
+      console.error("loadConversationMessages hides", hideErr.message);
+    } else if (hidden?.length) {
+      const hiddenIds = new Set(hidden.map((h) => h.message_id));
+      list = list.filter((m) => !hiddenIds.has(m.id));
+    }
+  }
+
   const ids = list.map((m) => m.id);
 
   const attachmentsByMsg = new Map<string, ChatAttachment[]>();
@@ -96,6 +117,28 @@ export async function loadConversationMessages(
     }
   }
 
+  const linkPreviewByMsg = new Map<
+    string,
+    { url: string; titulo: string | null; imagem_url: string | null; dominio: string | null }
+  >();
+  const { data: previews, error: previewErr } = await supabase
+    .from("message_link_previews")
+    .select("message_id, url, titulo, imagem_url, dominio")
+    .in("message_id", ids);
+
+  if (previewErr) {
+    console.error("loadConversationMessages link previews", previewErr.message);
+  } else {
+    for (const p of previews ?? []) {
+      linkPreviewByMsg.set(p.message_id, {
+        url: p.url,
+        titulo: p.titulo,
+        imagem_url: p.imagem_url,
+        dominio: p.dominio,
+      });
+    }
+  }
+
   const { data: reacts, error: reactErr } = await supabase
     .from("message_reactions")
     .select("message_id, emoji, user_id")
@@ -138,6 +181,8 @@ export async function loadConversationMessages(
       created_at: m.created_at,
       attachments: attachmentsByMsg.get(m.id) ?? [],
       reactions: reactionsByMsg.get(m.id) ?? [],
+      forwarded: Boolean(m.forwarded),
+      link_preview: linkPreviewByMsg.get(m.id) ?? null,
       reply_preview,
     });
   }

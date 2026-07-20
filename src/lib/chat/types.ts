@@ -28,6 +28,14 @@ export type ChatMessage = {
   created_at: string;
   attachments: ChatAttachment[];
   reactions: ChatReaction[];
+  /** Forwarded from another conversation (no attribution, WhatsApp-style). */
+  forwarded?: boolean;
+  link_preview?: {
+    url: string;
+    titulo: string | null;
+    imagem_url: string | null;
+    dominio: string | null;
+  } | null;
   reply_preview?: {
     id: string;
     body: string | null;
@@ -42,6 +50,9 @@ export type ChatMessage = {
   /** Client-only: upload progress 0–100 (WhatsApp-style) */
   upload_progress?: number;
 };
+
+/** Delivery tick state for my own sent messages (never "seen" — out of v1). */
+export type DeliveryStatus = "sent" | "delivered";
 
 export const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"] as const;
 

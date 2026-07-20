@@ -556,6 +556,10 @@ type Tables = {
       user_id: string;
       joined_at: string;
       last_read_at: string;
+      muted: boolean;
+      archived_at: string | null;
+      pinned_at: string | null;
+      last_delivered_at: string;
     };
     Insert: {
       conversation_id: string;
@@ -565,6 +569,10 @@ type Tables = {
       conversation_id: string;
       user_id: string;
       last_read_at: string;
+      muted: boolean;
+      archived_at: string | null;
+      pinned_at: string | null;
+      last_delivered_at: string;
     }>;
     Relationships: [];
   };
@@ -578,6 +586,7 @@ type Tables = {
       reply_to_id: string | null;
       deleted_at: string | null;
       created_at: string;
+      forwarded: boolean;
     };
     Insert: {
       id?: string;
@@ -587,12 +596,74 @@ type Tables = {
       message_type?: "text" | "image" | "document" | "sticker" | "audio";
       reply_to_id?: string | null;
       deleted_at?: string | null;
+      forwarded?: boolean;
     };
     Update: Partial<{
       body: string | null;
       message_type: "text" | "image" | "document" | "sticker" | "audio";
       reply_to_id: string | null;
       deleted_at: string | null;
+      forwarded: boolean;
+    }>;
+    Relationships: [];
+  };
+  message_hides: {
+    Row: {
+      message_id: string;
+      user_id: string;
+      hidden_at: string;
+    };
+    Insert: {
+      message_id: string;
+      user_id: string;
+    };
+    Update: Partial<{ message_id: string; user_id: string }>;
+    Relationships: [];
+  };
+  conversation_pinned_messages: {
+    Row: {
+      conversation_id: string;
+      message_id: string;
+      pinned_by: string;
+      pinned_at: string;
+    };
+    Insert: {
+      conversation_id: string;
+      message_id: string;
+      pinned_by: string;
+    };
+    Update: Partial<{
+      conversation_id: string;
+      message_id: string;
+      pinned_by: string;
+    }>;
+    Relationships: [];
+  };
+  message_link_previews: {
+    Row: {
+      id: string;
+      message_id: string;
+      url: string;
+      titulo: string | null;
+      imagem_url: string | null;
+      dominio: string | null;
+      fetched_at: string;
+    };
+    Insert: {
+      id?: string;
+      message_id: string;
+      url: string;
+      titulo?: string | null;
+      imagem_url?: string | null;
+      dominio?: string | null;
+      fetched_at?: string;
+    };
+    Update: Partial<{
+      url: string;
+      titulo: string | null;
+      imagem_url: string | null;
+      dominio: string | null;
+      fetched_at: string;
     }>;
     Relationships: [];
   };
@@ -686,6 +757,22 @@ export type Database = {
       unread_conversations_count: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      set_conversation_muted: {
+        Args: { conv_id: string; value: boolean };
+        Returns: undefined;
+      };
+      set_conversation_archived: {
+        Args: { conv_id: string; value: boolean };
+        Returns: undefined;
+      };
+      set_conversation_pinned: {
+        Args: { conv_id: string; value: boolean };
+        Returns: undefined;
+      };
+      mark_conversation_delivered: {
+        Args: { conv_id: string };
+        Returns: undefined;
       };
     };
     Enums: {

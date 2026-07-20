@@ -209,6 +209,20 @@ select,
   border-radius: 9999px;
 }
 
+/* Jump-to-message flash (search result, pinned message) */
+.chat-highlight {
+  animation: chat-highlight-fade 1.5s ease-out;
+}
+@keyframes chat-highlight-fade {
+  0% {
+    background-color: rgba(10, 132, 255, 0.14);
+    border-radius: 18px;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 /*
  * File inputs: never use display:none on iOS — programmatic .click() is ignored.
  * Visually hide but keep “present” for the OS file picker.

@@ -48,19 +48,32 @@
 
 ## Gestos / acoes
 
-- Menu na bolha (hover / toque no icone, ou context menu): Responder, Reagir, Copiar, Apagar (so tuas)
+- Menu na bolha (hover / toque no icone, ou context menu): Responder, Reagir, Copiar, Reencaminhar, Fixar/Desafixar, Apagar para mim, Apagar para todos (so tuas)
 - Reacoes: 1 por utilizador (troca se repetir); chips sob a bolha
 - Envio **optimista**; peer via **Realtime** (INSERT/UPDATE)
+- **Apagar para mim:** esconde a mensagem so na minha vista (`message_hides`); nao toca na copia do remetente nem do outro participante
+- **Apagar para todos:** so o remetente, mantem `deleted_at`/"Esta mensagem foi apagada" (comportamento pre-existente)
+- **Reencaminhar:** copia corpo + anexos para outra conversa existente, sem atribuicao ao chat de origem (mesma logica do WhatsApp); mostra etiqueta discreta "Reencaminhada"
+- **Fixar mensagem:** partilhado entre os 2 participantes (nao e por utilizador); barra fixa no topo da thread, toque salta para a mensagem
+- **Ticks de entrega:** ✓ enviado / ✓✓ entregue na ultima mensagem minha; **nunca** azul, **nunca** "visto"/read receipt (fora de v1, ver abaixo)
+- **Link preview em bolha:** OG fetch server-side apos envio (nunca no render), mesmo guard-rail SSRF dos posts
+- **Busca na conversa:** campo no header alterna um painel de resultados; toque salta e realca a mensagem
 
 ## Inbox (`/mensagens`)
 
 | Elemento | Padrao |
 |----------|--------|
-| Linha | Avatar 52 · nome · preview · hora relativa |
+| Linha | Avatar 52 · nome · icone de tipo de media · preview · hora relativa |
 | Preview | Texto; ou Foto / Documento / Sticker / Mensagem apagada |
 | Hora | HH:mm (hoje) · Ontem · dia da semana · data curta |
 | Empty | CTA Explorar |
+| Busca | Campo no topo filtra por nome, @username ou texto da ultima mensagem |
+| Long-press / context menu | Fixar, Silenciar, Arquivar (por participante — nao afeta o outro lado) |
+| Arquivadas | Seccao colapsavel no fim da lista, fora do badge de nao lidas |
+| Silenciada | Nao acende o badge/ponto laranja; continua a aparecer em negrito na lista |
 
 ## Fora de v1
 
-Grupos, video-chamada, status de “visto”, encriptacao E2E anunciada, indicadores de escrita.
+Grupos, video-chamada, status de “visto” (read receipt), encriptacao E2E anunciada, indicador “a escrever...”.
+
+Ticks de entrega (✓/✓✓) sao um sinal mais fraco que "visto" — dizem apenas que a mensagem chegou ao cliente do outro participante enquanto online, nunca que foi lida/vista. Isto ficou fora da decisao original desta doc por nao existir na v1; foi adicionado depois com aprovacao explicita do utilizador, sem contradizer a exclusao de read receipts (visto)/typing indicator, que permanecem fora do escopo.
