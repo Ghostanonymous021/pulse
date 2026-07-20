@@ -102,9 +102,9 @@ export function computeBaseScore(
     weights,
   );
 
-  let wa = weights.peso_afinidade;
+  const wa = weights.peso_afinidade;
   let wf = weights.peso_frescor;
-  let we = weights.peso_engajamento;
+  const we = weights.peso_engajamento;
 
   const hours =
     (now.getTime() -

@@ -28,6 +28,5 @@ export function securityLog(
     ts: new Date().toISOString(),
     ...fields,
   });
-  // eslint-disable-next-line no-console
   console.info(line);
 }

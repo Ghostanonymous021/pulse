@@ -66,7 +66,7 @@ export function MentionField(props: TextareaProps | InputProps) {
 
   const refreshActive = useCallback((text: string, caret: number) => {
     setActive(getActiveMention(text, caret));
-  }, []);
+  }, [setActive]);
 
   useEffect(() => {
     if (!active) {
