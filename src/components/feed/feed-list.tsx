@@ -62,16 +62,23 @@ export function FeedList({
     }
   }, []);
 
-  // Save scroll position whenever this view goes away for any reason
-  // (footer tab switch, post detail, any link) -- not just the
-  // specific click handlers that call rememberFeedScroll() manually.
-  // Those still work fine; this just makes it unconditional so
-  // "tap another tab, tap Home again" restores too, not only the
-  // post-detail-and-back flow.
+  // Save scroll position at the moment of click on any link leaving
+  // this page -- covers footer tabs, header icons (Explorar, sino),
+  // post links, anything. This runs BEFORE Next.js starts the route
+  // transition. Doing this on unmount instead races with Next's own
+  // scroll-to-top-on-navigate behavior, which can fire first and
+  // leave scrollY already at 0 by the time cleanup runs.
   useEffect(() => {
-    return () => {
+    function onClickCapture(e: MouseEvent) {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("#") || anchor.target === "_blank") return;
       rememberFeedScroll();
-    };
+    }
+    document.addEventListener("click", onClickCapture, true);
+    return () => document.removeEventListener("click", onClickCapture, true);
   }, []);
 
   const loadMore = useCallback(() => {
