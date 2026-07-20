@@ -91,6 +91,7 @@ export function ChatView({
     if (!peerId) return;
     const supabase = createClient();
     let active = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
     void supabase
       .from("conversation_participants")
@@ -102,29 +103,35 @@ export function ChatView({
         if (active) setPeerDeliveredAt(data?.last_delivered_at ?? null);
       });
 
-    const channel = supabase
-      .channel(`chat-delivery:${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "conversation_participants",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const row = payload.new as {
-            user_id: string;
-            last_delivered_at: string;
-          };
-          if (row.user_id === peerId) setPeerDeliveredAt(row.last_delivered_at);
-        },
-      )
-      .subscribe();
+    // Wait for the auth session before subscribing — see the `chat:`
+    // channel effect below for why this matters (RLS locks the
+    // channel to `anon` if we join before the JWT is set).
+    void supabase.auth.getSession().then(() => {
+      if (!active) return;
+      channel = supabase
+        .channel(`chat-delivery:${conversationId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "conversation_participants",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const row = payload.new as {
+              user_id: string;
+              last_delivered_at: string;
+            };
+            if (row.user_id === peerId) setPeerDeliveredAt(row.last_delivered_at);
+          },
+        )
+        .subscribe();
+    });
 
     return () => {
       active = false;
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [conversationId, peerId]);
 
@@ -152,11 +159,31 @@ export function ChatView({
   }, [messages.length, scrollToBottom]);
 
   // Realtime: peer messages + remote soft-deletes/reactions refresh lightly
+  //
+  // IMPORTANT: we must wait for the Supabase auth session to be resolved
+  // before subscribing. On a fresh page load, createClient() returns a
+  // client whose Realtime socket has no access_token yet (session recovery
+  // from cookies is async). If we call .subscribe() immediately, the
+  // channel's phx_join goes out authenticated as `anon`, and Realtime's
+  // RLS check on `messages`/`conversation_participants` silently denies
+  // every event for this channel — but the join itself still reports
+  // "ok" and "Subscribed to PostgreSQL", making it look connected while
+  // no INSERT events ever arrive. Awaiting getSession() first (like
+  // MessagesBadge / notif-bell already do) ensures the realtime client's
+  // accessTokenValue is set before the channel joins, so RLS sees the
+  // authenticated user.
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on(
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    async function setup() {
+      await supabase.auth.getSession();
+      if (cancelled) return;
+
+      channel = supabase
+        .channel(`chat:${conversationId}`)
+        .on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -254,10 +281,14 @@ export function ChatView({
           );
         },
       )
-      .subscribe();
+        .subscribe();
+    }
+
+    void setup();
 
     return () => {
-      void supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [conversationId, userId]);
 

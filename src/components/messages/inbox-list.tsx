@@ -79,17 +79,35 @@ export function InboxList({
     }
 
     const supabase = createClient();
-    const channel = supabase
-      .channel(`inbox:${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        () => void refresh(),
-      )
-      .subscribe();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    // Wait for the auth session to resolve before subscribing. If the
+    // channel joins before the Realtime socket has the user's JWT, its
+    // postgres_changes RLS check gets locked in as `anon` — any later
+    // access_token update no longer re-authorizes an already-joined
+    // channel — so this refresh would silently stop firing on new
+    // messages until the next remount. See chat-view.tsx for the same
+    // fix and a fuller explanation.
+    async function setup() {
+      await supabase.auth.getSession();
+      if (cancelled) return;
+
+      channel = supabase
+        .channel(`inbox:${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages" },
+          () => void refresh(),
+        )
+        .subscribe();
+    }
+
+    void setup();
 
     return () => {
-      void supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [userId]);
 
