@@ -55,7 +55,21 @@ export function ChatView({
 
   useEffect(() => {
     stickToBottom.current = true;
-    scrollToBottom(false);
+    // Double rAF: the first frame lets the DOM commit (messages just
+    // mounted), the second lets layout/paint settle before measuring
+    // scrollHeight -- a single rAF sometimes fires before images in
+    // the last messages have taken their final layout size.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollToBottom(false));
+    });
+    // Catch-up pass: media (images, link previews) in the last
+    // messages can still be loading asynchronously after the frame
+    // above, shifting the true bottom further down with nothing to
+    // re-trigger the scroll. Re-snap once more shortly after.
+    const catchUp = setTimeout(() => {
+      if (stickToBottom.current) scrollToBottom(false);
+    }, 350);
+    return () => clearTimeout(catchUp);
   }, [conversationId, scrollToBottom]);
 
   useEffect(() => {

@@ -62,6 +62,18 @@ export function FeedList({
     }
   }, []);
 
+  // Save scroll position whenever this view goes away for any reason
+  // (footer tab switch, post detail, any link) -- not just the
+  // specific click handlers that call rememberFeedScroll() manually.
+  // Those still work fine; this just makes it unconditional so
+  // "tap another tab, tap Home again" restores too, not only the
+  // post-detail-and-back flow.
+  useEffect(() => {
+    return () => {
+      rememberFeedScroll();
+    };
+  }, []);
+
   const loadMore = useCallback(() => {
     if (nextOffset == null || loadingMore.current || pending) return;
     loadingMore.current = true;
