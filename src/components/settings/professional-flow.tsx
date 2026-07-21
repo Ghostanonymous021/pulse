@@ -80,11 +80,11 @@ export function ProfessionalFlow({
       return;
     }
     if (cleanDesc.length < 1) {
-      setError("Escreve uma descricao curta.");
+      setError("Escreve uma descrição curta.");
       return;
     }
     if (cleanDesc.length > 200) {
-      setError("Descricao: máximo 200 caracteres.");
+      setError("Descrição: máximo 200 caracteres.");
       return;
     }
     if (cleanContact.length < 3) {
@@ -169,7 +169,7 @@ export function ProfessionalFlow({
           <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
         </button>
         <p className="flex-1 text-center text-[15px] font-semibold tracking-[-0.02em]">
-          {step === 3 ? "Concluido" : `Passo ${step} de 3`}
+          {step === 3 ? "Concluído" : `Passo ${step} de 3`}
         </p>
         <span className="w-10" />
       </header>
