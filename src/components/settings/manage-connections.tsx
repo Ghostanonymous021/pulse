@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { UserAvatar } from "@/components/profile/user-avatar";
 import type { FollowListPerson } from "@/lib/social/follows";
@@ -74,7 +73,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`relative min-h-11 flex-1 text-[14px] font-medium tracking-[-0.01em] transition-colors ${
+      className={`relative min-h-11 flex-1 text-[14px] font-medium tracking-[-0.01em] transition-all duration-200 ease-out ${
         active ? "text-foreground" : "text-muted-foreground"
       }`}
     >
@@ -96,22 +95,21 @@ function ConnectionRow({
   mode: Tab;
   ownerId: string;
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [gone, setGone] = useState(false);
 
-  function remove() {
-    startTransition(async () => {
+  async function remove() {
+    if (pending) return;
+    setPending(true);
+    try {
       const supabase = createClient();
       if (mode === "seguidores") {
-        // Remove follower: delete where they follow me
         await supabase
           .from("follows")
           .delete()
           .eq("follower_id", person.id)
           .eq("following_id", ownerId);
       } else {
-        // Unfollow
         await supabase
           .from("follows")
           .delete()
@@ -119,8 +117,9 @@ function ConnectionRow({
           .eq("following_id", person.id);
       }
       setGone(true);
-      router.refresh();
-    });
+    } finally {
+      setPending(false);
+    }
   }
 
   if (gone) return null;
@@ -150,7 +149,7 @@ function ConnectionRow({
         type="button"
         disabled={pending}
         onClick={remove}
-        className="shrink-0 rounded-full bg-muted px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] text-foreground transition-opacity disabled:opacity-50"
+        className="shrink-0 rounded-full bg-muted px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] text-foreground transition-all duration-200 ease-out active:scale-95 disabled:opacity-50"
       >
         {mode === "seguidores" ? "Remover" : "Deixar"}
       </button>

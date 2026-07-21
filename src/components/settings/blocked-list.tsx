@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { createClient } from "@/lib/supabase/client";
@@ -47,11 +46,12 @@ function BlockedRow({
   person: BlockedPerson;
   onUnblocked: () => void;
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function unblock() {
-    startTransition(async () => {
+  async function unblock() {
+    if (pending) return;
+    setPending(true);
+    try {
       const supabase = createClient();
       const {
         data: { user },
@@ -63,8 +63,9 @@ function BlockedRow({
         .eq("blocker_id", user.id)
         .eq("blocked_id", person.id);
       onUnblocked();
-      router.refresh();
-    });
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -92,7 +93,7 @@ function BlockedRow({
         type="button"
         disabled={pending}
         onClick={unblock}
-        className="shrink-0 rounded-full bg-muted px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] disabled:opacity-50"
+        className="shrink-0 rounded-full bg-muted px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition-all duration-200 ease-out active:scale-95 disabled:opacity-50"
       >
         Desbloquear
       </button>

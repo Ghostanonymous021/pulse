@@ -6,7 +6,6 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    // Chat needs mic/camera on same origin; payment/geo stay off
     value:
       "camera=(self), microphone=(self), geolocation=(), interest-cohort=(), payment=()",
   },
@@ -33,7 +32,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
-  // Production builds already minify JS/CSS; keep poweredByHeader off
   poweredByHeader: false,
   compress: true,
   images: {
@@ -58,7 +56,6 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    // Optimize package imports (tree-shake lucide icons better)
     optimizePackageImports: ["lucide-react"],
   },
   headers: async () => [
@@ -107,6 +104,15 @@ const nextConfig: NextConfig = {
         {
           key: "Cache-Control",
           value: "public, max-age=31536000, immutable",
+        },
+      ],
+    },
+    {
+      source: "/storage/v1/object/public/:path*",
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "public, max-age=86400, stale-while-revalidate=604800",
         },
       ],
     },

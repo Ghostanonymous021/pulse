@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import {
   AVATAR_CHANGED_EVENT,
@@ -10,10 +11,6 @@ import {
 } from "@/lib/profile/avatar";
 import { cn } from "@/lib/utils";
 
-/**
- * Avatar that stays in sync across feed / chat / lists when the user
- * updates their photo (listens to pulse:avatar-changed + session cache).
- */
 export function UserAvatar({
   userId,
   avatarUrl,
@@ -27,7 +24,6 @@ export function UserAvatar({
   name: string;
   size?: number;
   className?: string;
-  /** profiles.updated_at or similar for cache bust */
   updatedAt?: string | null;
 }) {
   const [src, setSrc] = useState<string | null>(() => {
@@ -60,21 +56,23 @@ export function UserAvatar({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground",
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground",
         className,
       )}
       style={{ width: size, height: size, fontSize: Math.max(11, size * 0.34) }}
     >
       {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={src}
           alt=""
-          className="h-full w-full object-cover"
+          fill
+          className="object-cover"
           draggable={false}
         />
       ) : (
-        initial
+        <span className="flex h-full w-full items-center justify-center">
+          {initial}
+        </span>
       )}
     </span>
   );

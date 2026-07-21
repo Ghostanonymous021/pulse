@@ -1,25 +1,19 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { MonitorSmartphone, Smartphone } from "lucide-react";
 
 import type { SessionRow } from "@/app/api/settings/sessions/route";
 import { createClient } from "@/lib/supabase/client";
 
-/**
- * Active sessions — primary safety surface for phone-auth without SMS.
- * Lists devices from auth.sessions; global sign-out invalidates tokens server-side.
- */
 export function SessionsPanel({
   lastSignInAt,
 }: {
   lastSignInAt: string | null;
 }) {
-  const router = useRouter();
   const [sessions, setSessions] = useState<SessionRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,7 +28,6 @@ export function SessionsPanel({
         if (!cancelled) setSessions(body.sessions ?? []);
       } catch {
         if (!cancelled) {
-          // Graceful fallback: current device only
           setSessions([
             {
               id: "current",
@@ -54,25 +47,24 @@ export function SessionsPanel({
     };
   }, [lastSignInAt]);
 
-  function signOutEverywhere() {
+  async function signOutEverywhere() {
     setError(null);
-    startTransition(async () => {
-      try {
-        // Prefer API then client global — both invalidate refresh tokens
-        await fetch("/api/settings/sessions", { method: "DELETE" });
-        const supabase = createClient();
-        const { error: signOutError } = await supabase.auth.signOut({
-          scope: "global", // intentional: all devices from Sessions screen
-        });
-        if (signOutError) throw signOutError;
-        router.push("/login");
-        router.refresh();
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Não foi possível terminar.",
-        );
-      }
-    });
+    setPending(true);
+    try {
+      await fetch("/api/settings/sessions", { method: "DELETE" });
+      const supabase = createClient();
+      const { error: signOutError } = await supabase.auth.signOut({
+        scope: "global",
+      });
+      if (signOutError) throw signOutError;
+      window.location.href = "/login";
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Não foi possível terminar.",
+      );
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -130,7 +122,7 @@ export function SessionsPanel({
           type="button"
           disabled={pending}
           onClick={signOutEverywhere}
-          className="flex min-h-12 w-full items-center justify-center rounded-[12px] bg-card px-4 text-[16px] font-medium tracking-[-0.01em] text-destructive transition-colors active:bg-muted/60 disabled:opacity-50"
+          className="flex min-h-12 w-full items-center justify-center rounded-[12px] bg-card px-4 text-[16px] font-medium tracking-[-0.01em] text-destructive transition-all duration-200 ease-out active:bg-muted/60 disabled:opacity-50"
         >
           {pending
             ? "A terminar..."

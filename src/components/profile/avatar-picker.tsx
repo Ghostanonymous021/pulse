@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
+import Image from "next/image";
 
 import {
   AVATAR_CHANGED_EVENT,
@@ -13,9 +13,6 @@ import {
 import { uploadProfileAvatar } from "@/lib/profile/upload-avatar";
 import { createClient } from "@/lib/supabase/client";
 
-/**
- * Edit-profile avatar — label opens system gallery (works on iOS/Android).
- */
 export function AvatarPicker({
   userId,
   avatarUrl,
@@ -25,7 +22,6 @@ export function AvatarPicker({
   avatarUrl: string | null;
   name: string;
 }) {
-  const router = useRouter();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(() => {
@@ -66,7 +62,6 @@ export function AvatarPicker({
       const supabase = createClient();
       const { url } = await uploadProfileAvatar(supabase, userId, file);
       setPreview(url);
-      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha no upload.");
       setPreview(withAvatarCacheBust(avatarUrl, null));
@@ -84,8 +79,12 @@ export function AvatarPicker({
         aria-label="Alterar foto de perfil"
       >
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="h-full w-full object-cover" />
+          <Image
+            src={preview}
+            alt=""
+            fill
+            className="object-cover"
+          />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-[28px] font-semibold text-muted-foreground">
             {name.slice(0, 1).toUpperCase()}

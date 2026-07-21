@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 import { rememberFeedScroll } from "@/components/feed/feed-list";
 import type { PostMediaView } from "@/components/feed/post-card";
@@ -73,13 +74,14 @@ export function MediaFrame({
         )}
       >
         {total === 1 ? (
-          <img
+          <Image
             src={media[0].url!}
-            alt=""
+            alt="Publicação"
             loading="lazy"
             decoding="async"
             className="block max-h-[70vh] max-w-full object-contain object-center"
             draggable={false}
+            fill
           />
         ) : (
           <div
@@ -89,19 +91,21 @@ export function MediaFrame({
             className="carousel-x flex w-full snap-x snap-mandatory overflow-x-auto"
           >
             {media.map((m) => (
-              <img
-                key={m.id}
-                src={m.url!}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="block h-[70vh] max-h-[70vh] w-full min-w-full shrink-0 snap-center object-cover object-center"
-                draggable={false}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openPrimary();
-                }}
-              />
+              <div key={m.id} className="relative h-[70vh] max-h-[70vh] w-full min-w-full shrink-0 snap-center">
+                <Image
+                  src={m.url!}
+                  alt="Publicação"
+                  loading="lazy"
+                  decoding="async"
+                  className="object-cover object-center"
+                  draggable={false}
+                  fill
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openPrimary();
+                  }}
+                />
+              </div>
             ))}
           </div>
         )}

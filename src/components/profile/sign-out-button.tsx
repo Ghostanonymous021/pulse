@@ -6,7 +6,6 @@ import { useState } from "react";
 import { signOutThisDevice } from "@/lib/auth/sign-out";
 import { createClient } from "@/lib/supabase/client";
 
-/** Sair so neste dispositivo — nao afecta outros telemoveis / browsers. */
 export function SignOutButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -17,7 +16,6 @@ export function SignOutButton() {
       const supabase = createClient();
       await signOutThisDevice(supabase);
       router.push("/login");
-      router.refresh();
     } catch {
       setLoading(false);
     }

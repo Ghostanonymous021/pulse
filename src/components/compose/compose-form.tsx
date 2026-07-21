@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
+import Image from "next/image";
 
 import { MentionField } from "@/components/compose/mention-field";
 import { Spinner } from "@/components/ui/spinner";
@@ -13,16 +14,11 @@ import {
 } from "@/lib/posts/media";
 import { createClient } from "@/lib/supabase/client";
 
-/**
- * Single-screen compose (Instagram create, simplified).
- * Media optional + caption + publish. See docs/UX_PATTERNS.md §2.
- */
 export function ComposeForm({
   canHighlight = false,
   highlightWeeklyLimit = 3,
 }: {
   canHighlight?: boolean;
-  /** Orgs: 3 default, 6 if verified seal active. */
   highlightWeeklyLimit?: number;
 }) {
   const router = useRouter();
@@ -96,7 +92,6 @@ export function ComposeForm({
         await uploadPostImages(supabase, user.id, post.id, files);
       }
 
-      // Unfurl once after publish (cached). Failures leave clickable URLs only.
       if (text) {
         void fetch("/api/posts/link-previews", {
           method: "POST",
@@ -110,7 +105,6 @@ export function ComposeForm({
       setPreviews([]);
       setHighlight(false);
       router.push("/home");
-      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Não foi possível publicar.",
@@ -129,8 +123,14 @@ export function ComposeForm({
               key={src}
               className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-muted"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="h-full w-full object-cover" />
+              <Image
+                src={src}
+                alt="Preview"
+                className="h-full w-full object-cover"
+                draggable={false}
+                width={112}
+                height={112}
+              />
               <button
                 type="button"
                 onClick={() => removeFile(i)}

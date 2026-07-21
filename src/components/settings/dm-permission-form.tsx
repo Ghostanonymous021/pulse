@@ -1,12 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Check } from "lucide-react";
+import { useState } from "react";
 
 import type { DmPermission } from "@/lib/settings/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 const OPTIONS: { value: DmPermission; label: string }[] = [
   { value: "everyone", label: "Todos" },
@@ -19,32 +18,31 @@ export function DmPermissionForm({
 }: {
   initial: DmPermission;
 }) {
-  const router = useRouter();
   const [value, setValue] = useState<DmPermission>(initial);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function select(next: DmPermission) {
+  async function select(next: DmPermission) {
     if (next === value) return;
     const prev = value;
     setValue(next);
-    startTransition(async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("no session");
+    setPending(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("no session");
 
-        const { error } = await supabase
-          .from("profiles")
-          .update({ dm_permission: next })
-          .eq("id", user.id);
-        if (error) throw error;
-        router.refresh();
-      } catch {
-        setValue(prev);
-      }
-    });
+      const { error } = await supabase
+        .from("profiles")
+        .update({ dm_permission: next })
+        .eq("id", user.id);
+      if (error) throw error;
+    } catch {
+      setValue(prev);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -58,7 +56,7 @@ export function DmPermissionForm({
               disabled={pending}
               onClick={() => select(opt.value)}
               className={cn(
-                "flex min-h-[48px] w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors",
+                "flex min-h-[48px] w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-all duration-200 ease-out",
                 "active:bg-muted/60 hover:bg-muted/40 disabled:opacity-60",
               )}
             >

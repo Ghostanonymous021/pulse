@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import Image from "next/image";
 
 import {
   AVATAR_CHANGED_EVENT,
@@ -15,14 +16,6 @@ import { uploadProfileAvatar } from "@/lib/profile/upload-avatar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-/**
- * Profile photo:
- * - Own: sheet → Ver foto | Alterar foto (opens system gallery reliably)
- * - Other: lightbox if photo exists
- *
- * Gallery note: never use display:none on <input type=file> (iOS blocks .click()).
- * Use a <label htmlFor> so the OS treats it as a real user activation.
- */
 export function ProfileAvatar({
   userId,
   avatarUrl,
@@ -113,7 +106,6 @@ export function ProfileAvatar({
       const supabase = createClient();
       const { url: next } = await uploadProfileAvatar(supabase, userId, file);
       setUrl(next);
-      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha no upload.");
       setUrl(withAvatarCacheBust(avatarUrl, null));
@@ -146,11 +138,11 @@ export function ProfileAvatar({
         style={{ width: size, height: size }}
       >
         {url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={url}
             alt=""
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
             draggable={false}
           />
         ) : (
@@ -160,7 +152,6 @@ export function ProfileAvatar({
         )}
       </button>
 
-      {/* Native file picker — NOT display:none (breaks iOS gallery) */}
       <input
         id={inputId}
         ref={inputRef}
@@ -209,7 +200,6 @@ export function ProfileAvatar({
                     </li>
                   )}
                   <li>
-                    {/* label → file input: most reliable way to open gallery on mobile */}
                     <label
                       htmlFor={inputId}
                       className={cn(
@@ -259,11 +249,11 @@ export function ProfileAvatar({
               <span className="w-9" />
             </div>
             <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-8">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={url}
                 alt=""
-                className="max-h-full max-w-full object-contain"
+                fill
+                className="object-contain"
                 draggable={false}
                 onClick={(e) => e.stopPropagation()}
               />

@@ -21,10 +21,6 @@ type FieldKey =
   | "course"
   | "year";
 
-/**
- * Compact row list (IG/Apple) — one field focused at a time.
- * Avoids the “wall of open inputs” when landing on the screen.
- */
 export function EditProfileForm({ profile }: { profile: Profile }) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
@@ -77,7 +73,6 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
       }
 
       router.push("/perfil/definicoes");
-      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Não foi possível guardar.",
@@ -188,7 +183,7 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
         <button
           type="submit"
           disabled={loading}
-          className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
+          className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {loading ? "A guardar..." : "Guardar"}
         </button>
