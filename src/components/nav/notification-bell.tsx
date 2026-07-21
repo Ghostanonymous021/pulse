@@ -78,7 +78,7 @@ export function NotificationBell({
       <Bell className="h-[22px] w-[22px]" strokeWidth={1.5} />
       {badge && (
         <span
-          className="absolute right-1 top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#ff3b30] px-1 text-[10px] font-semibold leading-none text-white tabular-nums transition-opacity"
+          className="absolute right-1 top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold leading-none text-brand-foreground tabular-nums transition-opacity"
           aria-hidden
         >
           {badge}

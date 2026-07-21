@@ -44,7 +44,7 @@ export function DownloadDataButton() {
         {loading ? "A preparar..." : "Descarregar JSON"}
       </button>
       {error && (
-        <p className="mt-2 text-center text-[13px] text-[#ff3b30]" role="alert">
+        <p className="mt-2 text-center text-[13px] text-destructive" role="alert">
           {error}
         </p>
       )}

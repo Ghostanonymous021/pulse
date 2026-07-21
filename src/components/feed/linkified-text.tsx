@@ -42,7 +42,7 @@ export function LinkifiedText({
           href={s.value}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#007AFF] underline-offset-2 hover:underline dark:text-[#0A84FF]"
+          className="text-brand underline-offset-2 hover:underline dark:text-brand"
           onClick={(e) => e.stopPropagation()}
         >
           {s.value}
@@ -54,7 +54,7 @@ export function LinkifiedText({
         <Link
           key={i}
           href={`/u/${encodeURIComponent(s.username)}`}
-          className="font-medium text-[#007AFF] underline-offset-2 hover:underline dark:text-[#0A84FF]"
+          className="font-medium text-brand underline-offset-2 hover:underline dark:text-brand"
           onClick={(e) => e.stopPropagation()}
         >
           {s.value}

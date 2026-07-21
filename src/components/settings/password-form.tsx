@@ -122,7 +122,7 @@ export function PasswordForm() {
           autoFocus
         />
         {error && (
-          <p className="text-[13px] text-[#ff3b30]" role="alert">
+          <p className="text-[13px] text-destructive" role="alert">
             {error}
           </p>
         )}
@@ -163,7 +163,7 @@ export function PasswordForm() {
         autoComplete="new-password"
       />
       {error && (
-        <p className="text-[13px] text-[#ff3b30]" role="alert">
+        <p className="text-[13px] text-destructive" role="alert">
           {error}
         </p>
       )}

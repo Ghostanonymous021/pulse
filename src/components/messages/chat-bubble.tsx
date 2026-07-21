@@ -210,7 +210,7 @@ export function ChatBubble({
             !imageOnly &&
               !isSticker &&
               (mine
-                ? "bg-[#007AFF] text-white dark:bg-[#0A84FF]"
+                ? "bg-brand text-brand-foreground"
                 : "bg-card text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04] dark:ring-white/[0.06]"),
             // Padding: none for pure images; mixed keeps image flush, body padded below
             imageOnly
@@ -221,7 +221,7 @@ export function ChatBubble({
                   ? "bg-transparent p-1 shadow-none ring-0 dark:bg-transparent"
                   : "px-3 py-2",
             pending && "opacity-70",
-            failed && "opacity-90 ring-1 ring-[#ff3b30]/50",
+            failed && "opacity-90 ring-1 ring-destructive/50",
           )}
           onContextMenu={(e) => {
             if (deleted || pending) return;
@@ -260,7 +260,7 @@ export function ChatBubble({
                 "mx-2 mt-2 w-[calc(100%-1rem)] rounded-lg border-l-[3px] px-2 py-1 text-left text-[12px]",
                 mine
                   ? "border-l-white/80 bg-black/10"
-                  : "border-l-[#007AFF] bg-black/[0.04] dark:bg-white/[0.06]",
+                  : "border-l-brand bg-black/[0.04] dark:bg-white/[0.06]",
               )}
             >
               <p
@@ -370,7 +370,7 @@ export function ChatBubble({
               )}
             >
               {failed && (
-                <span className="text-[10px] font-medium text-[#ff3b30]">
+                <span className="text-[10px] font-medium text-destructive">
                   Falhou
                 </span>
               )}
@@ -791,7 +791,7 @@ function MenuItem({
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] font-medium hover:bg-muted/60",
-        destructive && "text-[#ff3b30]",
+        destructive && "text-destructive",
       )}
     >
       {icon}
@@ -1031,10 +1031,10 @@ function DocumentCard({
 
   return (
     <div
-      className={cn(
-        "flex items-center gap-2.5 rounded-xl px-2.5 py-2",
-        mine ? "bg-black/15" : "bg-muted/80",
-      )}
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2",
+          mine ? "bg-black/15" : "bg-muted/80",
+        )}
     >
       <FileText
         className={cn(

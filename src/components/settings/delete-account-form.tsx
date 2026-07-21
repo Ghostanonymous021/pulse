@@ -96,7 +96,7 @@ export function DeleteAccountForm() {
       </div>
 
       {error && (
-        <p className="text-[13px] text-[#ff3b30]" role="alert">
+        <p className="text-[13px] text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -104,7 +104,7 @@ export function DeleteAccountForm() {
       <button
         type="submit"
         disabled={!ready || loading}
-        className="flex h-12 w-full items-center justify-center rounded-full bg-[#ff3b30] text-[15px] font-semibold tracking-[-0.02em] text-white disabled:opacity-40"
+        className="flex h-12 w-full items-center justify-center rounded-full bg-destructive text-[15px] font-semibold tracking-[-0.02em] text-white disabled:opacity-40"
       >
         {loading ? "A apagar..." : "Apagar conta permanentemente"}
       </button>

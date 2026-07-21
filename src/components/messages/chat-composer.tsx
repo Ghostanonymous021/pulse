@@ -377,8 +377,8 @@ export function ChatComposer({
       <div ref={rootRef}>
         {replyTo && !recording && (
           <div className="flex items-start gap-2 border-b border-[var(--separator)] px-3 py-2.5">
-            <div className="min-w-0 flex-1 border-l-[3px] border-l-[#007AFF] pl-2.5">
-              <p className="text-[12px] font-semibold tracking-[-0.01em] text-[#007AFF]">
+            <div className="min-w-0 flex-1 border-l-[3px] border-l-brand pl-2.5">
+              <p className="text-[12px] font-semibold tracking-[-0.01em] text-brand">
                 A responder
               </p>
               <p className="truncate text-[13px] text-muted-foreground">
@@ -398,7 +398,7 @@ export function ChatComposer({
 
         {micError && (
           <div className="border-b border-[var(--separator)] px-4 py-2.5">
-            <p className="text-[12px] leading-relaxed text-[#ff3b30]" role="alert">
+            <p className="text-[12px] leading-relaxed text-destructive" role="alert">
               {micError}
             </p>
           </div>
@@ -526,7 +526,7 @@ export function ChatComposer({
                   label="Galeria"
                   disabled={atLimit}
                   onClick={() => galleryRef.current?.click()}
-                  tone="blue"
+                  tone="brand"
                 >
                   <ImageIcon className="h-5 w-5" strokeWidth={1.5} />
                 </AttachOption>
@@ -534,7 +534,7 @@ export function ChatComposer({
                   label="Camera"
                   disabled={atLimit}
                   onClick={() => cameraRef.current?.click()}
-                  tone="green"
+                  tone="success"
                 >
                   <Camera className="h-5 w-5" strokeWidth={1.5} />
                 </AttachOption>
@@ -592,17 +592,17 @@ export function ChatComposer({
               type="button"
               aria-label="Cancelar gravacao"
               onClick={() => stopRecording(true)}
-              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#ff3b30] transition-colors hover:bg-[#ff3b30]/10"
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10"
             >
               <Trash2 className="h-5 w-5" strokeWidth={1.5} />
             </button>
 
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[22px] bg-[#ff3b30]/10 px-4 py-2.5">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[22px] bg-destructive/10 px-4 py-2.5">
               <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ff3b30] opacity-60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#ff3b30]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
               </span>
-              <span className="text-[15px] font-medium tabular-nums tracking-[-0.01em] text-[#ff3b30]">
+              <span className="text-[15px] font-medium tabular-nums tracking-[-0.01em] text-destructive">
                 {formatDuration(recSeconds)}
               </span>
               <span className="truncate text-[13px] text-muted-foreground">
@@ -615,7 +615,7 @@ export function ChatComposer({
               aria-label="Parar e enviar"
               disabled={loading}
               onClick={() => stopRecording(false)}
-              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#007AFF] text-white transition-opacity disabled:opacity-50 dark:bg-[#0A84FF]"
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity disabled:opacity-50"
             >
               <Square className="h-4 w-4 fill-current" strokeWidth={0} />
             </button>
@@ -692,7 +692,7 @@ export function ChatComposer({
               className={cn(
                 "relative mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full transition-all duration-200 ease-out",
                 hasContent
-                  ? "bg-[#007AFF] text-white dark:bg-[#0A84FF]"
+                  ? "bg-brand text-brand-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground active:scale-95",
                 hasContent && !canSend && "opacity-35",
               )}
@@ -732,13 +732,13 @@ function AttachOption({
   onClick: () => void;
   disabled?: boolean;
   children: React.ReactNode;
-  tone: "blue" | "green" | "muted";
+  tone: "brand" | "success" | "muted";
 }) {
   const toneClass =
-    tone === "blue"
-      ? "bg-[#007AFF]/12 text-[#007AFF]"
-      : tone === "green"
-        ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
+    tone === "brand"
+      ? "bg-brand/12 text-brand"
+      : tone === "success"
+        ? "bg-success/12 text-success"
         : "bg-muted text-foreground";
 
   return (

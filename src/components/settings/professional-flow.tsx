@@ -372,7 +372,7 @@ function FormStep({
         <p
           className={cn(
             "mt-1 text-right text-[12px] text-muted-foreground",
-            descricao.length > 180 && "text-[#ff3b30]",
+            descricao.length > 180 && "text-destructive",
           )}
         >
           {descricao.length}/200
@@ -391,7 +391,7 @@ function FormStep({
       </Field>
 
       {error && (
-        <p className="text-[13px] text-[#ff3b30]" role="alert">
+        <p className="text-[13px] text-destructive" role="alert">
           {error}
         </p>
       )}

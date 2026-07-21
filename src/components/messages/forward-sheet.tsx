@@ -103,7 +103,7 @@ export function ForwardSheet({
                   <span
                     className={cn(
                       "shrink-0 text-[12px] font-medium",
-                      sent ? "text-[#34c759]" : "text-[#007AFF] dark:text-[#0A84FF]",
+                       sent ? "text-success" : "text-brand",
                     )}
                   >
                     {sending ? "..." : sent ? "Enviado" : "Enviar"}

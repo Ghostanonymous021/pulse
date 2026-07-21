@@ -106,7 +106,7 @@ export function AvatarPicker({
         />
       </label>
       {error && (
-        <p className="text-[12px] text-[#ff3b30]" role="alert">
+        <p className="text-[12px] text-destructive" role="alert">
           {error}
         </p>
       )}

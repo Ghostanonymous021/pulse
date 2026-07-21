@@ -119,7 +119,7 @@ export function PushToggle() {
             ? "Ativas — som e vibração incluídos."
             : "Recebe avisos mesmo com a app fechada."}
         </p>
-        {error && <p className="mt-0.5 text-[12px] text-[#ff3b30]">{error}</p>}
+        {error && <p className="mt-0.5 text-[12px] text-destructive">{error}</p>}
       </div>
       <button
         type="button"

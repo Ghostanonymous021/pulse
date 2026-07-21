@@ -82,7 +82,7 @@ export function PostActions({
           <Heart
             className={cn(
               "h-[22px] w-[22px] transition-colors",
-              liked ? "fill-[#ff3b30] text-[#ff3b30]" : "text-foreground",
+              liked ? "fill-brand text-brand" : "text-foreground",
             )}
             strokeWidth={1.5}
           />

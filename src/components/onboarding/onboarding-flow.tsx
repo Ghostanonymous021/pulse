@@ -199,7 +199,7 @@ export function OnboardingFlow({
               />
             </div>
             {error && (
-              <p className="mt-3 text-[13px] text-[#ff3b30]" role="alert">
+              <p className="mt-3 text-[13px] text-destructive" role="alert">
                 {error}
               </p>
             )}
@@ -252,7 +252,7 @@ export function OnboardingFlow({
                 {uploading ? "A enviar..." : "Toca para escolher da galeria"}
               </p>
               {error && (
-                <p className="mt-2 text-[13px] text-[#ff3b30]" role="alert">
+                <p className="mt-2 text-[13px] text-destructive" role="alert">
                   {error}
                 </p>
               )}
@@ -396,7 +396,7 @@ function PrimaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand text-[15px] font-semibold tracking-[-0.02em] text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {label}
       {icon ? <ChevronRight className="h-4 w-4" strokeWidth={2} /> : null}

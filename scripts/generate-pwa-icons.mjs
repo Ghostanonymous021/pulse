@@ -69,7 +69,7 @@ function encodePng(width, height, rgba) {
 function drawIcon(size, { maskable = false } = {}) {
   const rgba = Buffer.alloc(size * size * 4);
   const bg = maskable ? [9, 9, 11, 255] : [9, 9, 11, 255]; // zinc-950
-  const fg = [245, 245, 247, 255]; // near white
+  const fg = [255, 159, 10, 255]; // brand orange
 
   // Fill background
   for (let i = 0; i < size * size; i++) {

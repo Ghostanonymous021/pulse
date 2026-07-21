@@ -310,7 +310,7 @@ function InboxRow({
                 className={cn(
                   "shrink-0 text-[12px] tabular-nums",
                   c.unread && !c.muted
-                    ? "font-semibold text-[#FF9F0A]"
+                    ? "font-semibold text-brand"
                     : "text-muted-foreground",
                 )}
               >
@@ -335,7 +335,7 @@ function InboxRow({
             </p>
             {c.unread && !c.muted && (
               <span
-                className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#FF9F0A]"
+                className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand"
                 aria-label="Não lida"
               />
             )}

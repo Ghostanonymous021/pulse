@@ -39,14 +39,14 @@ export function SettingsRow({
         data-app-chrome
         className={cn(
           "flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7px] bg-muted",
-          destructive && "bg-[#ff3b30]/10",
+          destructive && "bg-destructive/10",
         )}
         aria-hidden
       >
         <Icon
           className={cn(
             "h-[17px] w-[17px]",
-            destructive ? "text-[#ff3b30]" : "text-foreground/85",
+            destructive ? "text-destructive" : "text-foreground/85",
           )}
           strokeWidth={1.5}
         />
@@ -54,7 +54,7 @@ export function SettingsRow({
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-left text-[16px] tracking-[-0.01em]",
-          destructive ? "text-[#ff3b30]" : "text-foreground",
+          destructive ? "text-destructive" : "text-foreground",
         )}
       >
         {label}

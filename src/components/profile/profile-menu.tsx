@@ -211,7 +211,7 @@ function SheetAction({
         onClick={onClick}
         className={cn(
           "flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-colors hover:bg-muted/60 disabled:opacity-50",
-          destructive && "text-[#ff3b30]",
+          destructive && "text-destructive",
           muted && "font-normal text-muted-foreground",
         )}
       >

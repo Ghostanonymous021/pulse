@@ -344,7 +344,7 @@ function UsernameStatus({
   }
   if (availability.reason === "formato" || availability.reason === "curto") {
     return (
-      <p className="text-[12px] text-[#ff3b30]">
+      <p className="text-[12px] text-destructive">
         3–30 caracteres: letras, numeros, ponto ou underscore.
       </p>
     );
@@ -358,7 +358,7 @@ function UsernameStatus({
   }
   if (availability.available === false) {
     return (
-      <p className="text-[12px] text-[#ff3b30]">
+      <p className="text-[12px] text-destructive">
         Indisponivel
         {availability.suggestions.length > 0 ? " — escolhe uma opção:" : ""}
       </p>

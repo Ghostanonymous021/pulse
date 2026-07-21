@@ -179,7 +179,7 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
       </ul>
 
       {error && (
-        <p className="mx-4 mt-4 text-[13px] text-[#ff3b30]" role="alert">
+        <p className="mx-4 mt-4 text-[13px] text-destructive" role="alert">
           {error}
         </p>
       )}

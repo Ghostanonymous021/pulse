@@ -218,7 +218,7 @@ function CommentBody({ text }: { text: string }) {
               href={s.value}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#007AFF] underline-offset-2 hover:underline dark:text-[#0A84FF]"
+              className="text-brand underline-offset-2 hover:underline dark:text-brand"
             >
               {s.value}
             </a>
@@ -229,7 +229,7 @@ function CommentBody({ text }: { text: string }) {
             <Link
               key={i}
               href={`/u/${encodeURIComponent(s.username)}`}
-              className="font-medium text-[#007AFF] hover:underline dark:text-[#0A84FF]"
+              className="font-medium text-brand hover:underline dark:text-brand"
             >
               {s.value}
             </Link>
@@ -308,7 +308,7 @@ function CommentLike({
       <Heart
         className={cn(
           "h-3.5 w-3.5",
-          liked && "fill-[#ff3b30] text-[#ff3b30]",
+          liked && "fill-destructive text-destructive",
         )}
         strokeWidth={1.75}
       />

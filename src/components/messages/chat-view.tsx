@@ -685,7 +685,7 @@ export function ChatView({
           onClick={() => setSearchOpen((v) => !v)}
           className={cn(
             "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-70",
-            searchOpen ? "text-[#007AFF] dark:text-[#0A84FF]" : "text-foreground/90",
+            searchOpen ? "text-brand dark:text-brand" : "text-foreground/90",
           )}
         >
           <Search className="h-5 w-5" strokeWidth={1.5} />
@@ -746,9 +746,9 @@ export function ChatView({
           onClick={() => jumpToMessage(pinnedMessage.id)}
           className="sticky top-14 z-10 flex w-full items-center gap-2 border-b border-[var(--separator)] bg-[var(--elevated)] px-3.5 py-2 text-left backdrop-blur-xl"
         >
-          <Pin className="h-3.5 w-3.5 shrink-0 text-[#007AFF] dark:text-[#0A84FF]" strokeWidth={1.5} />
+          <Pin className="h-3.5 w-3.5 shrink-0 text-brand dark:text-brand" strokeWidth={1.5} />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium text-[#007AFF] dark:text-[#0A84FF]">
+            <p className="text-[11px] font-medium text-brand dark:text-brand">
               Mensagem fixada
             </p>
             <p className="truncate text-[13px] text-foreground/80">

@@ -188,7 +188,7 @@ export function ProfileLinksEditor({
       )}
 
       {error && (
-        <p className="mt-2 text-[12px] text-[#ff3b30]" role="alert">
+        <p className="mt-2 text-[12px] text-destructive" role="alert">
           {error}
         </p>
       )}

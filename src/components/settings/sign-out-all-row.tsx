@@ -44,18 +44,18 @@ export function SignOutAllRow() {
         )}
       >
         <span
-          className="flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7px] bg-[#ff3b30]/10"
+          className="flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-[7px] bg-destructive/10"
           aria-hidden
         >
-          <LogOut className="h-[17px] w-[17px] text-[#ff3b30]" strokeWidth={1.5} />
+          <LogOut className="h-[17px] w-[17px] text-destructive" strokeWidth={1.5} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[16px] tracking-[-0.01em] text-[#ff3b30]">
+          <span className="block truncate text-[16px] tracking-[-0.01em] text-destructive">
             {loading
               ? "A terminar..."
               : "Terminar sessão em todos os dispositivos"}
           </span>
-          <span className="block truncate text-[12px] text-[#ff3b30]/80">
+          <span className="block truncate text-[12px] text-destructive/80">
             Inclui telemoveis e browsers
           </span>
         </span>

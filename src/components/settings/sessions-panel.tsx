@@ -116,7 +116,7 @@ export function SessionsPanel({
                 </p>
               </div>
               {s.is_current ? (
-                <span className="shrink-0 text-[13px] font-medium text-[#34c759]">
+                <span className="shrink-0 text-[13px] font-medium text-success">
                   Activa
                 </span>
               ) : null}
@@ -130,14 +130,14 @@ export function SessionsPanel({
           type="button"
           disabled={pending}
           onClick={signOutEverywhere}
-          className="flex min-h-12 w-full items-center justify-center rounded-[12px] bg-card px-4 text-[16px] font-medium tracking-[-0.01em] text-[#ff3b30] transition-colors active:bg-muted/60 disabled:opacity-50"
+          className="flex min-h-12 w-full items-center justify-center rounded-[12px] bg-card px-4 text-[16px] font-medium tracking-[-0.01em] text-destructive transition-colors active:bg-muted/60 disabled:opacity-50"
         >
           {pending
             ? "A terminar..."
             : "Terminar sessão em todos os dispositivos"}
         </button>
         {error && (
-          <p className="mt-2 text-center text-[13px] text-[#ff3b30]" role="alert">
+          <p className="mt-2 text-center text-[13px] text-destructive" role="alert">
             {error}
           </p>
         )}

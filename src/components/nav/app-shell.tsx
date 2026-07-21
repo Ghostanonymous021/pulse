@@ -73,7 +73,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "relative flex h-11 w-11 items-center justify-center rounded-full transition-colors",
                     active
-                      ? "text-foreground"
+                      ? "text-brand"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >

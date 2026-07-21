@@ -73,7 +73,7 @@ export function RecoveryEmailForm({
         />
       </div>
       {error && (
-        <p className="text-[13px] text-[#ff3b30]" role="alert">
+        <p className="text-[13px] text-destructive" role="alert">
           {error}
         </p>
       )}

@@ -189,7 +189,7 @@ export function ProfileAvatar({
             >
               <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--separator)] bg-[var(--elevated)] shadow-xl backdrop-blur-xl">
                 {error && (
-                  <p className="border-b border-[var(--separator)] px-4 py-3 text-center text-[13px] text-[#ff3b30]">
+                  <p className="border-b border-[var(--separator)] px-4 py-3 text-center text-[13px] text-destructive">
                     {error}
                   </p>
                 )}

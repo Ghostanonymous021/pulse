@@ -87,7 +87,7 @@ export function RouteProgress() {
       className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[2px] bg-transparent"
     >
       <div
-        className="h-full bg-[#FF9F0A] transition-[width] duration-200 ease-out"
+        className="h-full bg-brand transition-[width] duration-200 ease-out"
         style={{ width: `${progress}%` }}
       />
     </div>

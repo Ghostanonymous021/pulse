@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /** Base pulsing block — building unit for all skeleton screens. */
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("animate-pulse rounded-md bg-muted", className)} />
+    <div className={cn("skeleton-shimmer rounded-md", className)} />
   );
 }
 

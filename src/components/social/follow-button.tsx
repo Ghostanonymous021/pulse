@@ -87,7 +87,7 @@ export function FollowButton({
         className={cn(
           "flex h-9 items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors disabled:opacity-60",
           filled
-            ? "bg-accent text-accent-foreground hover:opacity-90"
+            ? "bg-brand text-brand-foreground hover:opacity-90"
             : "border border-border hover:bg-muted",
         )}
       >
