@@ -85,15 +85,12 @@ body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* Smoother scroll on mobile (native-like) */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  /* PWA standalone: respect safe areas (notch / home indicator) */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0
-    env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
-/* Screen-reader only utility (skip link + a11y) */
+/* Screen-reader only utility */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -128,17 +125,13 @@ body {
   }
 }
 
-/* Improve focus visibility (WCAG 2.2) */
+/* Improve focus visibility */
 :focus-visible {
   outline: 2px solid var(--foreground);
   outline-offset: 2px;
 }
 
-/*
- * Text selection — app-like chrome vs user content
- * Chrome (nav, headers, logos, labels, buttons): not selectable / no iOS callout.
- * User content (posts, comments, DMs, captions): still selectable and copyable.
- */
+/* App chrome — no selection / no iOS callout */
 .app-chrome,
 nav,
 header,
@@ -153,7 +146,7 @@ button,
   -webkit-touch-callout: none;
 }
 
-/* Fields always allow selection (login, compose, chat, settings) */
+/* Fields always allow selection */
 input,
 textarea,
 select,
@@ -172,7 +165,7 @@ select,
   -webkit-touch-callout: default;
 }
 
-/* Utility mirrors (Tailwind-friendly) */
+/* Utility mirrors */
 .select-app {
   -webkit-user-select: none;
   user-select: none;
@@ -184,7 +177,7 @@ select,
   -webkit-touch-callout: default;
 }
 
-/* Soft page transitions where supported (Chrome/Edge/Safari recent) */
+/* Soft page transitions */
 @view-transition {
   navigation: auto;
 }
@@ -244,7 +237,7 @@ select,
   border-radius: 9999px;
 }
 
-/* Jump-to-message flash (search result, pinned message) */
+/* Jump-to-message flash */
 .chat-highlight {
   animation: chat-highlight-fade 1.5s ease-out;
 }
@@ -317,4 +310,27 @@ select,
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-2px); }
   75% { transform: translateX(2px); }
+}
+
+/* Like burst animation */
+.heart-pop {
+  animation: heart-pop 420ms var(--ease-spring) forwards;
+}
+@keyframes heart-pop {
+  0% { transform: scale(0); opacity: 0; }
+  15% { transform: scale(1.25); opacity: 1; }
+  30% { transform: scale(0.95); opacity: 1; }
+  45% { transform: scale(1.1); opacity: 1; }
+  60% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* Like count hop */
+.like-count-hop {
+  animation: like-count-hop 300ms var(--ease-spring);
+}
+@keyframes like-count-hop {
+  0% { transform: translateY(0); opacity: 1; }
+  40% { transform: translateY(-3px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
 }

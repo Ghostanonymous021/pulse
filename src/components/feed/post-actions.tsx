@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -26,6 +26,15 @@ export function PostActions({
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [pending, setPending] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (liked) {
+      setAnimating(true);
+      const t = setTimeout(() => setAnimating(false), 420);
+      return () => clearTimeout(t);
+    }
+  }, [liked]);
 
   async function toggleLike() {
     if (pending) return;
@@ -78,7 +87,7 @@ export function PostActions({
           disabled={pending}
           aria-label={liked ? "Remover gosto" : "Gostar"}
           aria-pressed={liked}
-          className="rounded-full p-2 transition-colors hover:bg-muted/80 active:scale-95 disabled:opacity-50"
+          className="relative rounded-full p-2 transition-colors hover:bg-muted/80 active:scale-95 disabled:opacity-50"
         >
           <Heart
             className={cn(
@@ -87,6 +96,13 @@ export function PostActions({
             )}
             strokeWidth={1.5}
           />
+          {animating && liked && (
+            <Heart
+              aria-hidden
+              className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 heart-pop text-brand"
+              strokeWidth={1.5}
+            />
+          )}
         </button>
         <Link
           href={`/p/${postId}`}
@@ -100,7 +116,7 @@ export function PostActions({
 
       <div className="flex flex-wrap items-center gap-x-3 px-2 text-[13px] font-medium tracking-[-0.01em]">
         {likeCount > 0 && (
-          <span>
+          <span className={cn(liked && "like-count-hop")}>
             {likeCount} {likeCount === 1 ? "gosto" : "gostos"}
           </span>
         )}
