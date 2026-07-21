@@ -71,7 +71,7 @@ export function NotificationBell({
         badge ? `Notificações, ${badge} não lidas` : "Notificações"
       }
       className={cn(
-        "relative rounded-full p-2.5 text-foreground/80 transition-colors hover:bg-muted hover:text-foreground",
+        "relative rounded-full p-2.5 text-foreground/80 transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95",
         className,
       )}
     >

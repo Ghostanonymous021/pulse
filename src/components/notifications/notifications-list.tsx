@@ -84,7 +84,7 @@ export function NotificationsList({
                   if (!n.is_read) markOne(n.id);
                 }}
                 className={cn(
-                  "flex gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40",
+                   "flex gap-3 px-4 py-3.5 transition-all duration-200 ease-out hover:bg-muted/40 active:scale-[0.98]",
                   !n.is_read && "bg-muted/25",
                 )}
               >

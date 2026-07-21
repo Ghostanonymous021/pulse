@@ -199,7 +199,7 @@ export function OnboardingFlow({
               />
             </div>
             {error && (
-              <p className="mt-3 text-[13px] text-destructive" role="alert">
+              <p className="shake mt-3 text-[13px] text-destructive" role="alert">
                 {error}
               </p>
             )}
@@ -224,7 +224,7 @@ export function OnboardingFlow({
                 type="button"
                 disabled={uploading}
                 onClick={() => fileRef.current?.click()}
-                className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-muted text-[32px] font-semibold text-muted-foreground ring-1 ring-[var(--separator)] transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-muted text-[32px] font-semibold text-muted-foreground ring-1 ring-[var(--separator)] transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
                 aria-label="Escolher foto"
               >
                 {avatarUrl ? (
@@ -252,7 +252,7 @@ export function OnboardingFlow({
                 {uploading ? "A enviar..." : "Toca para escolher da galeria"}
               </p>
               {error && (
-                <p className="mt-2 text-[13px] text-destructive" role="alert">
+                <p className="shake mt-2 text-[13px] text-destructive" role="alert">
                   {error}
                 </p>
               )}
@@ -396,7 +396,7 @@ function PrimaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand text-[15px] font-semibold tracking-[-0.02em] text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand text-[15px] font-semibold tracking-[-0.02em] text-brand-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
     >
       {label}
       {icon ? <ChevronRight className="h-4 w-4" strokeWidth={2} /> : null}
@@ -415,7 +415,7 @@ function GhostButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-10 w-full items-center justify-center text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+      className="flex h-10 w-full items-center justify-center text-[14px] font-medium text-muted-foreground transition-all duration-200 ease-out hover:text-foreground active:scale-95"
     >
       {label}
     </button>

@@ -73,7 +73,7 @@ export function PostFollowIcon({
         title="Solicitado"
         disabled={pending}
         onClick={() => startTransition(cancelPending)}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-50"
       >
         <Clock className="h-[18px] w-[18px]" strokeWidth={1.5} />
       </button>
@@ -87,7 +87,7 @@ export function PostFollowIcon({
       disabled={pending}
       onClick={() => startTransition(follow)}
       className={cn(
-        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-foreground transition-all duration-200",
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-foreground transition-all duration-200 ease-out",
         "hover:bg-muted active:scale-95 disabled:opacity-50",
       )}
     >

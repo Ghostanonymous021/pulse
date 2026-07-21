@@ -297,7 +297,7 @@ export function PostMenu({
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="rounded-full p-2 text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95"
       >
         <MoreHorizontal className="h-5 w-5" strokeWidth={1.5} />
       </button>

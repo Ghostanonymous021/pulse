@@ -308,3 +308,13 @@ select,
   background: var(--brand);
   transition: left 260ms var(--ease-spring), width 260ms var(--ease-spring);
 }
+
+/* Shake for error states */
+.shake {
+  animation: shake 150ms ease-in-out;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}

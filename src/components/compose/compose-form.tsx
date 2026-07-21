@@ -184,7 +184,7 @@ export function ComposeForm({
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95"
           >
             <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
             Foto
@@ -193,7 +193,7 @@ export function ComposeForm({
         <button
           type="submit"
           disabled={loading || (!body.trim() && files.length === 0)}
-          className="flex h-10 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+           className="flex h-10 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-medium text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {loading && <Spinner className="h-3.5 w-3.5" />}
           {loading ? "A publicar..." : "Publicar"}

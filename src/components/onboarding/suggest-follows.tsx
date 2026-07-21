@@ -91,7 +91,7 @@ export function SuggestFollows({ suggestions }: { suggestions: Suggestion[] }) {
           type="button"
           onClick={finish}
           disabled={pending}
-          className="flex h-12 w-full items-center justify-center rounded-[var(--radius-md)] bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+           className="flex h-12 w-full items-center justify-center rounded-[var(--radius-md)] bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           Continuar
         </button>

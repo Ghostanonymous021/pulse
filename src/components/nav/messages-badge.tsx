@@ -59,7 +59,7 @@ export function MessagesBadge() {
 
   return (
     <span
-      className="absolute -right-1.5 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold leading-none text-brand-foreground tabular-nums"
+      className="absolute -right-1.5 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold leading-none text-brand-foreground tabular-nums transition-all duration-200 ease-out active:scale-95"
       aria-hidden
     >
       {badge}

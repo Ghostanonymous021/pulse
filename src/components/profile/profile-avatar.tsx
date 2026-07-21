@@ -202,7 +202,7 @@ export function ProfileAvatar({
                           setSheetOpen(false);
                           setLightboxOpen(true);
                         }}
-                        className="flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-colors hover:bg-muted/60"
+                        className="flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-all duration-200 ease-out hover:bg-muted/60 active:scale-95"
                       >
                         Ver foto
                       </button>
@@ -213,7 +213,7 @@ export function ProfileAvatar({
                     <label
                       htmlFor={inputId}
                       className={cn(
-                        "flex w-full cursor-pointer items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-colors hover:bg-muted/60",
+                        "flex w-full cursor-pointer items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-all duration-200 ease-out hover:bg-muted/60 active:scale-95",
                         loading && "pointer-events-none opacity-50",
                       )}
                     >
@@ -224,7 +224,7 @@ export function ProfileAvatar({
                     <button
                       type="button"
                       onClick={() => setSheetOpen(false)}
-                      className="flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-normal tracking-[-0.02em] text-muted-foreground transition-colors hover:bg-muted/60"
+                      className="flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-normal tracking-[-0.02em] text-muted-foreground transition-all duration-200 ease-out hover:bg-muted/60 active:scale-95"
                     >
                       Cancelar
                     </button>

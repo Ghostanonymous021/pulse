@@ -389,7 +389,7 @@ export function ChatComposer({
               type="button"
               aria-label="Cancelar resposta"
               onClick={onCancelReply}
-              className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="rounded-full p-1.5 text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95"
             >
               <X className="h-4 w-4" strokeWidth={1.5} />
             </button>
@@ -415,7 +415,7 @@ export function ChatComposer({
               <button
                 type="button"
                 onClick={clearPending}
-                className="text-[12px] font-medium text-muted-foreground hover:text-foreground"
+                className="text-[12px] font-medium text-muted-foreground transition-all duration-200 ease-out hover:text-foreground active:scale-95"
               >
                 Limpar
               </button>
@@ -472,7 +472,7 @@ export function ChatComposer({
                     <button
                       key={e}
                       type="button"
-                      className="rounded-xl p-1.5 text-[22px] transition-colors hover:bg-muted"
+                       className="rounded-xl p-1.5 text-[22px] transition-all duration-200 ease-out hover:bg-muted active:scale-95"
                       onClick={() => insertEmoji(e)}
                     >
                       {e}
@@ -484,7 +484,7 @@ export function ChatComposer({
                       setStickerOpen(true);
                       setEmojiOpen(false);
                     }}
-                    className="ml-1 flex items-center gap-1 rounded-xl px-2 py-1.5 text-[12px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="ml-1 flex items-center gap-1 rounded-xl px-2 py-1.5 text-[12px] font-medium text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95"
                   >
                     <Sticker className="h-4 w-4" strokeWidth={1.5} />
                     Stickers
@@ -498,7 +498,7 @@ export function ChatComposer({
                       key={s}
                       type="button"
                       disabled={loading}
-                      className="rounded-2xl p-2 text-[28px] transition-colors hover:bg-muted disabled:opacity-50"
+                       className="rounded-2xl p-2 text-[28px] transition-all duration-200 ease-out hover:bg-muted active:scale-90 disabled:opacity-50"
                       onClick={() => sendSticker(s)}
                     >
                       {s}
@@ -592,7 +592,7 @@ export function ChatComposer({
               type="button"
               aria-label="Cancelar gravacao"
               onClick={() => stopRecording(true)}
-              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10"
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-95"
             >
               <Trash2 className="h-5 w-5" strokeWidth={1.5} />
             </button>
@@ -615,7 +615,7 @@ export function ChatComposer({
               aria-label="Parar e enviar"
               disabled={loading}
               onClick={() => stopRecording(false)}
-              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity disabled:opacity-50"
+              className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-all duration-200 ease-out active:scale-95 disabled:opacity-50"
             >
               <Square className="h-4 w-4 fill-current" strokeWidth={0} />
             </button>
@@ -632,11 +632,11 @@ export function ChatComposer({
                 setEmojiOpen(false);
                 setStickerOpen(false);
               }}
-              className={cn(
-                "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-all duration-200",
-                "hover:bg-muted hover:text-foreground",
-                attachOpen && "rotate-45 bg-muted text-foreground",
-              )}
+               className={cn(
+                 "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-all duration-200 ease-out",
+                 "hover:bg-muted hover:text-foreground active:scale-95",
+                 attachOpen && "rotate-45 bg-muted text-foreground",
+               )}
             >
               <Plus className="h-6 w-6" strokeWidth={1.5} />
             </button>
@@ -670,11 +670,11 @@ export function ChatComposer({
                   setStickerOpen(false);
                   setAttachOpen(false);
                 }}
-                className={cn(
-                  "absolute bottom-1.5 right-1.5 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors",
-                  "hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10",
-                  emojiOpen && "text-foreground",
-                )}
+               className={cn(
+                 "absolute bottom-1.5 right-1.5 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-all duration-200 ease-out",
+                 "hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10 active:scale-95",
+                 emojiOpen && "text-foreground",
+               )}
               >
                 <Smile className="h-5 w-5" strokeWidth={1.5} />
               </button>
@@ -690,10 +690,10 @@ export function ChatComposer({
                 else void startRecording();
               }}
               className={cn(
-                "relative mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full transition-all duration-200 ease-out",
+                "relative mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full transition-all duration-200 ease-out active:scale-95",
                 hasContent
                   ? "bg-brand text-brand-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground active:scale-95",
+                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
                 hasContent && !canSend && "opacity-35",
               )}
             >

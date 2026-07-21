@@ -71,10 +71,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   aria-label={label}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "relative flex h-11 w-11 items-center justify-center rounded-full transition-colors",
+                    "relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 ease-out",
                     active
-                      ? "text-brand"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "text-brand scale-105"
+                      : "text-muted-foreground hover:text-foreground active:scale-95",
                   )}
                 >
                   <Icon className="h-6 w-6" strokeWidth={active ? 2 : 1.5} />

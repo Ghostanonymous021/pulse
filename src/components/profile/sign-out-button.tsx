@@ -28,7 +28,7 @@ export function SignOutButton() {
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="flex h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
+      className="flex h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-medium transition-all duration-200 ease-out hover:bg-muted active:scale-95 disabled:opacity-50"
     >
       {loading ? "A sair..." : "Sair"}
     </button>

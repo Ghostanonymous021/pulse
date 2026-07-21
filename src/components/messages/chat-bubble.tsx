@@ -396,7 +396,7 @@ export function ChatBubble({
                 key={g.emoji}
                 type="button"
                 onClick={() => onReact(message.id, g.emoji)}
-                className="rounded-full border border-[var(--separator)] bg-[var(--elevated)] px-1.5 py-0.5 text-[12px] shadow-sm backdrop-blur-xl"
+                 className="rounded-full border border-[var(--separator)] bg-[var(--elevated)] px-1.5 py-0.5 text-[12px] shadow-sm backdrop-blur-xl transition-all duration-200 ease-out hover:scale-105 active:scale-95"
               >
                 {g.emoji}
                 {g.count > 1 ? (
@@ -418,7 +418,7 @@ export function ChatBubble({
               else openMenu();
             }}
             className={cn(
-              "absolute top-1 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100",
+              "absolute top-1 rounded-full p-1 opacity-0 transition-all duration-200 ease-out group-hover:opacity-60 hover:!opacity-100 active:scale-95",
               mine ? "-left-8" : "-right-8",
             )}
           >

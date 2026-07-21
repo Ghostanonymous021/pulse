@@ -134,7 +134,7 @@ export function PasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
+          className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {loading ? "A verificar..." : "Continuar"}
         </button>
@@ -177,7 +177,7 @@ export function PasswordForm() {
             setConfirm("");
             setPhase("current");
           }}
-          className="flex h-11 flex-1 items-center justify-center rounded-full bg-muted text-[15px] font-medium tracking-[-0.02em] disabled:opacity-50"
+          className="flex h-11 flex-1 items-center justify-center rounded-full bg-muted text-[15px] font-medium tracking-[-0.02em] transition-all duration-200 ease-out hover:bg-muted/80 active:scale-95 disabled:opacity-50"
         >
           Voltar
         </button>

@@ -181,7 +181,7 @@ export function ProfileMenu({ userId }: { userId: string }) {
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="rounded-full p-2.5 text-foreground/80 transition-colors hover:bg-muted"
+        className="rounded-full p-2.5 text-foreground/80 transition-all duration-200 ease-out hover:bg-muted active:scale-95"
       >
         <MoreHorizontal className="h-5 w-5" strokeWidth={1.5} />
       </button>

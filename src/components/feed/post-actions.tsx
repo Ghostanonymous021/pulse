@@ -70,6 +70,11 @@ export function PostActions({
 
   return (
     <div className="mt-3 space-y-1.5">
+      {error && (
+        <p className="shake text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
       <div className="flex items-center gap-0.5">
         <button
           type="button"
@@ -81,8 +86,8 @@ export function PostActions({
         >
           <Heart
             className={cn(
-              "h-[22px] w-[22px] transition-colors",
-              liked ? "fill-brand text-brand" : "text-foreground",
+              "h-[22px] w-[22px] transition-all duration-200 ease-out",
+              liked ? "fill-brand text-brand scale-110" : "text-foreground",
             )}
             strokeWidth={1.5}
           />
@@ -91,7 +96,7 @@ export function PostActions({
           href={`/p/${postId}`}
           aria-label="Comentarios"
           onClick={() => rememberFeedScroll()}
-          className="rounded-full p-2 transition-colors hover:bg-muted/80"
+          className="rounded-full p-2 transition-all duration-200 ease-out hover:bg-muted/80 active:scale-95"
         >
           <MessageCircle className="h-[22px] w-[22px]" strokeWidth={1.5} />
         </Link>

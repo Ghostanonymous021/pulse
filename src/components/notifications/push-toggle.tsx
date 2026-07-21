@@ -125,7 +125,7 @@ export function PushToggle() {
         type="button"
         disabled={busy}
         onClick={enabled ? disable : enable}
-        className="shrink-0 rounded-lg border border-[var(--separator)] px-3 py-1.5 text-[13px] font-medium transition-colors hover:bg-muted disabled:opacity-50"
+        className="shrink-0 rounded-lg border border-[var(--separator)] px-3 py-1.5 text-[13px] font-medium transition-all duration-200 ease-out hover:bg-muted active:scale-95 disabled:opacity-50"
       >
         {enabled ? "Desativar" : "Ativar"}
       </button>

@@ -271,7 +271,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                         setUsernameTouched(true);
                         setUsername(s);
                       }}
-                      className="rounded-full border border-border bg-card px-2.5 py-1 text-[12px] font-medium tracking-[-0.01em] transition-colors hover:bg-muted"
+                       className="rounded-full border border-border bg-card px-2.5 py-1 text-[12px] font-medium tracking-[-0.01em] transition-all duration-200 ease-out hover:bg-muted active:scale-95"
                     >
                       @{s}
                     </button>
@@ -303,7 +303,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       />
 
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+        <p className="shake text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -315,7 +315,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           (mode === "signup" &&
             (availability.checking || availability.available === false))
         }
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="flex h-12 w-full items-center justify-center rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
       >
         {loading ? "Aguarde..." : mode === "signup" ? "Continuar" : "Entrar"}
       </button>
