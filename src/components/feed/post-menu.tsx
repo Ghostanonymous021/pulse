@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { MoreHorizontal } from "lucide-react";
@@ -9,11 +9,6 @@ import { createClient } from "@/lib/supabase/client";
 import { muteAuthor } from "@/lib/social/mute";
 import { cn } from "@/lib/utils";
 
-/**
- * Post overflow menu (⋯) — no follow (follow lives as header icon).
- * Own post: Apagar, Copiar ligacao.
- * Others: Ver perfil, Denunciar, Silenciar, Bloquear, Copiar ligação.
- */
 export function PostMenu({
   postId,
   authorId,
@@ -28,7 +23,7 @@ export function PostMenu({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
-  const [busy, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
@@ -73,14 +68,15 @@ export function PostMenu({
     setMessage(null);
   }
 
-  function run(fn: () => Promise<void>) {
-    startTransition(async () => {
-      try {
-        await fn();
-      } catch (e) {
-        setMessage(e instanceof Error ? e.message : "Algo correu mal.");
-      }
-    });
+  async function run(fn: () => Promise<void>) {
+    setPending(true);
+    try {
+      await fn();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Algo correu mal.");
+    } finally {
+      setPending(false);
+    }
   }
 
   async function deletePost() {
@@ -169,12 +165,12 @@ export function PostMenu({
                       <SheetAction
                         label="Apagar publicação"
                         destructive
-                        disabled={busy}
+                        disabled={pending}
                         onClick={() => setConfirmDelete(true)}
                       />
                       <SheetAction
                         label="Copiar ligação"
-                        disabled={busy}
+                        disabled={pending}
                         onClick={() => run(copyLink)}
                       />
                     </>
@@ -183,7 +179,7 @@ export function PostMenu({
                       {authorUsername && (
                         <SheetAction
                           label="Ver perfil"
-                          disabled={busy}
+                          disabled={pending}
                           onClick={() => {
                             close();
                             router.push(`/u/${authorUsername}`);
@@ -193,23 +189,23 @@ export function PostMenu({
                       <SheetAction
                         label="Denunciar"
                         destructive
-                        disabled={busy}
+                        disabled={pending}
                         onClick={() => setReportOpen(true)}
                       />
                       <SheetAction
                         label="Silenciar"
-                        disabled={busy}
+                        disabled={pending}
                         onClick={() => run(async () => silenceAuthor())}
                       />
                       <SheetAction
                         label="Bloquear"
                         destructive
-                        disabled={busy}
+                        disabled={pending}
                         onClick={() => setConfirmBlock(true)}
                       />
                       <SheetAction
                         label="Copiar ligação"
-                        disabled={busy}
+                        disabled={pending}
                         onClick={() => run(copyLink)}
                       />
                     </>
@@ -226,7 +222,7 @@ export function PostMenu({
                   <SheetAction
                     label="Apagar"
                     destructive
-                    disabled={busy}
+                    disabled={pending}
                     onClick={() => run(deletePost)}
                   />
                   <SheetAction
@@ -246,7 +242,7 @@ export function PostMenu({
                   <SheetAction
                     label="Bloquear"
                     destructive
-                    disabled={busy}
+                    disabled={pending}
                     onClick={() => run(blockAuthor)}
                   />
                   <SheetAction
@@ -271,7 +267,7 @@ export function PostMenu({
                     <SheetAction
                       key={reason}
                       label={reason}
-                      disabled={busy}
+                      disabled={pending}
                       onClick={() => run(() => reportPost(reason))}
                     />
                   ))}
@@ -326,7 +322,7 @@ function SheetAction({
         disabled={disabled}
         onClick={onClick}
         className={cn(
-          "flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-colors hover:bg-muted/60 disabled:opacity-50",
+          "flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-all duration-200 ease-out hover:bg-muted/60 active:scale-95 disabled:opacity-50",
           destructive && "text-destructive",
           muted && "font-normal text-muted-foreground",
         )}

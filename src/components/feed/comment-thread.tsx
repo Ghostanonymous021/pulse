@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
@@ -17,10 +17,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useKeyboardInset } from "@/lib/ui/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 
-/**
- * Comments: max 2 visual levels (root + replies).
- * Composer tracks virtual keyboard (no fixed-bottom dance).
- */
 export function CommentThread({
   postId,
   tree,
@@ -33,7 +29,6 @@ export function CommentThread({
     label: string;
   } | null>(null);
   const keyboard = useKeyboardInset();
-  // Reserve space so last comments stay above the bar (+ keyboard)
   const bottomPad = Math.max(keyboard + 88, 112);
 
   return (
@@ -115,7 +110,6 @@ function CommentBlock({
   return (
     <div
       className={cn(
-        // Only one indent level for replies — never nest further
         depth > 0 && "ml-3 border-l border-[var(--separator)] pl-3",
       )}
     >
@@ -252,16 +246,18 @@ function CommentLike({
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function toggle() {
-    startTransition(async () => {
-      const next = !liked;
-      const prevLiked = liked;
-      const prevCount = count;
-      setLiked(next);
-      setCount((c) => c + (next ? 1 : -1));
+  async function toggle() {
+    if (pending) return;
+    const next = !liked;
+    const prevLiked = liked;
+    const prevCount = count;
+    setLiked(next);
+    setCount((c) => c + (next ? 1 : -1));
+    setPending(true);
 
+    try {
       const supabase = createClient();
       const {
         data: { user },
@@ -294,8 +290,9 @@ function CommentLike({
           return;
         }
       }
-      // No router.refresh — optimistic only (native feel)
-    });
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -363,9 +360,7 @@ function CommentComposer({
     <form
       onSubmit={onSubmit}
       className="flex items-end gap-2"
-      // Prevent iOS zoom thrash + keep bar stable while typing
       onFocusCapture={() => {
-        // After keyboard settles, keep the focused field in view without jumping the whole page
         window.setTimeout(() => {
           const el = document.activeElement;
           if (el instanceof HTMLElement) {

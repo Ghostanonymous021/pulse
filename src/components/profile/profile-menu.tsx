@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { MoreHorizontal } from "lucide-react";
@@ -8,11 +8,10 @@ import { MoreHorizontal } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-/** Profile overflow menu (⋯) — Denunciar, Bloquear. Same sheet pattern as PostMenu. */
 export function ProfileMenu({ userId }: { userId: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [busy, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmBlock, setConfirmBlock] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -39,14 +38,15 @@ export function ProfileMenu({ userId }: { userId: string }) {
     setMessage(null);
   }
 
-  function run(fn: () => Promise<void>) {
-    startTransition(async () => {
-      try {
-        await fn();
-      } catch (e) {
-        setMessage(e instanceof Error ? e.message : "Algo correu mal.");
-      }
-    });
+  async function run(fn: () => Promise<void>) {
+    setPending(true);
+    try {
+      await fn();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Algo correu mal.");
+    } finally {
+      setPending(false);
+    }
   }
 
   async function reportProfile(reason: string) {
@@ -111,13 +111,13 @@ export function ProfileMenu({ userId }: { userId: string }) {
                     <SheetAction
                       label="Denunciar"
                       destructive
-                      disabled={busy}
+                      disabled={pending}
                       onClick={() => setReportOpen(true)}
                     />
                     <SheetAction
                       label="Bloquear"
                       destructive
-                      disabled={busy}
+                      disabled={pending}
                       onClick={() => setConfirmBlock(true)}
                     />
                     <SheetAction label="Cancelar" onClick={close} muted />
@@ -133,7 +133,7 @@ export function ProfileMenu({ userId }: { userId: string }) {
                     <SheetAction
                       label="Bloquear"
                       destructive
-                      disabled={busy}
+                      disabled={pending}
                       onClick={() => run(blockUser)}
                     />
                     <SheetAction
@@ -154,7 +154,7 @@ export function ProfileMenu({ userId }: { userId: string }) {
                         <SheetAction
                           key={reason}
                           label={reason}
-                          disabled={busy}
+                          disabled={pending}
                           onClick={() => run(() => reportProfile(reason))}
                         />
                       ),
@@ -210,7 +210,7 @@ function SheetAction({
         disabled={disabled}
         onClick={onClick}
         className={cn(
-          "flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-colors hover:bg-muted/60 disabled:opacity-50",
+          "flex w-full items-center justify-center px-4 py-3.5 text-[16px] font-medium tracking-[-0.02em] transition-all duration-200 ease-out hover:bg-muted/60 active:scale-95 disabled:opacity-50",
           destructive && "text-destructive",
           muted && "font-normal text-muted-foreground",
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Spinner } from "@/components/ui/spinner";
@@ -9,10 +9,6 @@ import { cn } from "@/lib/utils";
 
 export type FollowUiState = "none" | "pending" | "accepted" | "self";
 
-/**
- * Instagram follow states: Seguir | Solicitado | A seguir.
- * See docs/UX_PATTERNS.md §3.
- */
 export function FollowButton({
   targetUserId,
   initialState,
@@ -24,53 +20,57 @@ export function FollowButton({
 }) {
   const router = useRouter();
   const [state, setState] = useState(initialState);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (state === "self") return null;
 
   async function run() {
     setError(null);
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setError("Inicia sessão.");
-      return;
-    }
-
-    if (state === "none") {
-      const { error: e } = await supabase.from("follows").insert({
-        follower_id: user.id,
-        following_id: targetUserId,
-      });
-      if (e) {
-        setError(e.message);
+    setPending(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setError("Inicia sessão.");
         return;
       }
-      // Trigger sets pending vs accepted; re-read status
-      const { data } = await supabase
-        .from("follows")
-        .select("status")
-        .eq("follower_id", user.id)
-        .eq("following_id", targetUserId)
-        .maybeSingle();
-      setState(data?.status === "pending" ? "pending" : "accepted");
-    } else {
-      const { error: e } = await supabase
-        .from("follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("following_id", targetUserId);
-      if (e) {
-        setError(e.message);
-        return;
-      }
-      setState("none");
-    }
 
-    router.refresh();
+      if (state === "none") {
+        const { error: e } = await supabase.from("follows").insert({
+          follower_id: user.id,
+          following_id: targetUserId,
+        });
+        if (e) {
+          setError(e.message);
+          return;
+        }
+        const { data } = await supabase
+          .from("follows")
+          .select("status")
+          .eq("follower_id", user.id)
+          .eq("following_id", targetUserId)
+          .maybeSingle();
+        setState(data?.status === "pending" ? "pending" : "accepted");
+      } else {
+        const { error: e } = await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("following_id", targetUserId);
+        if (e) {
+          setError(e.message);
+          return;
+        }
+        setState("none");
+      }
+
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
   }
 
   const label =
@@ -83,7 +83,7 @@ export function FollowButton({
       <button
         type="button"
         disabled={pending}
-        onClick={() => startTransition(run)}
+        onClick={run}
         className={cn(
           "flex h-9 items-center justify-center rounded-lg px-4 text-sm font-medium transition-all duration-200 ease-out disabled:opacity-60",
           filled

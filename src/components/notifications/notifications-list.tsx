@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
@@ -21,10 +21,11 @@ export function NotificationsList({
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function markOne(id: string) {
-    startTransition(async () => {
+  async function markOne(id: string) {
+    setPending(true);
+    try {
       const supabase = createClient();
       await supabase
         .from("notifications")
@@ -34,16 +35,21 @@ export function NotificationsList({
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
       );
       router.refresh();
-    });
+    } finally {
+      setPending(false);
+    }
   }
 
-  function markAll() {
-    startTransition(async () => {
+  async function markAll() {
+    setPending(true);
+    try {
       const supabase = createClient();
       await supabase.rpc("mark_all_notifications_read");
       setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
       router.refresh();
-    });
+    } finally {
+      setPending(false);
+    }
   }
 
   const unread = items.some((n) => !n.is_read);
