@@ -16,15 +16,7 @@ export default async function AjudaPage() {
               Contacto
             </p>
             <p className="mt-1 text-[14px] text-muted-foreground">
-              suporte@pulse.app
-            </p>
-          </li>
-          <li className="px-3.5 py-3.5">
-            <p className="text-[15px] font-medium tracking-[-0.01em]">
-              Campi cobertos
-            </p>
-            <p className="mt-1 text-[14px] text-muted-foreground">
-              Xai-Xai · Maxixe · Massinga · Manhica
+              suportepulse@protonmail.com
             </p>
           </li>
         </ul>
