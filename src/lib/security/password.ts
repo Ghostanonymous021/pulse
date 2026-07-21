@@ -1,6 +1,6 @@
 /** Password rules (NIST SP 800-63B length-first + short blocklist). */
 
-export const PASSWORD_MIN_LENGTH = 10;
+export const PASSWORD_MIN_LENGTH = 8;
 
 const COMMON = new Set(
   [

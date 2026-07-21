@@ -165,7 +165,7 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
   - Pagamento simulado bloqueado em producao por omissao
   - SSRF guard em link-preview; CSP + security headers
   - Username-check sem service_role; step-up password em apagar conta
-  - Senha min 10 + blocklist; rate-limit prune; logs JSON de eventos
+  - Senha min 8 + blocklist; rate-limit prune; logs JSON de eventos
 - [ ] CRUD de projetos no Portfolio (UI de criacao/edicao)
 - [ ] Rate limit distribuido (Redis/Upstash) multi-instancia
 - [ ] Webhook M-Pesa real (substituir sim)

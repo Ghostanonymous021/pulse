@@ -6,7 +6,7 @@ import { PASSWORD_MIN_LENGTH, validatePassword } from "./password.ts";
 describe("validatePassword", () => {
   it("rejects short passwords", () => {
     assert.ok(validatePassword("short"));
-    assert.ok(validatePassword("123456789")); // 9
+    assert.ok(validatePassword("1234567")); // 7
   });
 
   it("accepts long enough uncommon passwords", () => {
@@ -20,6 +20,6 @@ describe("validatePassword", () => {
   });
 
   it("rejects pure short digits", () => {
-    assert.ok(validatePassword("1234567890")); // 10 digits
+    assert.ok(validatePassword("1234567890")); // 10 digits, common
   });
 });
