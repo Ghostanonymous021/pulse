@@ -22,6 +22,7 @@ export function MediaFrame({
   const router = useRouter();
   const scroller = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({});
   const total = media.length;
 
   const onScroll = useCallback(() => {
@@ -51,7 +52,7 @@ export function MediaFrame({
   if (total === 0) return null;
 
   return (
-    <div className="relative w-full">
+    <div className={cn("relative w-full", mode === "feed" && "max-h-[70vh]")}>
       <div
         role="link"
         tabIndex={0}
@@ -66,18 +67,17 @@ export function MediaFrame({
           }
         }}
         className={cn(
-          "relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-muted",
-          "max-h-[70vh]",
+          "relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-none bg-muted md:rounded-xl",
           mode === "detail" && "cursor-zoom-in",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/25",
         )}
       >
         {total === 1 ? (
-          <img
+          <Picture
             src={media[0].url!}
-            alt=""
-            loading="lazy"
-            decoding="async"
+            alt="Publicação"
+            loaded={!!loadedMap[media[0].id]}
+            onLoaded={() => setLoadedMap((prev) => ({ ...prev, [media[0].id]: true }))}
             className="block max-h-[70vh] max-w-full object-contain object-center"
             draggable={false}
           />
@@ -89,19 +89,16 @@ export function MediaFrame({
             className="carousel-x flex w-full snap-x snap-mandatory overflow-x-auto"
           >
             {media.map((m) => (
-              <img
-                key={m.id}
-                src={m.url!}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="block h-[70vh] max-h-[70vh] w-full min-w-full shrink-0 snap-center object-cover object-center"
-                draggable={false}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openPrimary();
-                }}
-              />
+              <div key={m.id} className="relative h-[70vh] max-h-[70vh] w-full min-w-full shrink-0 snap-center">
+                <Picture
+                  src={m.url!}
+                  alt="Publicação"
+                  loaded={!!loadedMap[m.id]}
+                  onLoaded={() => setLoadedMap((prev) => ({ ...prev, [m.id]: true }))}
+                  className="object-cover object-center"
+                  draggable={false}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -151,6 +148,50 @@ export function MediaFrame({
             <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
           </button>
         </>
+      )}
+    </div>
+  );
+}
+
+function Picture({
+  src,
+  alt,
+  loaded,
+  onLoaded,
+  className,
+  draggable,
+  onClick,
+}: {
+  src: string;
+  alt: string;
+  loaded: boolean;
+  onLoaded: () => void;
+  className?: string;
+  draggable?: boolean;
+  onClick?: (e: React.MouseEvent<HTMLImageElement>) => void;
+}) {
+  const [currentSrc, setCurrentSrc] = useState(src);
+
+  return (
+    <div className="relative">
+      <img
+        src={currentSrc}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        draggable={draggable}
+        onLoad={onLoaded}
+        onClick={onClick}
+        className={cn(
+          "h-full w-full object-contain object-center transition-opacity duration-300",
+          loaded ? "opacity-100" : "opacity-0",
+          className,
+        )}
+      />
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--separator)] border-t-foreground/20" />
+        </div>
       )}
     </div>
   );
