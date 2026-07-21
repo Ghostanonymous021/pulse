@@ -6,9 +6,15 @@ import { MoreVertical } from "lucide-react";
 import Image from "next/image";
 
 import { UserAvatar } from "@/components/profile/user-avatar";
-import { formatChatCopy, type ChatBubbleStyles } from "@/lib/chat/bubble-styles";
-import type { Message, ReactionSummary } from "@/lib/chat/types";
+import type { ChatMessage, ChatReaction } from "@/lib/chat/types";
 import { cn } from "@/lib/utils";
+
+type ChatBubbleStyles = {
+  bubble: string;
+  meta: string;
+  replyBorder: string;
+  replyText: string;
+};
 
 const EMOJI_QUICK = ["👍", "❤️", "😂", "😢", "🔥", "🙏"];
 const STICKER_PACK = ["😎", "🤓", "😅", "😉", "😋", "😴"];
@@ -19,18 +25,42 @@ export function ChatBubble({
   showAvatar,
   reactions,
   onToggleReaction,
+  peerName,
+  cluster,
+  pinned,
+  onReply,
+  onReact,
+  onDelete,
+  onDeleteForMe,
+  onCopy,
+  onCancelSend,
+  onPin,
+  onForward,
 }: {
-  message: Message;
+  message: ChatMessage;
   mine: boolean;
   showAvatar?: boolean;
-  reactions: ReactionSummary[];
-  onToggleReaction: (emoji: string) => void;
+  reactions?: ChatReaction[];
+  onToggleReaction?: (emoji: string) => void;
+  peerName?: string;
+  cluster?: "last" | "single" | "first" | "middle";
+  pinned?: boolean;
+  onReply?: (message: ChatMessage) => void;
+  onReact?: (messageId: string, emoji: string) => Promise<void>;
+  onDelete?: (messageId: string) => Promise<void>;
+  onDeleteForMe?: (messageId: string) => Promise<void>;
+  onCopy?: (text: string) => void;
+  onCancelSend?: (id: string) => void;
+  onPin?: (message: ChatMessage) => Promise<void>;
+  onForward?: (message: ChatMessage) => void;
 }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyText, setReplyText] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -52,9 +82,12 @@ export function ChatBubble({
     return () => document.removeEventListener("pointerdown", handle);
   }, []);
 
-  const isSticker = message.mime_type?.startsWith("sticker/");
+  const isSticker = message.message_type === "sticker";
   const imageOnly =
-    message.body == null && message.media.some((m) => m.mime_type?.startsWith("image/"));
+    message.body == null &&
+    message.attachments.some((m) => m.mime_type?.startsWith("image/"));
+
+  const senderLabel = peerName || message.sender_id.slice(0, 8);
 
   const styles: ChatBubbleStyles = useMemo(
     () => ({
@@ -95,6 +128,13 @@ export function ChatBubble({
     setMenuOpen(false);
   }
 
+  async function replySubmit() {
+    const text = replyText.trim();
+    if (!text) return;
+    setReplyText("");
+    setReplyOpen(false);
+  }
+
   if (!mounted) return null;
 
   return (
@@ -103,8 +143,8 @@ export function ChatBubble({
         {!mine && showAvatar && (
           <UserAvatar
             userId={message.sender_id}
-            avatarUrl={message.sender_avatar_url ?? null}
-            name={message.sender_display_name ?? message.sender_username ?? "?"}
+            avatarUrl={undefined}
+            name={senderLabel}
             size={28}
           />
         )}
@@ -124,12 +164,12 @@ export function ChatBubble({
               </p>
             )}
 
-            {message.media.map((m, idx) => (
+            {message.attachments.map((m, idx) => (
               <div
                 key={m.id}
                 className={cn(
                   "mt-2 overflow-hidden rounded-xl",
-                  message.media.length > 1 ? "h-48 w-48" : "max-h-[50vh] w-full",
+                  message.attachments.length > 1 ? "h-48 w-48" : "max-h-[50vh] w-full",
                 )}
               >
                 {m.mime_type?.startsWith("image/") ? (
@@ -168,11 +208,11 @@ export function ChatBubble({
                 minute: "2-digit",
               })}
             </time>
-            {reactions.map((r) => (
+            {reactions?.map((r) => (
               <button
                 key={r.emoji}
                 type="button"
-                onClick={() => onToggleReaction(r.emoji)}
+                onClick={() => onToggleReaction?.(r.emoji)}
                 className="text-xs opacity-85 transition-opacity hover:opacity-100"
               >
                 {r.emoji}

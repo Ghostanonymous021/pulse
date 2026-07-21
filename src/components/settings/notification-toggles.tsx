@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AtSign, Heart, MessageCircle, UserPlus, type LucideIcon } from "lucide-react";
 
 import { SettingsGroup } from "@/components/settings/settings-group";
 import { SettingsRow } from "@/components/settings/settings-row";
