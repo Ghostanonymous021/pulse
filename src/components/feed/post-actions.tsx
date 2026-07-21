@@ -70,11 +70,6 @@ export function PostActions({
 
   return (
     <div className="mt-3 space-y-1.5">
-      {error && (
-        <p className="shake text-xs text-destructive" role="alert">
-          {error}
-        </p>
-      )}
       <div className="flex items-center gap-0.5">
         <button
           type="button"
