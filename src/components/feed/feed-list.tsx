@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Sparkles } from "lucide-react";
 
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
@@ -9,16 +9,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { FEED_PAGE_SIZE } from "@/lib/posts/feed";
 
 const SCROLL_KEY = "pulse:feed-scroll";
-const NEW_POSTS_POLL_MS = 25_000;
+const BASE_POLL_MS = 25_000;
+const BACKOFF_STEPS = [60_000, 120_000, 300_000];
 const NEAR_TOP_PX = 80;
 
-/**
- * Infinite feed + scroll restore when returning from /p/[id].
- * Initial page from RSC; more via /api/feed (no full document reload).
- * Polls for new posts at the top; if the user is scrolled down,
- * shows a "novas publicações" pill instead of shifting content
- * under them (Twitter/X pattern).
- */
 export function FeedList({
   initialPosts,
   initialNextOffset,
@@ -28,23 +22,26 @@ export function FeedList({
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
-  const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [newPosts, setNewPosts] = useState<PostWithAuthor[]>([]);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadingMore = useRef(false);
-  const postsRef = useRef(posts);
+  const abortRef = useRef<AbortController | null>(null);
+  const seenIds = useRef<Set<string>>(new Set(initialPosts.map((p) => p.id)));
+  const newPostsRef = useRef<Set<string>>(new Set());
+  const backoffIndex = useRef(0);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep refs in sync
+  useEffect(() => {
+    newPostsRef.current = new Set(newPosts.map((p) => p.id));
+  }, [newPosts]);
 
   useEffect(() => {
-    postsRef.current = posts;
+    seenIds.current = new Set(posts.map((p) => p.id));
   }, [posts]);
 
-  useEffect(() => {
-    setPosts(initialPosts);
-    setNextOffset(initialNextOffset);
-  }, [initialPosts, initialNextOffset]);
-
-  // Restore scroll after back-navigation from post detail
+  // Restore scroll after back-navigation
   useEffect(() => {
     try {
       const y = sessionStorage.getItem(SCROLL_KEY);
@@ -62,12 +59,7 @@ export function FeedList({
     }
   }, []);
 
-  // Save scroll position at the moment of click on any link leaving
-  // this page -- covers footer tabs, header icons (Explorar, sino),
-  // post links, anything. This runs BEFORE Next.js starts the route
-  // transition. Doing this on unmount instead races with Next's own
-  // scroll-to-top-on-navigate behavior, which can fire first and
-  // leave scrollY already at 0 by the time cleanup runs.
+  // Save scroll on outbound clicks
   useEffect(() => {
     function onClickCapture(e: MouseEvent) {
       const target = e.target as HTMLElement | null;
@@ -82,20 +74,24 @@ export function FeedList({
   }, []);
 
   const loadMore = useCallback(() => {
-    if (nextOffset == null || loadingMore.current || pending) return;
+    if (nextOffset == null || loadingMore.current) return;
     loadingMore.current = true;
     setError(null);
-    startTransition(async () => {
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 20_000);
+
+    (async () => {
       try {
         const res = await fetch(
           `/api/feed?offset=${nextOffset}&limit=${FEED_PAGE_SIZE}`,
+          { signal: controller.signal },
         );
+        if (!res.ok) throw new Error("Falha ao carregar mais.");
         const body = (await res.json()) as {
           posts?: PostWithAuthor[];
           nextOffset?: number | null;
-          error?: string;
         };
-        if (!res.ok) throw new Error(body.error || "Falha ao carregar.");
         const more = body.posts ?? [];
         setPosts((prev) => {
           const seen = new Set(prev.map((p) => p.id));
@@ -103,14 +99,17 @@ export function FeedList({
         });
         setNextOffset(body.nextOffset ?? null);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Falha ao carregar.");
+        if ((e as Error)?.name !== "AbortError") {
+          setError(e instanceof Error ? e.message : "Falha ao carregar.");
+        }
       } finally {
+        clearTimeout(id);
         loadingMore.current = false;
       }
-    });
-  }, [nextOffset, pending]);
+    })();
+  }, [nextOffset]);
 
-  // IntersectionObserver infinite scroll
+  // Prefetch next page when sentinel is near
   useEffect(() => {
     const el = sentinel.current;
     if (!el || nextOffset == null) return;
@@ -124,37 +123,87 @@ export function FeedList({
     return () => io.disconnect();
   }, [loadMore, nextOffset]);
 
-  // Poll for new posts at the top of the feed.
+  // Smart polling: backoff + visibility + scroll-aware
   useEffect(() => {
     if (posts.length === 0) return;
 
-    async function checkForNew() {
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const getBackoffMs = () => {
+      const scrollY = window.scrollY;
+      if (scrollY > 400) return BACKOFF_STEPS[2];
+      if (scrollY > 200) return BACKOFF_STEPS[1];
+      return BASE_POLL_MS;
+    };
+
+    const poll = async () => {
+      if (cancelled) return;
+      if (document.hidden) {
+        timeout = setTimeout(poll, 2000);
+        return;
+      }
+
+      // Cancel previous in-flight poll
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       try {
-        const res = await fetch(`/api/feed?offset=0&limit=${FEED_PAGE_SIZE}`);
-        if (!res.ok) return;
+        const res = await fetch(
+          `/api/feed?offset=0&limit=${FEED_PAGE_SIZE}`,
+          { signal: controller.signal, next: { revalidate: 0 } },
+        );
+        if (!res.ok || cancelled) return;
         const body = (await res.json()) as { posts?: PostWithAuthor[] };
         const latest = body.posts ?? [];
-        const known = new Set(postsRef.current.map((p) => p.id));
+
+        // Deduplicate against live posts + newPosts pill
+        const known = new Set([
+          ...posts.map((p) => p.id),
+          ...newPosts.map((p) => p.id),
+        ]);
+
         const fresh = latest.filter((p) => !known.has(p.id));
-        if (fresh.length === 0) return;
+        if (fresh.length === 0) {
+          backoffIndex.current = Math.max(0, backoffIndex.current - 1);
+          timeout = setTimeout(poll, getBackoffMs());
+          return;
+        }
+
+        backoffIndex.current = 0;
 
         if (window.scrollY < NEAR_TOP_PX) {
-          // Already at the top — safe to insert directly, nothing shifts under the reader.
-          setPosts((prev) => [...fresh, ...prev]);
+          // At top: inject directly
+          setPosts((prev) => {
+            const seen = new Set(prev.map((p) => p.id));
+            return [...fresh.filter((p) => !seen.has(p.id)), ...prev];
+          });
         } else {
+          // Below top: accumulate in pill
           setNewPosts((prev) => {
             const seen = new Set(prev.map((p) => p.id));
             return [...prev, ...fresh.filter((p) => !seen.has(p.id))];
           });
         }
       } catch {
-        /* silent — next poll retries */
+        // silent — next poll retries
+      } finally {
+        if (!cancelled) {
+          timeout = setTimeout(poll, getBackoffMs());
+        }
       }
-    }
+    };
 
-    const id = setInterval(checkForNew, NEW_POSTS_POLL_MS);
-    return () => clearInterval(id);
-  }, [posts.length]);
+    timeout = setTimeout(poll, getBackoffMs());
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      abortRef.current?.abort();
+    };
+  }, [posts.length, newPosts]);
 
   function showNewPosts() {
     setPosts((prev) => {
@@ -197,11 +246,6 @@ export function FeedList({
         <PostCard key={post.id} post={post} />
       ))}
       <div ref={sentinel} className="h-8" aria-hidden />
-      {pending && (
-        <div className="flex justify-center py-4">
-          <Spinner className="h-4 w-4 text-muted-foreground" />
-        </div>
-      )}
       {error && (
         <button
           type="button"
