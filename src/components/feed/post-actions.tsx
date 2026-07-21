@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -25,47 +25,48 @@ export function PostActions({
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function toggleLike() {
+  async function toggleLike() {
     if (pending) return;
     const next = !liked;
     const prevLiked = liked;
     const prevCount = likeCount;
     setLiked(next);
     setLikeCount((c) => c + (next ? 1 : -1));
+    setPending(true);
 
-    startTransition(async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          setLiked(prevLiked);
-          setLikeCount(prevCount);
-          return;
-        }
-
-        if (next) {
-          const { error } = await supabase.from("likes").insert({
-            user_id: user.id,
-            post_id: postId,
-          });
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from("likes")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("post_id", postId);
-          if (error) throw error;
-        }
-      } catch {
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
         setLiked(prevLiked);
         setLikeCount(prevCount);
+        return;
       }
-    });
+
+      if (next) {
+        const { error } = await supabase.from("likes").insert({
+          user_id: user.id,
+          post_id: postId,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("likes")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("post_id", postId);
+        if (error) throw error;
+      }
+    } catch {
+      setLiked(prevLiked);
+      setLikeCount(prevCount);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
