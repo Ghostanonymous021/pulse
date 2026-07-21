@@ -20,6 +20,7 @@ import { formatDuration, humanizeMicError, pickAudioMime, stripMimeParams } from
 import { STICKER_PACK } from "@/lib/chat/types";
 import type { ChatMessage } from "@/lib/chat/types";
 import { messagePreview } from "@/lib/chat/preview";
+import { compressImageForUpload } from "@/lib/posts/compress-image";
 import { cn } from "@/lib/utils";
 
 const EMOJI_QUICK = [
@@ -302,17 +303,26 @@ export function ChatComposer({
     }
   }
 
-  function addFiles(files: FileList | File[], kind: "image" | "document") {
+  async function addFiles(files: FileList | File[], kind: "image" | "document") {
     const list = Array.from(files);
     if (!list.length) return;
 
-    setPending((prev) => {
-      const room = MAX_CHAT_ATTACHMENTS - prev.length;
-      if (room <= 0) return prev;
+    const room = MAX_CHAT_ATTACHMENTS - pending.length;
+    if (room <= 0) return;
 
+    const candidates = list.slice(0, room).filter(
+      (file) => kind !== "image" || file.type.startsWith("image/"),
+    );
+
+    const processed = await Promise.all(
+      candidates.map(async (file) =>
+        kind === "image" ? compressImageForUpload(file) : file,
+      ),
+    );
+
+    setPending((prev) => {
       const next: PendingAttachment[] = [...prev];
-      for (const file of list.slice(0, room)) {
-        if (kind === "image" && !file.type.startsWith("image/")) continue;
+      for (const file of processed) {
         next.push({
           id: `${uid}-${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
           file,
@@ -558,7 +568,7 @@ export function ChatComposer({
           multiple
           className="file-input-native"
           onChange={(e) => {
-            if (e.target.files?.length) addFiles(e.target.files, "image");
+            if (e.target.files?.length) void addFiles(e.target.files, "image");
             e.target.value = "";
           }}
         />
@@ -569,7 +579,7 @@ export function ChatComposer({
           capture="environment"
           className="file-input-native"
           onChange={(e) => {
-            if (e.target.files?.length) addFiles(e.target.files, "image");
+            if (e.target.files?.length) void addFiles(e.target.files, "image");
             e.target.value = "";
           }}
         />
@@ -580,7 +590,7 @@ export function ChatComposer({
           multiple
           className="file-input-native"
           onChange={(e) => {
-            if (e.target.files?.length) addFiles(e.target.files, "document");
+            if (e.target.files?.length) void addFiles(e.target.files, "document");
             e.target.value = "";
           }}
         />

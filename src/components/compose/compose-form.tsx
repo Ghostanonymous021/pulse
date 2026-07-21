@@ -7,6 +7,7 @@ import Image from "next/image";
 
 import { MentionField } from "@/components/compose/mention-field";
 import { Spinner } from "@/components/ui/spinner";
+import { compressImageForUpload } from "@/lib/posts/compress-image";
 import {
   maxPostImages,
   uploadPostImages,
@@ -30,12 +31,12 @@ export function ComposeForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function onPickFiles(list: FileList | null) {
+  async function onPickFiles(list: FileList | null) {
     if (!list?.length) return;
     const next: File[] = [...files];
     const nextPrev: string[] = [...previews];
-    for (const file of Array.from(list)) {
-      const err = validateImageFile(file);
+    for (const raw of Array.from(list)) {
+      const err = validateImageFile(raw);
       if (err) {
         setError(err);
         continue;
@@ -44,6 +45,7 @@ export function ComposeForm({
         setError(`No máximo ${maxPostImages()} imagens.`);
         break;
       }
+      const file = await compressImageForUpload(raw);
       next.push(file);
       nextPrev.push(URL.createObjectURL(file));
     }
@@ -179,7 +181,7 @@ export function ComposeForm({
             accept="image/jpeg,image/png,image/webp,image/gif"
             multiple
             className="file-input-native"
-            onChange={(e) => onPickFiles(e.target.files)}
+            onChange={(e) => void onPickFiles(e.target.files)}
           />
           <button
             type="button"
