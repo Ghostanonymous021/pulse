@@ -860,6 +860,10 @@ export type Database = {
         Args: { p_username: string };
         Returns: boolean;
       };
+      search_profiles: {
+        Args: { p_query: string; p_limit?: number };
+        Returns: Profile[];
+      };
       increment_profile_view: {
         Args: { p_profile_id: string };
         Returns: undefined;

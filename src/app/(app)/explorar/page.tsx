@@ -44,14 +44,31 @@ export default async function ExplorarPage({
 
   if (query.length >= 1) {
     if (active === "contas") {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .or(
-          `username.ilike.${pattern},display_name.ilike.${pattern},university.ilike.${pattern},campus.ilike.${pattern},course.ilike.${pattern}`,
-        )
-        .limit(60);
-      accounts = rankAccountsByRelevance((data ?? []) as Profile[], query);
+      // search_profiles (see supabase/migrations/20260722200100_search_profiles_fn.sql)
+      // ranks with pg_trgm similarity() in the database — tolerates typos
+      // and missing diacritics ("malony" still finds "Mallony"), which a
+      // plain ILIKE substring match cannot. Falls back to the old ILIKE
+      // path only if the RPC is unreachable, so search never goes fully
+      // dark on a transient RPC error.
+      const { data, error } = await supabase.rpc("search_profiles", {
+        p_query: query,
+        p_limit: 60,
+      });
+      if (error) {
+        const fallback = await supabase
+          .from("profiles")
+          .select("*")
+          .or(
+            `username.ilike.${pattern},display_name.ilike.${pattern},university.ilike.${pattern},campus.ilike.${pattern},course.ilike.${pattern}`,
+          )
+          .limit(60);
+        accounts = rankAccountsByRelevance(
+          (fallback.data ?? []) as Profile[],
+          query,
+        );
+      } else {
+        accounts = (data ?? []) as Profile[];
+      }
     } else {
       const { data } = await supabase
         .from("posts")
