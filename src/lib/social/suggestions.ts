@@ -55,21 +55,38 @@ export async function loadPeopleSuggestions(
   viewerId: string,
   viewerProfile: Pick<Profile, "university" | "campus" | "course">,
 ): Promise<PeopleSuggestion[]> {
-  const [{ data: following }, { data: blockedRows }] = await Promise.all([
-    supabase
-      .from("follows")
-      .select("following_id")
-      .eq("follower_id", viewerId),
-    supabase
-      .from("blocks")
-      .select("blocker_id, blocked_id")
-      .or(`blocker_id.eq.${viewerId},blocked_id.eq.${viewerId}`),
-  ]);
+  const [{ data: following }, { data: followers }, { data: blockedRows }] =
+    await Promise.all([
+      supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", viewerId),
+      // People who already follow the viewer are excluded from PYMK too —
+      // they surface as "seguidores" already; suggesting them again here
+      // as a stranger to discover is what actually looked like a bug
+      // (e.g. someone who follows you showing up in both lists).
+      supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("following_id", viewerId)
+        .eq("status", "accepted"),
+      supabase
+        .from("blocks")
+        .select("blocker_id, blocked_id")
+        .or(`blocker_id.eq.${viewerId},blocked_id.eq.${viewerId}`),
+    ]);
 
   const alreadyFollowingIds = new Set(
     (following ?? []).map((f) => f.following_id as string),
   );
-  const excludeIds = new Set<string>([viewerId, ...alreadyFollowingIds]);
+  const alreadyFollowerIds = new Set(
+    (followers ?? []).map((f) => f.follower_id as string),
+  );
+  const excludeIds = new Set<string>([
+    viewerId,
+    ...alreadyFollowingIds,
+    ...alreadyFollowerIds,
+  ]);
   for (const b of blockedRows ?? []) {
     excludeIds.add(b.blocker_id === viewerId ? b.blocked_id : b.blocker_id);
   }
