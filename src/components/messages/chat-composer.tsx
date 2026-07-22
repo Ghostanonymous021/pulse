@@ -316,7 +316,7 @@ export function ChatComposer({
 
     const processed = await Promise.all(
       candidates.map(async (file) =>
-        kind === "image" ? compressImageForUpload(file) : file,
+        kind === "image" ? (await compressImageForUpload(file)).file : file,
       ),
     );
 

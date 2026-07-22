@@ -8,6 +8,7 @@ import Image from "next/image";
 import { MentionField } from "@/components/compose/mention-field";
 import { Spinner } from "@/components/ui/spinner";
 import { compressImageForUpload } from "@/lib/posts/compress-image";
+import type { UploadableImage } from "@/lib/posts/media";
 import {
   maxPostImages,
   uploadPostImages,
@@ -25,7 +26,7 @@ export function ComposeForm({
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [body, setBody] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [images, setImages] = useState<UploadableImage[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [highlight, setHighlight] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export function ComposeForm({
 
   async function onPickFiles(list: FileList | null) {
     if (!list?.length) return;
-    const next: File[] = [...files];
+    const next: UploadableImage[] = [...images];
     const nextPrev: string[] = [...previews];
     for (const raw of Array.from(list)) {
       const err = validateImageFile(raw);
@@ -45,25 +46,37 @@ export function ComposeForm({
         setError(`No máximo ${maxPostImages()} imagens.`);
         break;
       }
-      const file = await compressImageForUpload(raw);
-      next.push(file);
-      nextPrev.push(URL.createObjectURL(file));
+      const result = await compressImageForUpload(raw);
+      if (!result.compressed && result.file.size > 700 * 1024) {
+        // Compression was skipped and the file is still large -- surfaced
+        // so we're not silently shipping full camera-res photos again.
+        console.warn(
+          "[compose] client-side compression skipped for large file",
+          { name: raw.name, size: raw.size, type: raw.type },
+        );
+      }
+      next.push({
+        file: result.file,
+        width: result.width,
+        height: result.height,
+      });
+      nextPrev.push(URL.createObjectURL(result.file));
     }
-    setFiles(next);
+    setImages(next);
     setPreviews(nextPrev);
     if (fileRef.current) fileRef.current.value = "";
   }
 
   function removeFile(index: number) {
     URL.revokeObjectURL(previews[index]);
-    setFiles((f) => f.filter((_, i) => i !== index));
+    setImages((f) => f.filter((_, i) => i !== index));
     setPreviews((p) => p.filter((_, i) => i !== index));
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const text = body.trim();
-    if (!text && files.length === 0) {
+    if (!text && images.length === 0) {
       setError("Escreve algo ou adiciona uma foto.");
       return;
     }
@@ -90,8 +103,8 @@ export function ComposeForm({
 
       if (insertError || !post) throw insertError ?? new Error("Falha ao criar.");
 
-      if (files.length) {
-        await uploadPostImages(supabase, user.id, post.id, files);
+      if (images.length) {
+        await uploadPostImages(supabase, user.id, post.id, images);
       }
 
       if (text) {
@@ -103,7 +116,7 @@ export function ComposeForm({
       }
 
       setBody("");
-      setFiles([]);
+      setImages([]);
       setPreviews([]);
       setHighlight(false);
       // Drop stale feed snapshot so home shows the new post
@@ -197,7 +210,7 @@ export function ComposeForm({
         </div>
         <button
           type="submit"
-          disabled={loading || (!body.trim() && files.length === 0)}
+          disabled={loading || (!body.trim() && images.length === 0)}
            className="flex h-10 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-medium text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {loading && <Spinner className="h-3.5 w-3.5" />}

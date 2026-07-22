@@ -137,17 +137,32 @@ export async function signedChatUrls(
   return out;
 }
 
+export type UploadableImage = {
+  file: File;
+  width?: number | null;
+  height?: number | null;
+};
+
 export async function uploadPostImages(
   supabase: SupabaseClient,
   userId: string,
   postId: string,
-  files: File[],
+  images: (File | UploadableImage)[],
 ) {
-  const paths: { storage_path: string; mime_type: string; position: number }[] =
-    [];
+  const paths: {
+    storage_path: string;
+    mime_type: string;
+    position: number;
+    width: number | null;
+    height: number | null;
+  }[] = [];
 
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
+  for (let i = 0; i < images.length; i++) {
+    const item = images[i];
+    const file = item instanceof File ? item : item.file;
+    const width = item instanceof File ? null : item.width ?? null;
+    const height = item instanceof File ? null : item.height ?? null;
+
     const err = validateImageFile(file);
     if (err) throw new Error(err);
 
@@ -175,6 +190,8 @@ export async function uploadPostImages(
       storage_path,
       mime_type: file.type,
       position: i,
+      width,
+      height,
     });
   }
 
@@ -185,10 +202,29 @@ export async function uploadPostImages(
         storage_path: p.storage_path,
         mime_type: p.mime_type,
         position: p.position,
+        width: p.width,
+        height: p.height,
       })),
     );
     if (error) throw error;
+
+    // Safety net: if any image is still large after client-side compression
+    // (decode failure, unsupported format, etc.), ask the server to
+    // re-process it in the background. Never blocks the publish flow.
+    const oversized = paths
+      .filter((_, idx) => (images[idx] instanceof File ? images[idx] as File : (images[idx] as UploadableImage).file).size > OVERSIZED_AFTER_CLIENT_BYTES)
+      .map((p) => p.storage_path);
+    if (oversized.length) {
+      void fetch("/api/posts/process-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: postId, storage_paths: oversized }),
+      }).catch(() => {});
+    }
   }
 
   return paths;
 }
+
+/** Anything still above this after client compression gets a server retry. */
+const OVERSIZED_AFTER_CLIENT_BYTES = 700 * 1024;
