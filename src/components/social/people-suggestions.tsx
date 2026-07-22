@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
 
 import { FollowButton } from "@/components/social/follow-button";
 import { UserAvatar } from "@/components/profile/user-avatar";
@@ -26,9 +24,7 @@ export function PeopleSuggestions({
 }: {
   suggestions: PeopleSuggestion[];
 }) {
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-
-  const visible = suggestions.filter((s) => !dismissed.has(s.id));
+  const visible = suggestions;
 
   if (visible.length === 0) {
     return (
@@ -78,23 +74,11 @@ export function PeopleSuggestions({
               </div>
             </Link>
 
-            <div className="flex shrink-0 items-center gap-2">
-              <FollowButton
-                targetUserId={s.id}
-                initialState={s.followState}
-                className="h-9 w-[92px]"
-              />
-              <button
-                type="button"
-                aria-label="Dispensar sugestão"
-                onClick={() =>
-                  setDismissed((prev) => new Set(prev).add(s.id))
-                }
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
-              >
-                <X className="h-4 w-4" strokeWidth={2} />
-              </button>
-            </div>
+            <FollowButton
+              targetUserId={s.id}
+              initialState={s.followState}
+              className="h-9 w-[92px] shrink-0"
+            />
           </li>
         );
       })}
