@@ -86,7 +86,7 @@ export default async function PostDetailPage({ params }: Props) {
           data-app-chrome
           className="mb-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
         >
-          Conversas
+          Comentarios
         </h2>
         <CommentThread postId={id} tree={tree} />
       </section>

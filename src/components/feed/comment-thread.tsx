@@ -31,7 +31,8 @@ export function CommentThread({
     label: string;
   } | null>(null);
   const keyboard = useKeyboardInset();
-  const bottomPad = Math.max(keyboard + 88, 112);
+  // Room for multi-line composer (grows to ~140px) + reply chip + safe area
+  const bottomPad = Math.max(keyboard + 168, 176);
 
   function appendComment(node: CommentNode) {
     setNodes((prev) => {
@@ -103,8 +104,8 @@ export function CommentThread({
           }}
           placeholder={
             replyTo
-              ? `Resposta a ${replyTo.label}`
-              : "Escreve um comentario..."
+              ? `Resposta a ${replyTo.label}...`
+              : "Adiciona um comentario..."
           }
         />
       </FixedBottomBar>
@@ -346,7 +347,7 @@ function CommentLike({
 function CommentComposer({
   postId,
   parentId,
-  placeholder = "Escreve um comentario...",
+  placeholder = "Adiciona um comentario...",
   onPosted,
 }: {
   postId: string;
@@ -433,15 +434,24 @@ function CommentComposer({
     >
       <div className="min-w-0 flex-1">
         <MentionField
-          as="input"
           value={body}
           onChange={setBody}
           placeholder={placeholder}
           maxLength={2000}
           listPlacement="above"
+          autoGrow
+          maxHeight={140}
+          rows={1}
           enterKeyHint="send"
           autoComplete="off"
-          className="h-11 w-full rounded-full border border-[var(--separator)] bg-card px-4 text-[16px] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
+          onKeyDown={(e) => {
+            // Enter sends; Shift+Enter inserts a line (same as chat)
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
+          className="max-h-[140px] min-h-[44px] w-full resize-none overflow-y-auto rounded-[22px] border border-[var(--separator)] bg-card px-4 py-2.5 text-[16px] leading-[1.35] tracking-[-0.01em] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
         />
       </div>
       <button
@@ -449,7 +459,7 @@ function CommentComposer({
         disabled={loading || !body.trim()}
         className="mb-0.5 h-11 shrink-0 px-2 text-[15px] font-semibold tracking-[-0.01em] disabled:opacity-35"
       >
-        Publicar
+        {loading ? "A enviar..." : "Comentar"}
       </button>
     </form>
   );
