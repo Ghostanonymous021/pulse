@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav
           data-app-chrome
           aria-label="Principal"
-          className="fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--separator)] bg-[var(--elevated)] backdrop-blur-xl backdrop-saturate-150"
+          className="gpu-anchor fixed bottom-0 left-0 right-0 z-20 border-t border-[var(--separator)] bg-[var(--elevated)] backdrop-blur-xl backdrop-saturate-150"
         >
           <div className="mx-auto flex h-[56px] max-w-lg items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
             {footerItems.map(({ href, label, icon: Icon }) => {

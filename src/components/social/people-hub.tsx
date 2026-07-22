@@ -53,7 +53,7 @@ export function PeopleHub({
 
   return (
     <div>
-      <div className="sticky top-12 z-10 space-y-3 border-b border-[var(--separator)] bg-[var(--elevated)] px-4 pb-3 pt-3 backdrop-blur-xl backdrop-saturate-150">
+      <div className="gpu-anchor sticky top-12 z-10 space-y-3 border-b border-[var(--separator)] bg-[var(--elevated)] px-4 pb-3 pt-3 backdrop-blur-xl backdrop-saturate-150">
         <div className="flex items-center gap-2 rounded-full bg-muted/70 px-3 py-2">
           <Search
             className="h-4 w-4 shrink-0 text-muted-foreground"

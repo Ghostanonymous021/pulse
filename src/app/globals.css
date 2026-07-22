@@ -287,6 +287,17 @@ select,
   transform: scale(0.95);
 }
 
+/*
+ * GPU compositor anchor for fixed/sticky chrome that also uses
+ * backdrop-filter (header, tab bar). Without this, mobile Safari/Chrome
+ * repaint the blur every scroll frame, which visually reads as the
+ * header/footer "scrolling along" instead of staying pinned.
+ */
+.gpu-anchor {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
 /* Brand ring (avatar online, CTA glow) */
 .ring-brand {
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--brand);
