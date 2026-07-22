@@ -26,6 +26,24 @@ export type PeopleSuggestion = Pick<
 const MAX_SUGGESTIONS = 40;
 
 /**
+ * Free-text campus/university/course fields have no canonical form
+ * (users typed them at onboarding: accents, case, extra commas/spaces,
+ * typos). Lowercases, strips accents/punctuation, and keeps only the
+ * first comma-separated token ("chongoene, xaixai" -> "chongoene")
+ * so an ILIKE substring match actually lines up viewer and candidate
+ * rows that mean the same place.
+ */
+function normalizeContextValue(value: string | null | undefined): string {
+  if (!value) return "";
+  const firstToken = value.split(",")[0] ?? value;
+  return firstToken
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
  * "Pessoas que talvez conheças" (Facebook PYMK pattern, adapted):
  *
  * Facebook's real PYMK is a graph-traversal + ML ranking system (mutual
@@ -110,30 +128,43 @@ export async function loadPeopleSuggestions(
 
   // Signal 2: shared context (same campus beats same university/course
   // as a "you'd probably recognize them" signal).
+  //
+  // These are free-text fields users typed themselves at onboarding —
+  // "Chongoene", "chongoene, xaixai", "Xai-Xai", "Xai xai", "Chonguene"
+  // (typo) all mean the same place in practice. An exact `.eq()` match
+  // was silently matching almost nobody (e.g. one real account with
+  // campus "chongoene, xaixai" matched 0 of the 25 accounts with
+  // exactly "Chongoene"), which is why suggestions looked starved even
+  // though the DB has 100+ profiles. `ilike` with the first normalized
+  // token gives a fuzzy-but-cheap substring match without needing a
+  // dedicated normalization migration.
   let contextRows: Profile[] = [];
-  if (viewerProfile.campus) {
+  const normalizedCampus = normalizeContextValue(viewerProfile.campus);
+  const normalizedCourse = normalizeContextValue(viewerProfile.course);
+  const normalizedUniversity = normalizeContextValue(viewerProfile.university);
+  if (normalizedCampus) {
     const { data } = await supabase
       .from("profiles")
       .select("*")
-      .eq("campus", viewerProfile.campus)
+      .ilike("campus", `%${normalizedCampus}%`)
       .neq("id", viewerId)
-      .limit(100);
+      .limit(200);
     contextRows = (data ?? []) as Profile[];
-  } else if (viewerProfile.course) {
+  } else if (normalizedCourse) {
     const { data } = await supabase
       .from("profiles")
       .select("*")
-      .eq("course", viewerProfile.course)
+      .ilike("course", `%${normalizedCourse}%`)
       .neq("id", viewerId)
-      .limit(100);
+      .limit(200);
     contextRows = (data ?? []) as Profile[];
-  } else if (viewerProfile.university) {
+  } else if (normalizedUniversity) {
     const { data } = await supabase
       .from("profiles")
       .select("*")
-      .eq("university", viewerProfile.university)
+      .ilike("university", `%${normalizedUniversity}%`)
       .neq("id", viewerId)
-      .limit(100);
+      .limit(200);
     contextRows = (data ?? []) as Profile[];
   }
 
@@ -142,16 +173,23 @@ export async function loadPeopleSuggestions(
     ...contextRows.filter((r) => !excludeIds.has(r.id)).map((r) => r.id),
   ]);
 
-  // Cold start: not enough graph/context signal — fall back to recent
-  // joiners, same pattern onboarding already uses.
-  if (candidateIds.size < 5) {
+  // Cold start / thin graph: top up with recent joiners whenever the
+  // graph+context signal doesn't fill a full page of suggestions, not
+  // only when it's near-empty. A viewer who already follows a dozen
+  // people can still have a graph too sparse to fill MAX_SUGGESTIONS
+  // (e.g. 17 candidates from mutuals alone) — previously that showed
+  // only those 17 forever, looking like "suggestions are broken" even
+  // though it was working as coded. Same fallback the onboarding flow
+  // already uses, just triggered by a realistic threshold instead of 5.
+  if (candidateIds.size < MAX_SUGGESTIONS) {
     const { data: recent } = await supabase
       .from("profiles")
       .select("*")
       .neq("id", viewerId)
       .order("created_at", { ascending: false })
-      .limit(MAX_SUGGESTIONS);
+      .limit(MAX_SUGGESTIONS * 2);
     for (const r of (recent ?? []) as Profile[]) {
+      if (candidateIds.size >= MAX_SUGGESTIONS) break;
       if (!excludeIds.has(r.id)) candidateIds.add(r.id);
     }
   }
@@ -187,8 +225,11 @@ export async function loadPeopleSuggestions(
     .filter((p): p is Profile => Boolean(p))
     .map((p) => {
       const mutualCount = mutualCounts.get(p.id) ?? 0;
-      const sameCampus =
-        contextIds.has(p.id) && p.campus === viewerProfile.campus;
+      // contextIds is already the fuzzy-matched set (see
+      // normalizeContextValue above); an exact-string re-check here
+      // would silently undo that and go back to matching almost
+      // nobody, so just trust membership in the fuzzy set.
+      const sameCampus = contextIds.has(p.id) && Boolean(normalizedCampus);
       const status = pendingMap.get(p.id);
       const followState: FollowUiState =
         status === "pending" ? "pending" : "none";
