@@ -8,6 +8,7 @@ export type ChromeMode = "full" | "bare" | "none";
 /** Exact paths that get the full shell (header + tab bar). */
 const PRIMARY_EXACT = new Set([
   "/home",
+  "/pessoas",
   "/explorar",
   "/mensagens",
   "/postar",

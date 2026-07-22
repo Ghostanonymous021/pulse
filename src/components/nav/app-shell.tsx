@@ -8,6 +8,7 @@ import {
   MessageCircle,
   PlusSquare,
   User,
+  Users,
 } from "lucide-react";
 
 import { getChromeMode } from "@/components/nav/chrome";
@@ -21,12 +22,20 @@ import { cn } from "@/lib/utils";
  */
 const footerItems = [
   { href: "/home", label: "Inicio", icon: Home },
+  { href: "/pessoas", label: "Pessoas", icon: Users },
   { href: "/mensagens", label: "Mensagens", icon: MessageCircle },
   { href: "/postar", label: "Publicar", icon: PlusSquare },
   { href: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
-const PREFETCH = ["/home", "/mensagens", "/perfil", "/explorar", "/postar"];
+const PREFETCH = [
+  "/home",
+  "/pessoas",
+  "/mensagens",
+  "/perfil",
+  "/explorar",
+  "/postar",
+];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
