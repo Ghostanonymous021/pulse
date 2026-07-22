@@ -48,15 +48,16 @@ export default async function PerfilPage() {
       .order("created_at", { ascending: false }),
   ]);
 
-  const workspaceList: WorkspaceWithMeta[] = (workspaces ?? []).map((p) => ({
-    ...p,
-    members_count: 0,
-    entries_count: 0,
-    stars_count: 0,
-    viewer_role: "owner" as const,
-    viewer_starred: false,
-    members: [],
-  }));
+  const workspaceList: WorkspaceWithMeta[] = (workspaces.data ?? []).map(
+    (p) => ({
+      ...p,
+      members_count: 0,
+      entries_count: 0,
+      stars_count: 0,
+      viewer_role: "owner" as const,
+      viewer_starred: false,
+    }),
+  );
 
   return (
     <div className="pb-4">

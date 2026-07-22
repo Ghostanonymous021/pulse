@@ -41,7 +41,8 @@ export default async function EditarEspacoPage({ params }: Props) {
 
     const name = (formData.get("name") as string)?.trim() || "";
     const description = (formData.get("description") as string)?.trim() || null;
-    const visibility = (formData.get("visibility") as string) || "public";
+    const visibility = ((formData.get("visibility") as string) ||
+      "public") as "public" | "private" | "unlisted";
 
     const { error } = await supabase
       .from("projects")
@@ -55,7 +56,8 @@ export default async function EditarEspacoPage({ params }: Props) {
       .eq("user_id", profile.id);
 
     if (error) {
-      return { msg: error.message };
+      console.error("updateAction", error.message);
+      return;
     }
 
     redirect(`/w/${id}`);

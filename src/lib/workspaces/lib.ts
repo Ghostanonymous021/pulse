@@ -482,8 +482,8 @@ export async function loadWorkspace(
     members_count: membersCount.count ?? 0,
     entries_count: entriesCount.count ?? 0,
     stars_count: starsCount.count ?? 0,
-    viewer_role: (memberRow as { role: string } | null)?.role ?? null,
-    viewer_starred: !!starRow,
+    viewer_role: memberRow.data?.role ?? null,
+    viewer_starred: !!starRow.data,
     members,
   };
 }
@@ -524,7 +524,7 @@ export async function loadEntries(
     .filter((e) => e.file_path)
     .map((e) => e.file_path as string);
 
-  let signedMap = new Map<string, string>();
+  const signedMap = new Map<string, string>();
   if (filePaths.length) {
     const CHUNK = 50;
     for (let i = 0; i < filePaths.length; i += CHUNK) {
@@ -646,11 +646,13 @@ export async function loadVisibleWorkspaces(
     return [];
   }
 
-  const raw = (data ?? []) as (Project & { members: { user_id: string; role: string }[] })[];
+  type ProjectRow = Omit<WorkspaceWithMeta, "members_count" | "entries_count" | "stars_count" | "viewer_role" | "viewer_starred"> & {
+    members: { user_id: string; role: WorkspaceWithMeta["viewer_role"] }[];
+  };
+  const raw = (data ?? []) as ProjectRow[];
 
   return raw.map((p) => {
-    const isMember = p.members?.some((m) => m.user_id === userId);
-    const viewerRole = p.members?.find((m) => m.user_id === userId)?.role ?? null;
+    const viewerRole = p.members?.find((m: { user_id: string; role: WorkspaceWithMeta["viewer_role"] }) => m.user_id === userId)?.role ?? null;
     return {
       ...p,
       members_count: p.members?.length ?? 0,
@@ -658,7 +660,6 @@ export async function loadVisibleWorkspaces(
       stars_count: 0,
       viewer_role: viewerRole,
       viewer_starred: false,
-      members: [],
     };
   });
 }

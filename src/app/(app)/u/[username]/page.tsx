@@ -92,15 +92,16 @@ export default async function PublicProfilePage({ params }: Props) {
       .order("created_at", { ascending: false }),
   ]);
 
-  const workspaceList: WorkspaceWithMeta[] = (workspaces ?? []).map((ws) => ({
-    ...ws,
-    members_count: 0,
-    entries_count: 0,
-    stars_count: 0,
-    viewer_role: null,
-    viewer_starred: false,
-    members: [],
-  }));
+  const workspaceList: WorkspaceWithMeta[] = (workspaces.data ?? []).map(
+    (ws) => ({
+      ...ws,
+      members_count: 0,
+      entries_count: 0,
+      stars_count: 0,
+      viewer_role: null,
+      viewer_starred: false,
+    }),
+  );
 
   return (
     <div className="pb-4">

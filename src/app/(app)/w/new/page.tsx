@@ -36,7 +36,8 @@ export default async function NovoEspacoPage() {
     });
 
     if (error || !data) {
-      return { error: error || "Falha ao criar espaço." };
+      console.error("createAction", error);
+      return;
     }
 
     redirect(`/w/${data.id}`);

@@ -31,16 +31,7 @@ export function WorkspaceCard({
 
         <div className="mt-3 flex items-center gap-4 text-[12px] text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <div className="flex -space-x-2">
-              {workspace.members?.slice(0, 3).map((m) => (
-                <div
-                  key={m.user_id}
-                  className="h-5 w-5 rounded-full bg-muted ring-2 ring-card"
-                  title={m.user.display_name || m.user.username}
-                />
-              ))}
-            </div>
-            <span>{workspace.members_count}</span>
+            <span>{workspace.members_count} membros</span>
           </span>
           <span className="flex items-center gap-1">
             {workspace.entries_count} entradas

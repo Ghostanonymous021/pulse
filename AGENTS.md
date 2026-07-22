@@ -174,6 +174,8 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
   - Acoes sociais optimistas sem `router.refresh` (like, follow, pedidos, comentarios, settings)
   - Badges: mensagens realtime + poll 90s; notificacoes realtime
   - Compressao de imagens no cliente (ja em main anterior)
+- [x] Migration `20260721223000_workspaces.sql` aplicada na base remota e registada em `schema_migrations` (estava em falta; `npm run build` falhava por dessincronia entre schema real e tipos)
+- [x] Erros de build/typecheck do feature workspaces corrigidos (`perfil/page.tsx`, `u/[username]/page.tsx`, `w/[id]/apagar`, `w/[id]/editar`, `w/new`, `workspace-card.tsx`, `lib/workspaces/lib.ts`) — `tsc --noEmit` e `next build` limpos
 - [ ] CRUD de projetos no Portfolio (UI de criacao/edicao)
 - [ ] Rate limit distribuido (Redis/Upstash) multi-instancia
 - [ ] Webhook M-Pesa real (substituir sim)

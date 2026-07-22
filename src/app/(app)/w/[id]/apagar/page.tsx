@@ -47,7 +47,8 @@ export default async function ApagarEspacoPage({ params }: Props) {
       .eq("user_id", profile.id);
 
     if (error) {
-      return { msg: error.message };
+      console.error("deleteAction", error.message);
+      return;
     }
 
     redirect("/w");
