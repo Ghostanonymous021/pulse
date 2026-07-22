@@ -14,6 +14,9 @@ export type PeopleSuggestion = Pick<
   | "course"
   | "account_type"
   | "is_private"
+  | "is_verified"
+  | "verified_type"
+  | "verification_expires_at"
 > & {
   followState: FollowUiState;
   mutualCount: number;
@@ -182,6 +185,9 @@ export async function loadPeopleSuggestions(
         course: p.course,
         account_type: p.account_type,
         is_private: p.is_private,
+        is_verified: p.is_verified,
+        verified_type: p.verified_type,
+        verification_expires_at: p.verification_expires_at,
         followState,
         mutualCount,
         sameCampus,

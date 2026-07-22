@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { UserAvatar } from "@/components/profile/user-avatar";
+import { SearchBar } from "@/components/social/search-bar";
 import { VerifiedBadge } from "@/components/social/verified-badge";
 import { requireUser } from "@/lib/auth/session";
 import {
@@ -49,8 +50,8 @@ export default async function ExplorarPage({
         .or(
           `username.ilike.${pattern},display_name.ilike.${pattern},university.ilike.${pattern},campus.ilike.${pattern},course.ilike.${pattern}`,
         )
-        .limit(40);
-      accounts = sortAccountsForExplore((data ?? []) as Profile[]);
+        .limit(60);
+      accounts = rankAccountsByRelevance((data ?? []) as Profile[], query);
     } else {
       const { data } = await supabase
         .from("posts")
@@ -101,21 +102,7 @@ export default async function ExplorarPage({
   return (
     <div className="flex flex-col">
       <div className="sticky top-0 z-20 border-b border-[var(--separator)] bg-[var(--elevated)] backdrop-blur-xl">
-        <form className="px-4 pt-3" action="/explorar" method="get">
-          <input type="hidden" name="tab" value={active} />
-          <label htmlFor="q" className="sr-only">
-            Pesquisar
-          </label>
-          <input
-            id="q"
-            name="q"
-            type="search"
-            defaultValue={query}
-            placeholder="Pesquisar"
-            autoFocus
-            className="h-10 w-full rounded-full border border-[var(--separator)] bg-muted/60 px-4 text-[15px] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
-          />
-        </form>
+        <SearchBar defaultValue={query} tab={active} />
         <div className="mt-2 grid grid-cols-2 text-center text-[14px] font-medium">
           <Link
             href={`/explorar?q=${encodeURIComponent(query)}&tab=contas`}
@@ -260,7 +247,7 @@ export default async function ExplorarPage({
   );
 }
 
-/** Verified first, then orgs, then alphabetical — Explore only. */
+/** Verified first, then orgs, then alphabetical — empty-query Discover strip only. */
 function sortAccountsForExplore(list: Profile[]) {
   return [...list].sort((a, b) => {
     const av = isVerificationActive(a) ? 1 : 0;
@@ -274,4 +261,54 @@ function sortAccountsForExplore(list: Profile[]) {
       "pt",
     );
   });
+}
+
+/**
+ * Relevance ranking for a text query — replaces the previous behaviour
+ * of just handing back whatever order Postgres returned an OR'd ILIKE
+ * in (effectively insertion order, so a search for "ana" could surface
+ * someone whose *campus* merely contains "ana" above the account
+ * actually named Ana). Scored the way every real search box does it:
+ * exact match > starts-with > word-boundary match > any-substring,
+ * evaluated on username first (what people actually type), then name,
+ * then the looser campus/university/course fields. Verified accounts
+ * keep their existing tiebreaker boost — never a ranking override.
+ */
+function rankAccountsByRelevance(list: Profile[], rawQuery: string): Profile[] {
+  const q = rawQuery.trim().toLowerCase();
+  if (!q) return list;
+
+  function fieldScore(value: string | null | undefined, weight: number): number {
+    if (!value) return 0;
+    const v = value.toLowerCase();
+    if (v === q) return weight * 4;
+    if (v.startsWith(q)) return weight * 3;
+    if (new RegExp(`\\b${escapeRegex(q)}`).test(v)) return weight * 2;
+    if (v.includes(q)) return weight;
+    return 0;
+  }
+
+  return [...list]
+    .map((p) => {
+      const score =
+        fieldScore(p.username, 100) +
+        fieldScore(p.display_name, 80) +
+        fieldScore(p.campus, 20) +
+        fieldScore(p.course, 15) +
+        fieldScore(p.university, 10) +
+        (isVerificationActive(p) ? 2 : 0);
+      return { p, score };
+    })
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return (a.p.display_name || a.p.username).localeCompare(
+        b.p.display_name || b.p.username,
+        "pt",
+      );
+    })
+    .map((r) => r.p);
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
