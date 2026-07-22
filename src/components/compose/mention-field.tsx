@@ -30,6 +30,10 @@ type Common = {
   className?: string;
   /** Dropdown above the field (comments bar) vs below (compose) */
   listPlacement?: "above" | "below";
+  /** Auto-expand height with content (textarea only) */
+  autoGrow?: boolean;
+  /** Cap for autoGrow, in px */
+  maxHeight?: number;
 };
 
 type TextareaProps = Common &
@@ -53,6 +57,9 @@ export function MentionField(props: TextareaProps | InputProps) {
     className,
     listPlacement = "below",
     as = "textarea",
+    autoGrow = false,
+    maxHeight = 140,
+    onKeyDown: onKeyDownProp,
     ...rest
   } = props;
 
@@ -63,6 +70,15 @@ export function MentionField(props: TextareaProps | InputProps) {
   const [loading, setLoading] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Grow textarea with content so multi-line comments stay readable
+  useEffect(() => {
+    if (as === "input" || !autoGrow) return;
+    const el = fieldRef.current;
+    if (!(el instanceof HTMLTextAreaElement)) return;
+    el.style.height = "0px";
+    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+  }, [value, as, autoGrow, maxHeight]);
 
   const refreshActive = useCallback((text: string, caret: number) => {
     setActive(getActiveMention(text, caret));
@@ -110,9 +126,7 @@ export function MentionField(props: TextareaProps | InputProps) {
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) {
-    const hasActive = Boolean(active) && items.length > 0;
-
-    if (hasActive) {
+    if (active && items.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setHighlight((h) => (h + 1) % items.length);
@@ -132,13 +146,12 @@ export function MentionField(props: TextareaProps | InputProps) {
         e.preventDefault();
         setActive(null);
         setItems([]);
+        return;
       }
-      return;
     }
 
-    // Sem menção ativa: permitir comportamento padrão do campo
-    // Enter no textarea sem Shift → submete o form
-    // Shift+Enter → quebra de linha
+    // Forward to caller after mention shortcuts (e.g. Enter to send comment)
+    onKeyDownProp?.(e as never);
   }
 
   function handleChange(

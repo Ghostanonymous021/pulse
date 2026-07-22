@@ -116,7 +116,7 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
 
 *(Seção viva — cada sessão de trabalho atualiza isto com o que foi decidido/implementado.)*
 
-**Última atualização:** 18/07/2026 (auditoria seguranca P0/P1)
+**Última atualização:** 22/07/2026 (fluidez / cache / poll leve)
 
 - [x] Visão de produto e decisões estratégicas fechadas — ver `PULSE_VISAO_PRODUTO.md`
 - [x] Stack definida: Next.js + TypeScript + Tailwind (PWA) + Supabase
@@ -166,11 +166,21 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
   - SSRF guard em link-preview; CSP + security headers
   - Username-check sem service_role; step-up password em apagar conta
   - Senha min 8 + blocklist; rate-limit prune; logs JSON de eventos
+- [x] Fluidez nativa (padrao grandes apps) — ver `docs/PERFORMANCE.md`:
+  - Client Router Cache `staleTimes` (dynamic 30s / static 180s)
+  - Snapshot do feed (`feed-cache.ts`: memoria + sessionStorage, soft 45s)
+  - Poll leve `/api/feed/check` (1 row) + full fetch so com id novo
+  - Ack de heads rankeados fora do topo (evita full-fetch em loop)
+  - Acoes sociais optimistas sem `router.refresh` (like, follow, pedidos, comentarios, settings)
+  - Badges: mensagens realtime + poll 90s; notificacoes realtime
+  - Compressao de imagens no cliente (ja em main anterior)
 - [ ] CRUD de projetos no Portfolio (UI de criacao/edicao)
 - [ ] Rate limit distribuido (Redis/Upstash) multi-instancia
 - [ ] Webhook M-Pesa real (substituir sim)
 
-**Próxima decisão pendente:** activity nas notificacoes, ranking, ou CRUD portfolio.
+**Próxima decisão pendente:** CRUD portfolio, virtualizacao do feed, ou activity nas notificacoes.
+
+**Workspace de dev:** preferir `/tmp/pulse-dev` (disco rapido). `/mnt/sdcard/grok/pulse` e lento e pode ter WIP local (ex. workspaces) fora do GitHub. Chaves so em `.env.local` (nunca commit).
 
 **Admin — aprovar modo profissional:** Table Editor → `professional_requests` → `status` = `approved` (ou `rejected`). Trigger promove `profiles.account_type` para `organizacao`.
 

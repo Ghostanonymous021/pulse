@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { phoneToAuthEmail } from "@/lib/auth/phone";
 import {
@@ -16,7 +15,6 @@ import { createClient } from "@/lib/supabase/client";
  * 2) set new password
  */
 export function PasswordForm() {
-  const router = useRouter();
   const [phase, setPhase] = useState<"current" | "next">("current");
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
@@ -99,7 +97,6 @@ export function PasswordForm() {
       setConfirm("");
       setPhase("current");
       setMsg("Senha actualizada.");
-      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Não foi possível alterar.",

@@ -29,8 +29,16 @@ export async function GET(request: Request) {
     authorId,
   });
 
-  return NextResponse.json({
-    posts: page.posts,
-    nextOffset: page.nextOffset,
-  });
+  return NextResponse.json(
+    {
+      posts: page.posts,
+      nextOffset: page.nextOffset,
+    },
+    {
+      headers: {
+        // Personalized feed — never public CDN. Client owns freshness.
+        "Cache-Control": "private, no-store",
+      },
+    },
+  );
 }

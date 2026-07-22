@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { isSyntheticPhoneEmail } from "@/lib/auth/phone";
 import { createClient } from "@/lib/supabase/client";
@@ -11,7 +10,6 @@ export function RecoveryEmailForm({
 }: {
   initialEmail: string | null;
 }) {
-  const router = useRouter();
   const visible =
     initialEmail && !isSyntheticPhoneEmail(initialEmail) ? initialEmail : "";
   const [email, setEmail] = useState(visible);
@@ -43,7 +41,6 @@ export function RecoveryEmailForm({
         .eq("id", user.id);
       if (updateError) throw updateError;
       setMsg("E-mail guardado.");
-      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Não foi possível guardar.",

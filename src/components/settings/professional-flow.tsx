@@ -119,7 +119,6 @@ export function ProfessionalFlow({
         if (insertError) throw insertError;
         setRequest(data as ProfessionalRequest);
         setStep(3);
-        router.refresh();
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Não foi possível enviar.",

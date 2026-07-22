@@ -5,12 +5,16 @@ import { useEffect, useState } from "react";
 import { unreadBadgeLabel } from "@/lib/notifications/types";
 import { createClient } from "@/lib/supabase/client";
 
-const POLL_MS = 20_000;
+/** Fallback only — realtime is the primary path. */
+const POLL_MS = 90_000;
 
 /**
- * Small dot/count badge for the footer "Mensagens" tab icon.
- * Polls unread_conversations_count(); also refreshes on new
- * realtime message inserts for conversations the user belongs to.
+ * Footer "Mensagens" badge.
+ *
+ * Strategy (WhatsApp / Instagram):
+ * - Realtime INSERT on messages → refresh count immediately
+ * - Long poll only as safety net when tab is visible
+ * - Pause when document.hidden (no battery / radio waste in background)
  */
 export function MessagesBadge() {
   const [count, setCount] = useState(0);
@@ -19,10 +23,17 @@ export function MessagesBadge() {
     const supabase = createClient();
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let poll: ReturnType<typeof setInterval> | null = null;
 
     async function refresh() {
+      if (document.hidden) return;
       const { data, error } = await supabase.rpc("unread_conversations_count");
       if (!cancelled && !error) setCount(Number(data ?? 0));
+    }
+
+    function startPoll() {
+      if (poll) clearInterval(poll);
+      poll = setInterval(refresh, POLL_MS);
     }
 
     async function setup() {
@@ -43,13 +54,21 @@ export function MessagesBadge() {
           },
         )
         .subscribe();
+
+      startPoll();
+    }
+
+    function onVis() {
+      if (!document.hidden) void refresh();
     }
 
     void setup();
-    const poll = setInterval(refresh, POLL_MS);
+    document.addEventListener("visibilitychange", onVis);
+
     return () => {
       cancelled = true;
-      clearInterval(poll);
+      if (poll) clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVis);
       if (channel) void supabase.removeChannel(channel);
     };
   }, []);

@@ -57,6 +57,22 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    /**
+     * Client Router Cache (App Router) — padrão que Next documenta para
+     * apps tipo social: ao trocar de tab (home ↔ mensagens ↔ perfil),
+     * o RSC payload fica "fresco" por N segundos em vez de revalidar
+     * em cada navegação. Instagram/Twitter não re-buscam o feed inteiro
+     * só porque o utilizador abriu DMs e voltou.
+     *
+     * dynamic: páginas auth (quase todas) — 30s é o sweet spot:
+     * - tab switch imediato (sem flash de loading)
+     * - dados sociais ainda razoavelmente frescos
+     * static: assets de layout / rotas semi-estáticas
+     */
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
   headers: async () => [
     {

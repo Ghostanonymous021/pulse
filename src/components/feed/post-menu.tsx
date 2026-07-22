@@ -84,8 +84,9 @@ export function PostMenu({
     const { error } = await supabase.from("posts").delete().eq("id", postId);
     if (error) throw error;
     close();
+    const { bustFeedCache } = await import("@/components/feed/feed-list");
+    bustFeedCache();
     router.push("/home");
-    router.refresh();
   }
 
   async function reportPost(reason: string) {
@@ -132,7 +133,7 @@ export function PostMenu({
     if (error) throw error;
     onMuted?.();
     close();
-    router.refresh();
+    // No router.refresh — parent list can drop the card via onMuted.
   }
 
   const sheet = open

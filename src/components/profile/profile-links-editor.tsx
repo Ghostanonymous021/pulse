@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
 import {
@@ -11,6 +10,7 @@ import {
 import { normalizeUrl } from "@/lib/links/urls";
 import { createClient } from "@/lib/supabase/client";
 
+/** Local state is enough — no full-page RSC refresh. */
 export function ProfileLinksEditor({
   profileId,
   initial,
@@ -18,7 +18,6 @@ export function ProfileLinksEditor({
   profileId: string;
   initial: ProfileLink[];
 }) {
-  const router = useRouter();
   const [links, setLinks] = useState(initial);
   const [rotulo, setRotulo] = useState("");
   const [url, setUrl] = useState("");
@@ -60,7 +59,6 @@ export function ProfileLinksEditor({
         setLinks((prev) => [...prev, data as ProfileLink]);
         setRotulo("");
         setUrl("");
-        router.refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Falha ao adicionar.");
       }
@@ -72,7 +70,6 @@ export function ProfileLinksEditor({
       const supabase = createClient();
       await supabase.from("profile_links").delete().eq("id", id);
       setLinks((prev) => prev.filter((l) => l.id !== id));
-      router.refresh();
     });
   }
 
@@ -95,7 +92,6 @@ export function ProfileLinksEditor({
             .eq("id", l.id),
         ),
       );
-      router.refresh();
     });
   }
 
