@@ -75,7 +75,7 @@ export function CommentThread({
           placeholder={
             replyTo
               ? `Resposta a ${replyTo.label}`
-              : "Escreve um comentario..."
+              : "Adiciona um comentário..."
           }
         />
       </FixedBottomBar>
@@ -371,7 +371,7 @@ function CommentComposer({
     >
       <div className="min-w-0 flex-1">
         <MentionField
-          as="input"
+          as="textarea"
           value={body}
           onChange={setBody}
           placeholder={placeholder}
@@ -379,7 +379,8 @@ function CommentComposer({
           listPlacement="above"
           enterKeyHint="send"
           autoComplete="off"
-          className="h-11 w-full rounded-full border border-[var(--separator)] bg-card px-4 text-[16px] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
+          rows={1}
+          className="min-h-[44px] w-full resize-none rounded-[var(--radius-full)] border border-[var(--separator)] bg-card px-4 py-2.5 text-[16px] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
         />
       </div>
       <button
@@ -387,7 +388,7 @@ function CommentComposer({
         disabled={loading || !body.trim()}
         className="mb-0.5 h-11 shrink-0 px-2 text-[15px] font-semibold tracking-[-0.01em] disabled:opacity-35"
       >
-        Publicar
+        Comentar
       </button>
     </form>
   );

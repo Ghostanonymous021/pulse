@@ -110,28 +110,35 @@ export function MentionField(props: TextareaProps | InputProps) {
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) {
-    if (!active || items.length === 0) return;
+    const hasActive = Boolean(active) && items.length > 0;
 
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlight((h) => (h + 1) % items.length);
+    if (hasActive) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlight((h) => (h + 1) % items.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlight((h) => (h - 1 + items.length) % items.length);
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        pick(items[highlight] ?? items[0]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setActive(null);
+        setItems([]);
+      }
       return;
     }
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlight((h) => (h - 1 + items.length) % items.length);
-      return;
-    }
-    if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault();
-      pick(items[highlight] ?? items[0]);
-      return;
-    }
-    if (e.key === "Escape") {
-      e.preventDefault();
-      setActive(null);
-      setItems([]);
-    }
+
+    // Sem menção ativa: permitir comportamento padrão do campo
+    // Enter no textarea sem Shift → submete o form
+    // Shift+Enter → quebra de linha
   }
 
   function handleChange(
@@ -143,6 +150,15 @@ export function MentionField(props: TextareaProps | InputProps) {
   }
 
   const showList = Boolean(active) && (loading || items.length > 0);
+
+  useEffect(() => {
+    if (props.as !== "textarea" || !fieldRef.current) return;
+    const el = fieldRef.current;
+    el.style.height = "auto";
+    const next = Math.min(el.scrollHeight, 140);
+    el.style.height = `${next}px`;
+    el.style.overflowY = el.scrollHeight > 140 ? "auto" : "hidden";
+  }, [value, props.as]);
 
   const list = showList ? (
     <ul
