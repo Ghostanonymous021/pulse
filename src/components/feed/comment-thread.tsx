@@ -442,15 +442,11 @@ function CommentComposer({
           autoGrow
           maxHeight={140}
           rows={1}
-          enterKeyHint="send"
           autoComplete="off"
-          onKeyDown={(e) => {
-            // Enter sends; Shift+Enter inserts a line (same as chat)
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              e.currentTarget.form?.requestSubmit();
-            }
-          }}
+          // Enter always breaks a line here — comments are multi-line by
+          // default and mobile virtual keyboards don't offer a reliable
+          // Shift key, so "Enter sends" traps users into a single line.
+          // Sending only happens via the "Comentar" button below.
           className="max-h-[140px] min-h-[44px] w-full resize-none overflow-y-auto rounded-[22px] border border-[var(--separator)] bg-card px-4 py-2.5 text-[16px] leading-[1.35] tracking-[-0.01em] outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
         />
       </div>

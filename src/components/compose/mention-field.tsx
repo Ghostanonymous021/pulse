@@ -164,15 +164,6 @@ export function MentionField(props: TextareaProps | InputProps) {
 
   const showList = Boolean(active) && (loading || items.length > 0);
 
-  useEffect(() => {
-    if (props.as !== "textarea" || !fieldRef.current) return;
-    const el = fieldRef.current;
-    el.style.height = "auto";
-    const next = Math.min(el.scrollHeight, 140);
-    el.style.height = `${next}px`;
-    el.style.overflowY = el.scrollHeight > 140 ? "auto" : "hidden";
-  }, [value, props.as]);
-
   const list = showList ? (
     <ul
       id={listId}
