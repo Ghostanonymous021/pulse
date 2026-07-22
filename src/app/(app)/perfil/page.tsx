@@ -8,6 +8,7 @@ import { ProfileTabs } from "@/components/profile/profile-tabs";
 import { requireProfile } from "@/lib/auth/session";
 import { listProfileLinks } from "@/lib/links/profile-links";
 import { loadFeedPosts } from "@/lib/posts/feed";
+import type { WorkspaceWithMeta } from "@/lib/workspaces/types";
 
 export const metadata = {
   title: "Perfil",
@@ -22,6 +23,7 @@ export default async function PerfilPage() {
     { count: followingCount },
     posts,
     links,
+    workspaces,
   ] = await Promise.all([
     supabase
       .from("posts")
@@ -39,7 +41,22 @@ export default async function PerfilPage() {
       .eq("status", "accepted"),
     loadFeedPosts(supabase, profile.id, { authorId: profile.id, limit: 40 }),
     listProfileLinks(supabase, profile.id),
+    supabase
+      .from("projects")
+      .select("*")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false }),
   ]);
+
+  const workspaceList: WorkspaceWithMeta[] = (workspaces ?? []).map((p) => ({
+    ...p,
+    members_count: 0,
+    entries_count: 0,
+    stars_count: 0,
+    viewer_role: "owner" as const,
+    viewer_starred: false,
+    members: [],
+  }));
 
   return (
     <div className="pb-4">
@@ -69,7 +86,12 @@ export default async function PerfilPage() {
 
       <ProfileCompleteBanner profile={profile} />
 
-      <ProfileTabs posts={posts} />
+      <ProfileTabs
+        posts={posts}
+        workspaceCount={workspaceList.length}
+        workspaces={workspaceList}
+        isOwn
+      />
     </div>
   );
 }

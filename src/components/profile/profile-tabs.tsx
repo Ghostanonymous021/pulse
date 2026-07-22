@@ -1,22 +1,95 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+
 import { FileText } from "lucide-react";
 
 import type { PostWithAuthor } from "@/components/feed/post-card";
+import type { WorkspaceWithMeta } from "@/lib/workspaces/types";
+import { WorkspaceCard } from "@/components/workspaces/workspace-card";
 
-/**
- * Profile publications grid (IG-style).
- * Portfolio tab removed from product surface.
- */
-export function ProfileTabs({ posts }: { posts: PostWithAuthor[] }) {
+export function ProfileTabs({
+  posts,
+  workspaceCount = 0,
+  workspaces = [],
+  isOwn = false,
+}: {
+  posts: PostWithAuthor[];
+  workspaceCount?: number;
+  workspaces?: WorkspaceWithMeta[];
+  isOwn?: boolean;
+}) {
+  const [tab, setTab] = useState("posts");
+
   return (
     <div className="mt-4 border-t border-[var(--separator)]">
+      <div className="flex border-b border-[var(--separator)]">
+        <button
+          type="button"
+          onClick={() => setTab("posts")}
+          className={`
+            relative flex-1 py-3 text-[14px] font-medium transition-colors
+            ${tab === "posts" ? "text-foreground" : "text-muted-foreground"}
+          `}
+        >
+          Publicacoes
+          {tab === "posts" && (
+            <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-foreground" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("workspaces")}
+          className={`
+            relative flex-1 py-3 text-[14px] font-medium transition-colors
+            ${tab === "workspaces" ? "text-foreground" : "text-muted-foreground"}
+          `}
+        >
+          Espacos {workspaceCount > 0 && `(${workspaceCount})`}
+          {tab === "workspaces" && (
+            <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-foreground" />
+          )}
+        </button>
+      </div>
+
       <div className="min-h-[12rem]">
-        {posts.length === 0 ? (
-          <p className="px-4 py-16 text-center text-[14px] text-muted-foreground">
-            Ainda sem publicações.
-          </p>
-        ) : (
-          <PostsGrid posts={posts} />
+        {tab === "posts" && (
+          posts.length === 0 ? (
+            <p className="px-4 py-16 text-center text-[14px] text-muted-foreground">
+              Ainda sem publicacoes.
+            </p>
+          ) : (
+            <PostsGrid posts={posts} />
+          )
+        )}
+
+        {tab === "workspaces" && (
+          workspaces.length === 0 && !isOwn ? (
+            <p className="px-4 py-16 text-center text-[14px] text-muted-foreground">
+              Sem espacos publicos ainda.
+            </p>
+          ) : workspaces.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-[14px] text-muted-foreground">
+                Ainda sem espacos.
+              </p>
+              {isOwn && (
+                <Link
+                  href="/w/new"
+                  className="mt-2 text-[14px] font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  Criar primeiro espaco
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-3 p-4">
+              {workspaces.map((ws) => (
+                <WorkspaceCard key={ws.id} workspace={ws} />
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

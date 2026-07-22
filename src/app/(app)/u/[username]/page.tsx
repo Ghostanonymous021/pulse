@@ -12,6 +12,7 @@ import { loadFeedPosts } from "@/lib/posts/feed";
 import { getFollowState } from "@/lib/social/follow";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/types/database";
+import type { WorkspaceWithMeta } from "@/lib/workspaces/types";
 
 type Props = { params: Promise<{ username: string }> };
 
@@ -61,6 +62,7 @@ export default async function PublicProfilePage({ params }: Props) {
     { count: followingCount },
     posts,
     links,
+    workspaces,
   ] = await Promise.all([
     canSeeContent
       ? supabase
@@ -82,7 +84,23 @@ export default async function PublicProfilePage({ params }: Props) {
       ? loadFeedPosts(supabase, user.id, { authorId: p.id, limit: 40 })
       : Promise.resolve([]),
     listProfileLinks(supabase, p.id),
+    supabase
+      .from("projects")
+      .select("*")
+      .eq("user_id", p.id)
+      .or(`visibility.in.(public,unlisted)`)
+      .order("created_at", { ascending: false }),
   ]);
+
+  const workspaceList: WorkspaceWithMeta[] = (workspaces ?? []).map((ws) => ({
+    ...ws,
+    members_count: 0,
+    entries_count: 0,
+    stars_count: 0,
+    viewer_role: null,
+    viewer_starred: false,
+    members: [],
+  }));
 
   return (
     <div className="pb-4">
@@ -132,7 +150,12 @@ export default async function PublicProfilePage({ params }: Props) {
           </p>
         </div>
       ) : (
-        <ProfileTabs posts={posts} />
+        <ProfileTabs
+          posts={posts}
+          workspaceCount={workspaceList.length}
+          workspaces={workspaceList}
+          isOwn={isOwn}
+        />
       )}
     </div>
   );

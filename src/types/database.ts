@@ -15,6 +15,9 @@ export type ProfessionalOrgType =
   | "clube"
   | "outro";
 export type ProfessionalRequestStatus = "pending" | "approved" | "rejected";
+export type ProjectVisibility = "public" | "private" | "unlisted";
+export type ProjectRole = "owner" | "admin" | "member";
+export type ProjectEntryType = "text" | "file" | "link" | "image";
 
 export type Profile = {
   id: string;
@@ -131,7 +134,9 @@ export type NotificationType =
   | "mensagem"
   | "mencao"
   | "aprovacao_modo_profissional"
-  | "aprovacao_verificacao";
+  | "aprovacao_verificacao"
+  | "membro_espaco"
+  | "entrada_espaco";
 
 export type Notification = {
   id: string;
@@ -149,14 +154,58 @@ export type Notification = {
 export type Project = {
   id: string;
   user_id: string;
-  title: string;
+  name: string;
   description: string | null;
   link: string | null;
   repo_url: string | null;
   image_url: string | null;
   position: number;
+  visibility: ProjectVisibility;
+  type: string;
+  settings: Record<string, unknown> | null;
+  cover_image: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ProjectMember = {
+  project_id: string;
+  user_id: string;
+  role: ProjectRole;
+  created_at: string;
+};
+
+export type ProjectEntry = {
+  id: string;
+  project_id: string;
+  author_id: string;
+  entry_type: ProjectEntryType;
+  body: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  mime_type: string | null;
+  url: string | null;
+  link_preview_id: string | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProjectStar = {
+  project_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+export type ProjectInvite = {
+  id: string;
+  project_id: string;
+  invited_by: string;
+  invitee_id: string;
+  status: "pending" | "accepted" | "rejected";
+  expires_at: string;
+  created_at: string;
 };
 
 type Tables = {
@@ -534,14 +583,72 @@ type Tables = {
     Insert: {
       id?: string;
       user_id: string;
-      title: string;
+      name: string;
       description?: string | null;
       link?: string | null;
       repo_url?: string | null;
       image_url?: string | null;
       position?: number;
+      visibility?: ProjectVisibility;
+      type?: string;
+      settings?: Record<string, unknown> | null;
+      cover_image?: string | null;
     };
     Update: Partial<Project>;
+    Relationships: [];
+  };
+  project_members: {
+    Row: ProjectMember;
+    Insert: {
+      project_id: string;
+      user_id: string;
+      role?: ProjectRole;
+    };
+    Update: Partial<{ role: ProjectRole }>;
+    Relationships: [];
+  };
+  project_entries: {
+    Row: ProjectEntry;
+    Insert: {
+      id?: string;
+      project_id: string;
+      author_id: string;
+      entry_type?: ProjectEntryType;
+      body?: string | null;
+      file_path?: string | null;
+      file_name?: string | null;
+      file_size?: number | null;
+      mime_type?: string | null;
+      url?: string | null;
+      link_preview_id?: string | null;
+      position?: number;
+    };
+    Update: Partial<
+      Omit<ProjectEntry, "id" | "project_id" | "author_id" | "created_at" | "updated_at">
+    >;
+    Relationships: [];
+  };
+  project_stars: {
+    Row: ProjectStar;
+    Insert: {
+      project_id: string;
+      user_id: string;
+    };
+    Update: Partial<Pick<ProjectStar, "user_id">>;
+    Relationships: [];
+  };
+  project_invites: {
+    Row: ProjectInvite;
+    Insert: {
+      id?: string;
+      project_id: string;
+      invited_by: string;
+      invitee_id: string;
+      status?: "pending" | "accepted" | "rejected";
+    };
+    Update: Partial<{
+      status: "pending" | "accepted" | "rejected";
+    }>;
     Relationships: [];
   };
   conversations: {
@@ -774,12 +881,31 @@ export type Database = {
         Args: { conv_id: string };
         Returns: undefined;
       };
+      can_view_project: {
+        Args: { p_project_id: string };
+        Returns: boolean;
+      };
+      is_project_member: {
+        Args: { p_project_id: string; p_user_id?: string };
+        Returns: boolean;
+      };
+      get_project_role: {
+        Args: { p_project_id: string; p_user_id?: string };
+        Returns: ProjectRole;
+      };
+      notify_project_members: {
+        Args: { p_project_id: string; p_actor_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       account_type: AccountType;
       follow_status: FollowStatus;
       report_target_type: ReportTargetType;
       report_status: ReportStatus;
+      project_visibility: ProjectVisibility;
+      project_role: ProjectRole;
+      project_entry_type: ProjectEntryType;
     };
     CompositeTypes: Record<string, never>;
   };
