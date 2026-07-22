@@ -106,6 +106,9 @@ export function ComposeForm({
       setFiles([]);
       setPreviews([]);
       setHighlight(false);
+      // Drop stale feed snapshot so home shows the new post
+      const { bustFeedCache } = await import("@/components/feed/feed-list");
+      bustFeedCache();
       router.push("/home");
     } catch (err) {
       setError(

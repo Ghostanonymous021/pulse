@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 
 import { MentionField } from "@/components/compose/mention-field";
@@ -19,11 +18,14 @@ import { cn } from "@/lib/utils";
 
 export function CommentThread({
   postId,
-  tree,
+  tree: initialTree,
 }: {
   postId: string;
   tree: CommentNode[];
 }) {
+  // Local tree — append optimistically so publish never needs router.refresh
+  // (which re-ran signed URLs + post card + full comment query).
+  const [nodes, setNodes] = useState(initialTree);
   const [replyTo, setReplyTo] = useState<{
     id: string;
     label: string;
@@ -31,18 +33,42 @@ export function CommentThread({
   const keyboard = useKeyboardInset();
   const bottomPad = Math.max(keyboard + 88, 112);
 
+  function appendComment(node: CommentNode) {
+    setNodes((prev) => {
+      if (!node.parent_id) {
+        return [...prev, { ...node, replies: [] }];
+      }
+      // Find visual root: parent may itself be a reply under a root
+      return prev.map((root) => {
+        if (root.id === node.parent_id) {
+          return {
+            ...root,
+            replies: [...root.replies, { ...node, replies: [] }],
+          };
+        }
+        if (root.replies.some((r) => r.id === node.parent_id)) {
+          return {
+            ...root,
+            replies: [...root.replies, { ...node, replies: [] }],
+          };
+        }
+        return root;
+      });
+    });
+  }
+
   return (
     <div className="relative flex min-h-[40vh] flex-col">
       <div
         className="min-h-0 flex-1 space-y-5"
         style={{ paddingBottom: bottomPad }}
       >
-        {tree.length === 0 && (
+        {nodes.length === 0 && (
           <p className="py-6 text-center text-[14px] text-muted-foreground">
             Ainda sem comentarios.
           </p>
         )}
-        {tree.map((node) => (
+        {nodes.map((node) => (
           <CommentBlock
             key={node.id}
             node={node}
@@ -71,7 +97,10 @@ export function CommentThread({
         <CommentComposer
           postId={postId}
           parentId={replyTo?.id}
-          onDone={() => setReplyTo(null)}
+          onPosted={(node) => {
+            appendComment(node);
+            setReplyTo(null);
+          }}
           placeholder={
             replyTo
               ? `Resposta a ${replyTo.label}`
@@ -318,14 +347,13 @@ function CommentComposer({
   postId,
   parentId,
   placeholder = "Escreve um comentario...",
-  onDone,
+  onPosted,
 }: {
   postId: string;
   parentId?: string;
   placeholder?: string;
-  onDone?: () => void;
+  onPosted?: (node: CommentNode) => void;
 }) {
-  const router = useRouter();
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -341,16 +369,50 @@ function CommentComposer({
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.from("comments").insert({
-        post_id: postId,
-        author_id: user.id,
-        body: text,
-        parent_id: parentId ?? null,
-      });
+      // Insert + author profile in parallel — avoids broken generated FK
+      // typing on comments↔profiles and keeps one RTT for the UI append.
+      const [{ data: raw, error }, { data: me }] = await Promise.all([
+        supabase
+          .from("comments")
+          .insert({
+            post_id: postId,
+            author_id: user.id,
+            body: text,
+            parent_id: parentId ?? null,
+          })
+          .select(
+            "id, post_id, author_id, body, parent_id, reply_to_username, created_at",
+          )
+          .single(),
+        supabase
+          .from("profiles")
+          .select("username, display_name, avatar_url")
+          .eq("id", user.id)
+          .single(),
+      ]);
       if (error) throw error;
+      if (!raw) throw new Error("Comentario sem resposta.");
+
       setBody("");
-      onDone?.();
-      router.refresh();
+      onPosted?.({
+        id: raw.id,
+        post_id: raw.post_id,
+        author_id: raw.author_id,
+        body: raw.body,
+        parent_id: raw.parent_id ?? null,
+        reply_to_username: raw.reply_to_username ?? null,
+        created_at: raw.created_at,
+        author: me
+          ? {
+              username: me.username,
+              display_name: me.display_name,
+              avatar_url: me.avatar_url,
+            }
+          : null,
+        like_count: 0,
+        liked_by_me: false,
+        replies: [],
+      });
     } finally {
       setLoading(false);
     }

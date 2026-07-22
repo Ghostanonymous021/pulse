@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 
 import { EmptyState } from "@/components/ui/empty-state";
@@ -19,22 +18,24 @@ export function NotificationsList({
 }: {
   initial: NotificationView[];
 }) {
-  const router = useRouter();
   const [items, setItems] = useState(initial);
   const [pending, setPending] = useState(false);
 
   async function markOne(id: string) {
     setPending(true);
+    const prev = items;
+    setItems((list) =>
+      list.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+    );
     try {
       const supabase = createClient();
-      await supabase
+      const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
         .eq("id", id);
-      setItems((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
-      );
-      router.refresh();
+      if (error) setItems(prev);
+    } catch {
+      setItems(prev);
     } finally {
       setPending(false);
     }
@@ -42,11 +43,14 @@ export function NotificationsList({
 
   async function markAll() {
     setPending(true);
+    const prev = items;
+    setItems((list) => list.map((n) => ({ ...n, is_read: true })));
     try {
       const supabase = createClient();
-      await supabase.rpc("mark_all_notifications_read");
-      setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      router.refresh();
+      const { error } = await supabase.rpc("mark_all_notifications_read");
+      if (error) setItems(prev);
+    } catch {
+      setItems(prev);
     } finally {
       setPending(false);
     }

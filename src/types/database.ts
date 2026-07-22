@@ -388,7 +388,22 @@ type Tables = {
       reply_to_username?: string | null;
     };
     Update: Partial<Comment>;
-    Relationships: [];
+    Relationships: [
+      {
+        foreignKeyName: "comments_author_id_fkey";
+        columns: ["author_id"];
+        isOneToOne: false;
+        referencedRelation: "profiles";
+        referencedColumns: ["id"];
+      },
+      {
+        foreignKeyName: "comments_post_id_fkey";
+        columns: ["post_id"];
+        isOneToOne: false;
+        referencedRelation: "posts";
+        referencedColumns: ["id"];
+      },
+    ];
   };
   profile_links: {
     Row: ProfileLink;

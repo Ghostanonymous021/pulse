@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { Spinner } from "@/components/ui/spinner";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +8,12 @@ import { cn } from "@/lib/utils";
 
 export type FollowUiState = "none" | "pending" | "accepted" | "self";
 
+/**
+ * Fully optimistic follow — no router.refresh.
+ * Why: refresh re-runs every RSC on the tree (feed ranking, signed
+ * URLs, badges). Instagram never reloads the profile shell to flip
+ * "Seguir" → "A seguir"; local state is the source of truth.
+ */
 export function FollowButton({
   targetUserId,
   initialState,
@@ -18,7 +23,6 @@ export function FollowButton({
   initialState: FollowUiState;
   className?: string;
 }) {
-  const router = useRouter();
   const [state, setState] = useState(initialState);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +32,7 @@ export function FollowButton({
   async function run() {
     setError(null);
     setPending(true);
+    const prev = state;
     try {
       const supabase = createClient();
       const {
@@ -39,11 +44,14 @@ export function FollowButton({
       }
 
       if (state === "none") {
+        // Optimistic: assume public → accepted; private may flip to pending
+        setState("accepted");
         const { error: e } = await supabase.from("follows").insert({
           follower_id: user.id,
           following_id: targetUserId,
         });
         if (e) {
+          setState(prev);
           setError(e.message);
           return;
         }
@@ -55,19 +63,18 @@ export function FollowButton({
           .maybeSingle();
         setState(data?.status === "pending" ? "pending" : "accepted");
       } else {
+        setState("none");
         const { error: e } = await supabase
           .from("follows")
           .delete()
           .eq("follower_id", user.id)
           .eq("following_id", targetUserId);
         if (e) {
+          setState(prev);
           setError(e.message);
           return;
         }
-        setState("none");
       }
-
-      router.refresh();
     } finally {
       setPending(false);
     }

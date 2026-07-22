@@ -5,12 +5,19 @@ import { ArrowUp, Sparkles } from "lucide-react";
 
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Spinner } from "@/components/ui/spinner";
+import {
+  FEED_SOFT_TTL_MS,
+  invalidateFeedSnapshot,
+  isFeedSoftFresh,
+  readFeedSnapshot,
+  writeFeedSnapshot,
+} from "@/lib/posts/feed-cache";
 import { FEED_PAGE_SIZE } from "@/lib/posts/feed";
 
 const SCROLL_KEY = "pulse:feed-scroll";
-const BASE_POLL_MS = 25_000;
-const BACKOFF_STEPS = [60_000, 120_000, 300_000];
+/** How often to ask "anything new?" — not a full re-rank. */
+const CHECK_BASE_MS = 45_000;
+const CHECK_BACKOFF = [90_000, 180_000, 300_000];
 const NEAR_TOP_PX = 80;
 
 export function FeedList({
@@ -20,26 +27,68 @@ export function FeedList({
   initialPosts: PostWithAuthor[];
   initialNextOffset: number | null;
 }) {
-  const [posts, setPosts] = useState(initialPosts);
-  const [nextOffset, setNextOffset] = useState(initialNextOffset);
+  // Prefer a soft-fresh client snapshot over a cold RSC paint when the
+  // user just left and came back (staleTimes + this = native tab feel).
+  const boot = (() => {
+    const snap = readFeedSnapshot();
+    if (
+      snap &&
+      isFeedSoftFresh(snap) &&
+      snap.posts.length > 0 &&
+      // Only prefer snapshot if server sent empty or same-or-older head
+      (initialPosts.length === 0 ||
+        snap.posts[0]?.id === initialPosts[0]?.id ||
+        snap.savedAt > Date.now() - FEED_SOFT_TTL_MS)
+    ) {
+      // If server has a newer first post, trust server
+      if (
+        initialPosts[0] &&
+        snap.posts[0] &&
+        initialPosts[0].id !== snap.posts[0].id &&
+        initialPosts[0].created_at > snap.posts[0].created_at
+      ) {
+        return {
+          posts: initialPosts,
+          nextOffset: initialNextOffset,
+        };
+      }
+      return {
+        posts: snap.posts,
+        nextOffset: snap.nextOffset,
+      };
+    }
+    return {
+      posts: initialPosts,
+      nextOffset: initialNextOffset,
+    };
+  })();
+
+  const [posts, setPosts] = useState(boot.posts);
+  const [nextOffset, setNextOffset] = useState(boot.nextOffset);
   const [error, setError] = useState<string | null>(null);
   const [newPosts, setNewPosts] = useState<PostWithAuthor[]>([]);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadingMore = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
-  const seenIds = useRef<Set<string>>(new Set(initialPosts.map((p) => p.id)));
-  const newPostsRef = useRef<Set<string>>(new Set());
+  const postsRef = useRef(posts);
+  const newPostsRef = useRef(newPosts);
   const backoffIndex = useRef(0);
-  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Chronological "latest" may rank below the fold. After we probe and
+   * pull page-0 without finding that id, remember it so we never re-run
+   * the expensive rank+sign path for the same head.
+   */
+  const acknowledgedHeads = useRef(new Set<string>());
 
-  // Keep refs in sync
   useEffect(() => {
-    newPostsRef.current = new Set(newPosts.map((p) => p.id));
+    postsRef.current = posts;
+    for (const p of posts) acknowledgedHeads.current.add(p.id);
+    writeFeedSnapshot(posts, nextOffset);
+  }, [posts, nextOffset]);
+
+  useEffect(() => {
+    newPostsRef.current = newPosts;
   }, [newPosts]);
-
-  useEffect(() => {
-    seenIds.current = new Set(posts.map((p) => p.id));
-  }, [posts]);
 
   // Restore scroll after back-navigation
   useEffect(() => {
@@ -72,6 +121,24 @@ export function FeedList({
     document.addEventListener("click", onClickCapture, true);
     return () => document.removeEventListener("click", onClickCapture, true);
   }, []);
+
+  // When server sent fresher data than our boot snapshot, adopt it once.
+  useEffect(() => {
+    if (!initialPosts.length) return;
+    const head = postsRef.current[0];
+    const serverHead = initialPosts[0];
+    if (!serverHead) return;
+    if (
+      !head ||
+      (serverHead.id !== head.id &&
+        serverHead.created_at >= head.created_at)
+    ) {
+      setPosts(initialPosts);
+      setNextOffset(initialNextOffset);
+    }
+    // Only on mount / server prop identity change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPosts, initialNextOffset]);
 
   const loadMore = useCallback(() => {
     if (nextOffset == null || loadingMore.current) return;
@@ -123,87 +190,142 @@ export function FeedList({
     return () => io.disconnect();
   }, [loadMore, nextOffset]);
 
-  // Smart polling: backoff + visibility + scroll-aware
+  /**
+   * Smart "new content" loop — big-app pattern:
+   * 1. Cheap HEAD check (`/api/feed/check`) — one row, no ranking
+   * 2. Full fetch only if latestId is unknown
+   * 3. Backoff when user scrolled down / tab hidden
+   * 4. Stable deps (refs) so we don't reset the timer on every like
+   */
   useEffect(() => {
-    if (posts.length === 0) return;
+    if (postsRef.current.length === 0 && initialPosts.length === 0) return;
 
     let cancelled = false;
     let timeout: ReturnType<typeof setTimeout>;
 
-    const getBackoffMs = () => {
+    const scheduleMs = () => {
+      if (document.hidden) return CHECK_BACKOFF[2];
       const scrollY = window.scrollY;
-      if (scrollY > 400) return BACKOFF_STEPS[2];
-      if (scrollY > 200) return BACKOFF_STEPS[1];
-      return BASE_POLL_MS;
+      if (scrollY > 400) return CHECK_BACKOFF[2];
+      if (scrollY > 200) return CHECK_BACKOFF[1];
+      const step = Math.min(backoffIndex.current, CHECK_BACKOFF.length - 1);
+      return step === 0 ? CHECK_BASE_MS : CHECK_BACKOFF[step - 1] ?? CHECK_BASE_MS;
     };
 
-    const poll = async () => {
-      if (cancelled) return;
-      if (document.hidden) {
-        timeout = setTimeout(poll, 2000);
+    const pullFresh = async (
+      signal: AbortSignal,
+      probedId: string | null,
+    ) => {
+      const res = await fetch(`/api/feed?offset=0&limit=${FEED_PAGE_SIZE}`, {
+        signal,
+      });
+      if (!res.ok || cancelled) return;
+      const body = (await res.json()) as { posts?: PostWithAuthor[] };
+      const latest = body.posts ?? [];
+
+      const known = new Set([
+        ...postsRef.current.map((p) => p.id),
+        ...newPostsRef.current.map((p) => p.id),
+      ]);
+      const fresh = latest.filter((p) => !known.has(p.id));
+
+      // Always ack the chronological head we probed — ranking may bury it
+      // below page 0; without this we full-fetch forever for the same id.
+      if (probedId) acknowledgedHeads.current.add(probedId);
+      for (const p of latest) acknowledgedHeads.current.add(p.id);
+
+      if (fresh.length === 0) {
+        backoffIndex.current = Math.min(
+          backoffIndex.current + 1,
+          CHECK_BACKOFF.length,
+        );
         return;
       }
 
-      // Cancel previous in-flight poll
-      if (abortRef.current) {
-        abortRef.current.abort();
+      backoffIndex.current = 0;
+
+      if (window.scrollY < NEAR_TOP_PX) {
+        setPosts((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          return [...fresh.filter((p) => !seen.has(p.id)), ...prev];
+        });
+      } else {
+        setNewPosts((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          return [...prev, ...fresh.filter((p) => !seen.has(p.id))];
+        });
       }
+    };
+
+    const tick = async () => {
+      if (cancelled) return;
+      if (document.hidden) {
+        timeout = setTimeout(tick, 5_000);
+        return;
+      }
+
+      if (abortRef.current) abortRef.current.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
       try {
-        const res = await fetch(
-          `/api/feed?offset=0&limit=${FEED_PAGE_SIZE}`,
-          { signal: controller.signal, next: { revalidate: 0 } },
-        );
-        if (!res.ok || cancelled) return;
-        const body = (await res.json()) as { posts?: PostWithAuthor[] };
-        const latest = body.posts ?? [];
+        const checkRes = await fetch("/api/feed/check", {
+          signal: controller.signal,
+        });
+        if (!checkRes.ok || cancelled) {
+          timeout = setTimeout(tick, scheduleMs());
+          return;
+        }
+        const check = (await checkRes.json()) as {
+          latestId?: string | null;
+        };
+        const latestId = check.latestId ?? null;
 
-        // Deduplicate against live posts + newPosts pill
-        const known = new Set([
-          ...posts.map((p) => p.id),
-          ...newPosts.map((p) => p.id),
-        ]);
+        const alreadyHave =
+          !latestId ||
+          acknowledgedHeads.current.has(latestId) ||
+          postsRef.current.some((p) => p.id === latestId) ||
+          newPostsRef.current.some((p) => p.id === latestId);
 
-        const fresh = latest.filter((p) => !known.has(p.id));
-        if (fresh.length === 0) {
-          backoffIndex.current = Math.max(0, backoffIndex.current - 1);
-          timeout = setTimeout(poll, getBackoffMs());
+        if (alreadyHave) {
+          backoffIndex.current = Math.min(
+            backoffIndex.current + 1,
+            CHECK_BACKOFF.length,
+          );
+          timeout = setTimeout(tick, scheduleMs());
           return;
         }
 
-        backoffIndex.current = 0;
-
-        if (window.scrollY < NEAR_TOP_PX) {
-          // At top: inject directly
-          setPosts((prev) => {
-            const seen = new Set(prev.map((p) => p.id));
-            return [...fresh.filter((p) => !seen.has(p.id)), ...prev];
-          });
-        } else {
-          // Below top: accumulate in pill
-          setNewPosts((prev) => {
-            const seen = new Set(prev.map((p) => p.id));
-            return [...prev, ...fresh.filter((p) => !seen.has(p.id))];
-          });
-        }
+        await pullFresh(controller.signal, latestId);
       } catch {
-        // silent — next poll retries
+        /* next tick retries */
       } finally {
         if (!cancelled) {
-          timeout = setTimeout(poll, getBackoffMs());
+          timeout = setTimeout(tick, scheduleMs());
         }
       }
     };
 
-    timeout = setTimeout(poll, getBackoffMs());
+    timeout = setTimeout(tick, CHECK_BASE_MS);
+
+    function onVis() {
+      if (!document.hidden) {
+        // Tab focused again — check soon, not immediately thrash
+        clearTimeout(timeout);
+        timeout = setTimeout(tick, 1_500);
+      }
+    }
+    document.addEventListener("visibilitychange", onVis);
+
     return () => {
       cancelled = true;
       clearTimeout(timeout);
       abortRef.current?.abort();
+      document.removeEventListener("visibilitychange", onVis);
     };
-  }, [posts.length, newPosts]);
+    // Mount-once loop; state via refs so likes don't restart polling
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function showNewPosts() {
     setPosts((prev) => {
@@ -271,4 +393,9 @@ export function rememberFeedScroll() {
   } catch {
     /* ignore */
   }
+}
+
+/** After publish/delete — next home paint should not trust stale snapshot. */
+export function bustFeedCache() {
+  invalidateFeedSnapshot();
 }

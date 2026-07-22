@@ -1,13 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
 
 /**
  * Instagram follow-request row: avatar, name, Confirmar | Eliminar.
+ * Hides itself optimistically — no router.refresh (would re-fetch
+ * the whole notifications page + pending list).
  */
 export function FollowRequestRow({
   followerId,
@@ -18,35 +19,42 @@ export function FollowRequestRow({
   username: string;
   displayName: string;
 }) {
-  const router = useRouter();
+  const [gone, setGone] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function act(action: "accept" | "reject") {
+    setGone(true);
     startTransition(async () => {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setGone(false);
+        return;
+      }
 
       if (action === "accept") {
-        await supabase
+        const { error } = await supabase
           .from("follows")
           .update({ status: "accepted" })
           .eq("follower_id", followerId)
           .eq("following_id", user.id)
           .eq("status", "pending");
+        if (error) setGone(false);
       } else {
-        await supabase
+        const { error } = await supabase
           .from("follows")
           .delete()
           .eq("follower_id", followerId)
           .eq("following_id", user.id)
           .eq("status", "pending");
+        if (error) setGone(false);
       }
-      router.refresh();
     });
   }
+
+  if (gone) return null;
 
   return (
     <li className="flex items-center gap-3 px-4 py-3">
