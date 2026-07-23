@@ -26,6 +26,45 @@ export function withAvatarCacheBust(
   return `${base}?v=${v}`;
 }
 
+/**
+ * Deterministic fallback tone per user — same person always gets the
+ * same tint, so a contact list without photos still reads as distinct
+ * people (Apple Contacts / iMessage pattern), without introducing a new
+ * saturated color palette. Every tone is a neutral variant derived from
+ * the existing --foreground/--muted-foreground scale, just at different
+ * opacities — no new hue enters the design system.
+ */
+const AVATAR_FALLBACK_TONES = [
+  "bg-foreground/12 text-foreground/70",
+  "bg-foreground/16 text-foreground/75",
+  "bg-foreground/10 text-foreground/65",
+  "bg-foreground/20 text-foreground/80",
+  "bg-foreground/8 text-foreground/60",
+  "bg-foreground/14 text-foreground/72",
+  "bg-foreground/18 text-foreground/78",
+  "bg-foreground/9 text-foreground/62",
+] as const;
+
+/** Stable small hash — not cryptographic, just needs even distribution. */
+function hashString(value: string): number {
+  let h = 0;
+  for (let i = 0; i < value.length; i++) {
+    h = (h * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+/**
+ * Tailwind class pair (bg + text) for a user's avatar fallback, stable
+ * for the lifetime of their `userId`. Use together with the initial
+ * letter when there is no photo.
+ */
+export function avatarFallbackTone(userId: string): string {
+  if (!userId) return AVATAR_FALLBACK_TONES[0];
+  const idx = hashString(userId) % AVATAR_FALLBACK_TONES.length;
+  return AVATAR_FALLBACK_TONES[idx];
+}
+
 /** Public event after own avatar changes (client components re-sync). */
 export const AVATAR_CHANGED_EVENT = "pulse:avatar-changed";
 

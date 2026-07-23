@@ -9,6 +9,7 @@ import Image from "next/image";
 import {
   AVATAR_CHANGED_EVENT,
   type AvatarChangedDetail,
+  avatarFallbackTone,
   readCachedAvatar,
   withAvatarCacheBust,
 } from "@/lib/profile/avatar";
@@ -131,7 +132,8 @@ export function ProfileAvatar({
               : "Sem foto de perfil"
         }
         className={cn(
-          "relative shrink-0 overflow-hidden rounded-full bg-muted text-[22px] font-semibold tracking-tight text-muted-foreground ring-1 ring-[var(--separator)]",
+          "relative shrink-0 overflow-hidden rounded-full text-[22px] font-semibold tracking-tight ring-1 ring-[var(--separator)]",
+          !hasPhoto && avatarFallbackTone(userId),
           clickable &&
             "transition-opacity hover:opacity-90 active:opacity-80",
           (!clickable || loading) && "cursor-default disabled:opacity-100",

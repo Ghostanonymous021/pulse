@@ -7,11 +7,13 @@ import Image from "next/image";
 import {
   AVATAR_CHANGED_EVENT,
   type AvatarChangedDetail,
+  avatarFallbackTone,
   readCachedAvatar,
   withAvatarCacheBust,
 } from "@/lib/profile/avatar";
 import { uploadProfileAvatar } from "@/lib/profile/upload-avatar";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 export function AvatarPicker({
   userId,
@@ -75,7 +77,10 @@ export function AvatarPicker({
     <div className="flex flex-col items-center gap-2">
       <label
         htmlFor={inputId}
-        className="relative h-24 w-24 cursor-pointer overflow-hidden rounded-full bg-muted ring-1 ring-[var(--separator)] has-[:disabled]:opacity-60"
+        className={cn(
+          "relative h-24 w-24 cursor-pointer overflow-hidden rounded-full ring-1 ring-[var(--separator)] has-[:disabled]:opacity-60",
+          !preview && avatarFallbackTone(userId),
+        )}
         aria-label="Alterar foto de perfil"
       >
         {preview ? (
@@ -86,7 +91,7 @@ export function AvatarPicker({
             className="object-cover"
           />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-[28px] font-semibold text-muted-foreground">
+          <span className="flex h-full w-full items-center justify-center text-[28px] font-semibold">
             {name.slice(0, 1).toUpperCase()}
           </span>
         )}

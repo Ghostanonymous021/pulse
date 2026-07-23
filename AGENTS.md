@@ -178,6 +178,7 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
 - [x] Erros de build/typecheck do feature workspaces corrigidos (`perfil/page.tsx`, `u/[username]/page.tsx`, `w/[id]/apagar`, `w/[id]/editar`, `w/new`, `workspace-card.tsx`, `lib/workspaces/lib.ts`) — `tsc --noEmit` e `next build` limpos
 - [x] Selo de verificacao unificado: badge (roseta 8 pontas, azul solido `#2196F3`, sem gradiente) agora tambem aparece em **comentarios** (faltava `is_verified`/`verified_type` na query de `p/[id]` e render em `comment-thread.tsx`); mesmo componente `VerifiedBadge` em todos os call-sites — ver `docs/UX_VERIFICACAO.md`
 - [x] `PulseLoader` (feedback visual — item 3/5 da spec de UX): componente unico de "processando" substitui `Spinner`/`Loader2` e `RefreshCw` com `animate-spin`; `ui/spinner.tsx` removido (sem uso). Ver secao 6.1 abaixo antes de adicionar qualquer novo estado de loading a um botao/CTA.
+- [x] Avatar fallback (item 4/5 da spec de UX): hash deterministico de tom por `userId` (`avatarFallbackTone` em `lib/profile/avatar.ts`) unifica as 4 implementacoes duplicadas de "inicial + circulo cinza" (`user-avatar.tsx`, `profile-avatar.tsx`, `avatar-picker.tsx`, `suggest-follows.tsx` — este ultimo passou a usar `UserAvatar` de vez, em vez de `<div>` inline). Ver secao 6.2 abaixo antes de criar qualquer novo lugar com fallback de avatar.
 - [ ] CRUD de projetos no Portfolio (UI de criacao/edicao)
 - [ ] Rate limit distribuido (Redis/Upstash) multi-instancia
 - [ ] Webhook M-Pesa real (substituir sim)
@@ -197,6 +198,14 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
 - **Excepção deliberada:** `settings/delete-account-form.tsx` ("Apagar conta permanentemente") não usa `PulseLoader` — acção destrutiva/irreversível não deve herdar a assinatura "viva" da marca; mantém-se só o texto "A apagar...".
 - Call-sites actuais: `follow-button.tsx`, `compose-form.tsx`, `comment-thread.tsx`, `auth-form.tsx`, `edit-profile-form.tsx`, `password-form.tsx`, `recovery-email-form.tsx`, `professional-flow.tsx`, `profile-avatar.tsx`, `onboarding-flow.tsx` (`PrimaryButton` prop `loading`), `offline/page.tsx`.
 - Fora de escopo deste componente (fica para o Skeleton — item 2/5): loading de **lista** (`people-suggestions.tsx`, `sessions-panel.tsx`) e loading de **asset de mídia** dentro de um post (`media-frame.tsx`). Não substituir esses por `PulseLoader` — misturar skeleton com pulse loader na mesma acção quebra a hierarquia de feedback visual da spec.
+
+### 6.2. Avatar fallback — tom por utilizador, sem paleta nova
+
+**Onde:** `avatarFallbackTone(userId)` em `src/lib/profile/avatar.ts`. Usar **sempre** que um avatar sem foto precisar de um fundo — nunca reintroduzir `bg-muted text-muted-foreground` à mão.
+
+- Hash determinístico do `userId` (não criptográfico, só precisa de distribuição razoável) escolhe 1 de 8 tons dentro da escala **neutra existente** (`bg-foreground/N text-foreground/N`, opacidades diferentes do mesmo `--foreground`). Mesma pessoa = sempre o mesmo tom; nenhuma cor nova entra no design system (decisão deliberada: a spec original pedia "hash de cor", mas a regra da secção 2.3 proíbe paleta nova — resolvido com variações tonais dentro da escala já usada em `search-bar.tsx`/`page-header.tsx`, não com uma paleta vibrante estilo Slack).
+- Fonte de verdade visual é `UserAvatar` (`components/profile/user-avatar.tsx`) — qualquer lista de pessoas deve usar este componente, nunca duplicar `bg-muted` + inicial `.slice(0,1)` `.toUpperCase()` de novo.
+- `profile-avatar.tsx` e `avatar-picker.tsx` têm UI própria (upload/preview local, sheet, lápis de câmera) que não cabe dentro de `UserAvatar`, por isso mantêm markup próprio — mas chamam `avatarFallbackTone` directamente para o mesmo tom, nunca reinventam a paleta.
 
 **Workspace de dev:** preferir `/tmp/pulse-dev` (disco rapido). `/mnt/sdcard/grok/pulse` e lento e pode ter WIP local (ex. workspaces) fora do GitHub. Chaves so em `.env.local` (nunca commit).
 

@@ -6,6 +6,7 @@ import Image from "next/image";
 import {
   AVATAR_CHANGED_EVENT,
   type AvatarChangedDetail,
+  avatarFallbackTone,
   readCachedAvatar,
   withAvatarCacheBust,
 } from "@/lib/profile/avatar";
@@ -56,7 +57,8 @@ export function UserAvatar({
   return (
     <span
       className={cn(
-        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground",
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold",
+        !src && avatarFallbackTone(userId),
         className,
       )}
       style={{ width: size, height: size, fontSize: Math.max(11, size * 0.34) }}

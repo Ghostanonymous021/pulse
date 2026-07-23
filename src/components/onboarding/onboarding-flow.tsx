@@ -6,6 +6,7 @@ import { Camera, Check, ChevronRight } from "lucide-react";
 
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { PulseLoader } from "@/components/ui/pulse-loader";
+import { avatarFallbackTone } from "@/lib/profile/avatar";
 import {
   FollowButton,
   type FollowUiState,
@@ -226,7 +227,10 @@ export function OnboardingFlow({
                 type="button"
                 disabled={uploading}
                 onClick={() => fileRef.current?.click()}
-                className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-muted text-[32px] font-semibold text-muted-foreground ring-1 ring-[var(--separator)] transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
+                className={cn(
+                  "relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full text-[32px] font-semibold ring-1 ring-[var(--separator)] transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50",
+                  !avatarUrl && avatarFallbackTone(profile.id),
+                )}
                 aria-label="Escolher foto"
               >
                 {avatarUrl ? (

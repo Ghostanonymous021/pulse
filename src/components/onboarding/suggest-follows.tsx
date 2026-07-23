@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { UserAvatar } from "@/components/profile/user-avatar";
 import {
   FollowButton,
   type FollowUiState,
@@ -59,9 +60,12 @@ export function SuggestFollows({ suggestions }: { suggestions: Suggestion[] }) {
             .join(" · ");
           return (
             <li key={s.id} className="flex items-center gap-3 px-4 py-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[13px] font-semibold text-muted-foreground">
-                {(s.display_name || s.username).slice(0, 1).toUpperCase()}
-              </div>
+              <UserAvatar
+                userId={s.id}
+                avatarUrl={s.avatar_url}
+                name={s.display_name || s.username}
+                size={44}
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">
                   {s.display_name || s.username}
