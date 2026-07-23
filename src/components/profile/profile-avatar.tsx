@@ -12,6 +12,7 @@ import {
   readCachedAvatar,
   withAvatarCacheBust,
 } from "@/lib/profile/avatar";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { uploadProfileAvatar } from "@/lib/profile/upload-avatar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -207,7 +208,14 @@ export function ProfileAvatar({
                         loading && "pointer-events-none opacity-50",
                       )}
                     >
-                      {loading ? "A enviar..." : "Alterar foto"}
+                      {loading ? (
+                        <span className="inline-flex items-center gap-2">
+                          <PulseLoader size="sm" />
+                          A enviar...
+                        </span>
+                      ) : (
+                        "Alterar foto"
+                      )}
                     </label>
                   </li>
                   <li>

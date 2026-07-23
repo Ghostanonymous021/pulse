@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { phoneToAuthEmail } from "@/lib/auth/phone";
 import {
   PASSWORD_MIN_LENGTH,
@@ -131,8 +132,9 @@ export function PasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
+          {loading && <PulseLoader size="sm" />}
           {loading ? "A verificar..." : "Continuar"}
         </button>
       </form>
@@ -181,8 +183,9 @@ export function PasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="flex h-11 flex-1 items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
         >
+          {loading && <PulseLoader size="sm" />}
           {loading ? "A guardar..." : "Guardar"}
         </button>
       </div>

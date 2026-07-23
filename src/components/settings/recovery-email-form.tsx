@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { isSyntheticPhoneEmail } from "@/lib/auth/phone";
 import { createClient } from "@/lib/supabase/client";
 
@@ -82,8 +83,9 @@ export function RecoveryEmailForm({
       <button
         type="submit"
         disabled={loading}
-        className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
       >
+        {loading && <PulseLoader size="sm" />}
         {loading ? "A guardar..." : "Guardar"}
       </button>
     </form>

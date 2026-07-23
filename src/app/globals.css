@@ -345,3 +345,42 @@ select,
   40% { transform: translateY(-3px); opacity: 1; }
   100% { transform: translateY(0); opacity: 1; }
 }
+
+/*
+ * Pulse Loader — brand "sonar" processing indicator.
+ * Two rings offset by half a cycle so there is always a visible pulse
+ * (a single ring reads as "blinking", not "processing").
+ * prefers-reduced-motion is handled globally above (animation-duration
+ * collapses to ~0), which reads as a calm static dot — acceptable resting
+ * state, no separate fallback needed.
+ */
+.pulse-loader {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pulse-loader::before,
+.pulse-loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: pulse-loader-sonar 1.2s var(--ease-accelerate) infinite;
+}
+.pulse-loader::after {
+  animation-delay: 0.6s;
+}
+.pulse-loader-core {
+  position: relative;
+  width: 34%;
+  height: 34%;
+  border-radius: 9999px;
+  background: currentColor;
+}
+@keyframes pulse-loader-sonar {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}

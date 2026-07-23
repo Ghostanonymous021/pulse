@@ -7,6 +7,7 @@ import { Heart } from "lucide-react";
 import { MentionField } from "@/components/compose/mention-field";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { VerifiedBadge } from "@/components/social/verified-badge";
 import {
   INITIAL_REPLY_VISIBLE,
@@ -473,8 +474,9 @@ function CommentComposer({
       <button
         type="submit"
         disabled={loading || !body.trim()}
-        className="mb-0.5 h-11 shrink-0 px-2 text-[15px] font-semibold tracking-[-0.01em] disabled:opacity-35"
+        className="mb-0.5 flex h-11 shrink-0 items-center gap-1.5 px-2 text-[15px] font-semibold tracking-[-0.01em] disabled:opacity-35"
       >
+        {loading && <PulseLoader size="sm" />}
         {loading ? "A enviar..." : "Comentar"}
       </button>
     </form>

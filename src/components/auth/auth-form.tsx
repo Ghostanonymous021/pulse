@@ -18,6 +18,7 @@ import {
   PASSWORD_MIN_LENGTH,
   validatePassword,
 } from "@/lib/security/password";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
@@ -315,8 +316,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
           (mode === "signup" &&
             (availability.checking || availability.available === false))
         }
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
       >
+        {loading && <PulseLoader size="sm" />}
         {loading ? "Aguarde..." : mode === "signup" ? "Continuar" : "Entrar"}
       </button>
     </form>

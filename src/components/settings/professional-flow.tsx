@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/nav/page-header";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import {
   ORG_TYPE_OPTIONS,
   type ProfessionalOrgType,
@@ -398,8 +399,9 @@ function FormStep({
       <button
         type="submit"
         disabled={loading}
-        className="flex h-12 w-full items-center justify-center rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[15px] font-semibold tracking-[-0.02em] text-accent-foreground disabled:opacity-50"
       >
+        {loading && <PulseLoader size="sm" />}
         {loading ? "A enviar..." : "Enviar pedido"}
       </button>
     </form>

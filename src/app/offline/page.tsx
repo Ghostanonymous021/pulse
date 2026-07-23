@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
 
+import { PulseLoader } from "@/components/ui/pulse-loader";
+
 /**
  * Offline shell — only shown when the network truly fails.
  * Hard-navigates home (bypasses soft client cache loops).
@@ -84,11 +86,11 @@ export default function OfflinePage() {
         disabled={busy}
         className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-accent px-6 text-[15px] font-semibold text-accent-foreground disabled:opacity-50"
       >
-        <RefreshCw
-          className={`h-4 w-4 ${busy ? "animate-spin" : ""}`}
-          strokeWidth={2}
-          aria-hidden
-        />
+        {busy ? (
+          <PulseLoader size="sm" />
+        ) : (
+          <RefreshCw className="h-4 w-4" strokeWidth={2} aria-hidden />
+        )}
         {busy ? "A tentar..." : "Tentar de novo"}
       </button>
     </main>

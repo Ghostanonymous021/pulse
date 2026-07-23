@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Spinner } from "@/components/ui/spinner";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -98,7 +98,11 @@ export function FollowButton({
             : "border border-border hover:bg-muted active:scale-95",
         )}
       >
-        {pending ? <Spinner className="h-3.5 w-3.5" /> : label}
+        {pending ? (
+          <PulseLoader size="sm" tone={filled ? "on-brand" : "brand"} />
+        ) : (
+          label
+        )}
       </button>
       {error && (
         <p className="shake text-center text-xs text-destructive">

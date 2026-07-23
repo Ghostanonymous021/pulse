@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Check, ChevronRight } from "lucide-react";
 
 import { UserAvatar } from "@/components/profile/user-avatar";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import {
   FollowButton,
   type FollowUiState,
@@ -206,8 +207,9 @@ export function OnboardingFlow({
             <div className="mt-auto space-y-3 pt-10">
               <PrimaryButton
                 onClick={saveCampus}
-                label={uploading ? "A guardar..." : "Continuar"}
+                label="Continuar"
                 disabled={uploading}
+                loading={uploading}
               />
               <GhostButton onClick={next} label="Agora não" />
             </div>
@@ -248,7 +250,8 @@ export function OnboardingFlow({
                 className="file-input-native"
                 onChange={(e) => onPickPhoto(e.target.files?.[0])}
               />
-              <p className="mt-4 text-[13px] text-muted-foreground">
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-muted-foreground">
+                {uploading && <PulseLoader size="sm" />}
                 {uploading ? "A enviar..." : "Toca para escolher da galeria"}
               </p>
               {error && (
@@ -262,6 +265,7 @@ export function OnboardingFlow({
                 onClick={next}
                 label={avatarUrl ? "Continuar" : "Continuar sem foto"}
                 disabled={uploading}
+                loading={uploading}
               />
             </div>
           </StepShell>
@@ -317,8 +321,9 @@ export function OnboardingFlow({
             <div className="mt-auto space-y-3 pt-6">
               <PrimaryButton
                 onClick={goHome}
-                label={pending ? "A abrir..." : "Entrar no Pulse"}
+                label="Entrar no Pulse"
                 disabled={pending}
+                loading={pending}
                 icon
               />
               <p className="text-center text-[12px] text-muted-foreground">
@@ -384,11 +389,13 @@ function PrimaryButton({
   onClick,
   label,
   disabled,
+  loading,
   icon,
 }: {
   onClick: () => void;
   label: string;
   disabled?: boolean;
+  loading?: boolean;
   icon?: boolean;
 }) {
   return (
@@ -398,6 +405,7 @@ function PrimaryButton({
       disabled={disabled}
       className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand text-[15px] font-semibold tracking-[-0.02em] text-brand-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
     >
+      {loading && <PulseLoader size="sm" tone="on-brand" />}
       {label}
       {icon ? <ChevronRight className="h-4 w-4" strokeWidth={2} /> : null}
     </button>

@@ -6,7 +6,7 @@ import { ImagePlus, X } from "lucide-react";
 import Image from "next/image";
 
 import { MentionField } from "@/components/compose/mention-field";
-import { Spinner } from "@/components/ui/spinner";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { compressImageForUpload } from "@/lib/posts/compress-image";
 import type { UploadableImage } from "@/lib/posts/media";
 import {
@@ -213,7 +213,7 @@ export function ComposeForm({
           disabled={loading || (!body.trim() && images.length === 0)}
            className="flex h-10 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-medium text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
-          {loading && <Spinner className="h-3.5 w-3.5" />}
+          {loading && <PulseLoader size="sm" />}
           {loading ? "A publicar..." : "Publicar"}
         </button>
       </div>

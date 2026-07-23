@@ -176,11 +176,27 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
   - Compressao de imagens no cliente (ja em main anterior)
 - [x] Migration `20260721223000_workspaces.sql` aplicada na base remota e registada em `schema_migrations` (estava em falta; `npm run build` falhava por dessincronia entre schema real e tipos)
 - [x] Erros de build/typecheck do feature workspaces corrigidos (`perfil/page.tsx`, `u/[username]/page.tsx`, `w/[id]/apagar`, `w/[id]/editar`, `w/new`, `workspace-card.tsx`, `lib/workspaces/lib.ts`) — `tsc --noEmit` e `next build` limpos
+- [x] Selo de verificacao unificado: badge (roseta 8 pontas, azul solido `#2196F3`, sem gradiente) agora tambem aparece em **comentarios** (faltava `is_verified`/`verified_type` na query de `p/[id]` e render em `comment-thread.tsx`); mesmo componente `VerifiedBadge` em todos os call-sites — ver `docs/UX_VERIFICACAO.md`
+- [x] `PulseLoader` (feedback visual — item 3/5 da spec de UX): componente unico de "processando" substitui `Spinner`/`Loader2` e `RefreshCw` com `animate-spin`; `ui/spinner.tsx` removido (sem uso). Ver secao 6.1 abaixo antes de adicionar qualquer novo estado de loading a um botao/CTA.
 - [ ] CRUD de projetos no Portfolio (UI de criacao/edicao)
 - [ ] Rate limit distribuido (Redis/Upstash) multi-instancia
 - [ ] Webhook M-Pesa real (substituir sim)
 
 **Próxima decisão pendente:** CRUD portfolio, virtualizacao do feed, ou activity nas notificacoes.
+
+### 6.1. `PulseLoader` — padrão único de "processando"
+
+**Onde:** `src/components/ui/pulse-loader.tsx`. **Nunca** reintroduzir `Loader2`/`animate-spin` genérico num botão/CTA — usar este componente.
+
+- Visual: ponto laranja `--brand` (`#FF9F0A`) com "sonar" (scale 1→1.8, opacity 1→0, loop ~1.2s, dois anéis defasados). CSS puro em `globals.css` (`.pulse-loader`), sem lib de animação.
+- `size="sm"` (16px, uso em botão/linha de texto) ou `size="md"` (24px).
+- `tone="brand"` (default) — pinta laranja; usar em qualquer superfície neutra/escura (`bg-accent`, `bg-muted`, texto solto).
+- `tone="on-brand"` — herda `currentColor` do texto do botão; usar **apenas** quando o próprio botão já é `bg-brand` (para não pintar laranja sobre laranja — `text-brand-foreground` do tema é preto, então o ponto sai preto ali, coerente com o próprio texto do botão).
+- Debounce de ~180ms embutido no componente: acções que resolvem rápido (ex.: follow optimista) nunca chegam a mostrar o loader. Chamadores não precisam de nenhum debounce próprio — só decidir `loading`/`pending` como já fazem.
+- Respeita `prefers-reduced-motion` via regra global já existente em `globals.css` (colapsa a animação, fica como ponto estático — estado de repouso aceitável).
+- **Excepção deliberada:** `settings/delete-account-form.tsx` ("Apagar conta permanentemente") não usa `PulseLoader` — acção destrutiva/irreversível não deve herdar a assinatura "viva" da marca; mantém-se só o texto "A apagar...".
+- Call-sites actuais: `follow-button.tsx`, `compose-form.tsx`, `comment-thread.tsx`, `auth-form.tsx`, `edit-profile-form.tsx`, `password-form.tsx`, `recovery-email-form.tsx`, `professional-flow.tsx`, `profile-avatar.tsx`, `onboarding-flow.tsx` (`PrimaryButton` prop `loading`), `offline/page.tsx`.
+- Fora de escopo deste componente (fica para o Skeleton — item 2/5): loading de **lista** (`people-suggestions.tsx`, `sessions-panel.tsx`) e loading de **asset de mídia** dentro de um post (`media-frame.tsx`). Não substituir esses por `PulseLoader` — misturar skeleton com pulse loader na mesma acção quebra a hierarquia de feedback visual da spec.
 
 **Workspace de dev:** preferir `/tmp/pulse-dev` (disco rapido). `/mnt/sdcard/grok/pulse` e lento e pode ter WIP local (ex. workspaces) fora do GitHub. Chaves so em `.env.local` (nunca commit).
 
