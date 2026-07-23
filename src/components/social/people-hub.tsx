@@ -24,19 +24,36 @@ import { cn } from "@/lib/utils";
 
 type Tab = PeopleTab;
 
+// Debounce delay for server-side search-as-you-type. Long enough to not
+// fire a request per keystroke, short enough to still feel instant.
+const SEARCH_DEBOUNCE_MS = 300;
+
 /**
  * Pessoas hub: one screen, three views (Apple Settings-style segmented
- * control, not three separate pages). Local filter only — matches what
- * is already loaded, no network round-trip. Full account search across
- * everyone lives in Explorar; this is "find someone I'm already
- * connected to" (Contacts-app pattern), so the two never overlap.
+ * control, not three separate pages).
+ *
+ * Search behaviour differs per tab, on purpose:
+ * - Seguidores / A seguir: local filter only — these lists are already
+ *   the viewer's *complete* follower/following graph fetched server-side,
+ *   so there is nothing more to fetch and filtering in memory is both
+ *   correct and instant.
+ * - Sugestões: queries /api/people/search server-side (debounced), which
+ *   runs the same search_profiles RPC Explorar uses across the *entire*
+ *   network, not just whatever pages of pagination happen to be loaded
+ *   client-side. Fixes a real bug: a newly-created account could rank
+ *   deep in the suggestions pool (page 3+) and searching for it before
+ *   scrolling that far used to say "no results" even though the account
+ *   existed and was fully reachable by scrolling further — filtering
+ *   only what was already in React state can never find what isn't
+ *   loaded yet. Full account search across everyone (not scoped to PYMK
+ *   exclusions) still lives in Explorar; the two intentionally don't
+ *   overlap in purpose, only in the underlying RPC they both call.
  *
  * Sugestões pagination: the full candidate pool (everyone not already
  * followed/following/blocked) is ranked server-side and paged in via
  * /api/people/suggestions — infinite scroll by default, "Ver mais" as
- * fallback (see people-suggestions.tsx). While a search query is active
- * we only filter what's already loaded and hide pagination controls,
- * same "local filter only" rule as Seguidores/A seguir below.
+ * fallback (see people-suggestions.tsx). Pagination is hidden while a
+ * search query is active (results come from /api/people/search instead).
  *
  * Session persistence: tab, search query, loaded suggestion pages and
  * scroll position are mirrored into sessionStorage (lib/social/
@@ -79,6 +96,15 @@ export function PeopleHub({
     null,
   );
   const loadingSuggestionsRef = useRef(false);
+
+  // Server-side search results for the Sugestões tab (see class doc
+  // above for why this is a network round-trip and not a local filter).
+  const [searchResults, setSearchResults] = useState<PeopleSuggestion[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const searchRequestSeqRef = useRef(0);
+  const [searchRetryTick, setSearchRetryTick] = useState(0);
 
   // Restore scroll position after a back-navigation (once, on mount).
   useEffect(() => {
@@ -153,11 +179,69 @@ export function PeopleHub({
   }, [suggestionsNextOffset]);
 
   const q = query.trim().toLowerCase();
+  const trimmedQuery = query.trim();
 
-  const filteredSuggestions = useMemo(
-    () => filterPeople(suggestions, q),
-    [suggestions, q],
-  );
+  // Sugestões: while a search is active, results come from the server
+  // (full-network search, see searchResults effect below) instead of
+  // filtering whatever pages happen to be loaded. Without a query, show
+  // the normal ranked/paginated suggestions.
+  //
+  // The "nothing to search" case (empty query, or a different tab) is
+  // handled as a plain derived bail-out — no setState call — so this
+  // effect only ever touches state when it is actually about to fetch,
+  // per the react-hooks/set-state-in-effect guidance (avoid synchronous
+  // setState in an effect body outside of the async work it guards).
+  const searchActive = tab === "sugestoes" && Boolean(trimmedQuery);
+  useEffect(() => {
+    if (!searchActive) return;
+
+    const mySeq = ++searchRequestSeqRef.current;
+    const timer = setTimeout(() => {
+      searchAbortRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+      setSearchLoading(true);
+      setSearchError(null);
+
+      fetch(`/api/people/search?q=${encodeURIComponent(trimmedQuery)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Falha ao pesquisar pessoas.");
+          return res.json() as Promise<{ results?: PeopleSuggestion[] }>;
+        })
+        .then((body) => {
+          if (searchRequestSeqRef.current !== mySeq) return;
+          setSearchResults(body.results ?? []);
+        })
+        .catch((e) => {
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (searchRequestSeqRef.current !== mySeq) return;
+          setSearchError(
+            e instanceof Error ? e.message : "Falha ao pesquisar pessoas.",
+          );
+        })
+        .finally(() => {
+          if (searchRequestSeqRef.current !== mySeq) return;
+          setSearchLoading(false);
+        });
+    }, SEARCH_DEBOUNCE_MS);
+
+    // Cleanup runs on every dep change (new keystroke, tab switch, retry)
+    // and on unmount — cancels a pending debounce timer and/or an
+    // in-flight fetch for a query that is no longer current. Stale
+    // searchResults/searchLoading/searchError left behind when
+    // searchActive turns false are harmless: the UI branch that reads
+    // them is only rendered while searchActive is true, and the mySeq
+    // guard above already prevents a late response from a previous
+    // query overwriting a newer one.
+    return () => {
+      clearTimeout(timer);
+      searchAbortRef.current?.abort();
+    };
+  }, [searchActive, trimmedQuery, searchRetryTick]);
+
+  const filteredSuggestions = searchActive ? searchResults : suggestions;
   const filteredFollowers = useMemo(
     () => filterPeople(followers, q),
     [followers, q],
@@ -220,8 +304,19 @@ export function PeopleHub({
       </div>
 
       {tab === "sugestoes" &&
-        (filteredSuggestions.length === 0 && q ? (
-          <SearchEmpty query={query} />
+        (searchActive ? (
+          filteredSuggestions.length === 0 && !searchLoading ? (
+            <SearchEmpty query={query} />
+          ) : (
+            <PeopleSuggestions
+              suggestions={filteredSuggestions}
+              hasMore={false}
+              loading={searchLoading}
+              error={searchError}
+              onLoadMore={() => setSearchRetryTick((n) => n + 1)}
+              paginationDisabled
+            />
+          )
         ) : (
           <PeopleSuggestions
             suggestions={filteredSuggestions}
@@ -229,7 +324,7 @@ export function PeopleHub({
             loading={suggestionsLoading}
             error={suggestionsError}
             onLoadMore={loadMoreSuggestions}
-            paginationDisabled={Boolean(q)}
+            paginationDisabled={false}
           />
         ))}
 
