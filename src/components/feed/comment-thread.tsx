@@ -7,11 +7,16 @@ import { Heart } from "lucide-react";
 import { MentionField } from "@/components/compose/mention-field";
 import { UserAvatar } from "@/components/profile/user-avatar";
 import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
+import { VerifiedBadge } from "@/components/social/verified-badge";
 import {
   INITIAL_REPLY_VISIBLE,
   type CommentNode,
 } from "@/lib/comments/tree";
 import { contentSegments } from "@/lib/mentions/segments";
+import {
+  isVerificationActive,
+  verificationBadgeType,
+} from "@/lib/settings/verification";
 import { createClient } from "@/lib/supabase/client";
 import { useKeyboardInset } from "@/lib/ui/use-keyboard-inset";
 import { cn } from "@/lib/utils";
@@ -126,6 +131,7 @@ function CommentBlock({
 }) {
   const name = node.author?.display_name || node.author?.username || "user";
   const handle = node.author?.username;
+  const verified = node.author ? isVerificationActive(node.author) : false;
   const [showAll, setShowAll] = useState(false);
 
   const replies = node.replies;
@@ -154,16 +160,24 @@ function CommentBlock({
         </div>
         <div className="min-w-0 flex-1">
           <div className="rounded-[var(--radius-md)] bg-muted/60 px-3 py-2">
-            {handle ? (
-              <Link
-                href={`/u/${handle}`}
-                className="text-[13px] font-semibold tracking-[-0.01em] hover:opacity-70"
-              >
-                {name}
-              </Link>
-            ) : (
-              <span className="text-[13px] font-semibold">{name}</span>
-            )}
+            <span className="inline-flex min-w-0 items-center gap-1">
+              {handle ? (
+                <Link
+                  href={`/u/${handle}`}
+                  className="truncate text-[13px] font-semibold tracking-[-0.01em] hover:opacity-70"
+                >
+                  {name}
+                </Link>
+              ) : (
+                <span className="truncate text-[13px] font-semibold">{name}</span>
+              )}
+              {verified && node.author && (
+                <VerifiedBadge
+                  accountType={verificationBadgeType(node.author)}
+                  size="sm"
+                />
+              )}
+            </span>
             {node.reply_to_username && (
               <p className="mt-0.5 text-[12px] text-muted-foreground">
                 Respondendo a{" "}
@@ -387,7 +401,9 @@ function CommentComposer({
           .single(),
         supabase
           .from("profiles")
-          .select("username, display_name, avatar_url")
+          .select(
+            "username, display_name, avatar_url, account_type, is_verified, verified_type, verification_expires_at",
+          )
           .eq("id", user.id)
           .single(),
       ]);
@@ -408,6 +424,10 @@ function CommentComposer({
               username: me.username,
               display_name: me.display_name,
               avatar_url: me.avatar_url,
+              account_type: me.account_type,
+              is_verified: me.is_verified,
+              verified_type: me.verified_type,
+              verification_expires_at: me.verification_expires_at,
             }
           : null,
         like_count: 0,

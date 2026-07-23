@@ -1,7 +1,14 @@
+import type { AccountType } from "@/types/database";
+
 export type CommentAuthor = {
   username: string;
   display_name: string;
   avatar_url?: string | null;
+  /** Needed to render VerifiedBadge consistently with every other surface. */
+  account_type?: AccountType | null;
+  is_verified?: boolean | null;
+  verified_type?: AccountType | null;
+  verification_expires_at?: string | null;
 };
 
 export type CommentNode = {

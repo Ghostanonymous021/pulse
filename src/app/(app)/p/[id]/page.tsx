@@ -29,7 +29,11 @@ export default async function PostDetailPage({ params }: Props) {
       author:profiles!comments_author_id_fkey (
         username,
         display_name,
-        avatar_url
+        avatar_url,
+        account_type,
+        is_verified,
+        verified_type,
+        verification_expires_at
       ),
       comment_likes ( user_id )
     `,
@@ -46,10 +50,20 @@ export default async function PostDetailPage({ params }: Props) {
     reply_to_username: string | null;
     created_at: string;
     author:
-      | { username: string; display_name: string; avatar_url: string | null }
-      | { username: string; display_name: string; avatar_url: string | null }[]
+      | CommentAuthorRow
+      | CommentAuthorRow[]
       | null;
     comment_likes?: { user_id: string }[];
+  };
+
+  type CommentAuthorRow = {
+    username: string;
+    display_name: string;
+    avatar_url: string | null;
+    account_type: "pessoa" | "organizacao" | null;
+    is_verified: boolean | null;
+    verified_type: "pessoa" | "organizacao" | null;
+    verification_expires_at: string | null;
   };
 
   const flat = ((commentsRaw ?? []) as unknown as Raw[]).map((c) => {
@@ -68,6 +82,10 @@ export default async function PostDetailPage({ params }: Props) {
             username: author.username,
             display_name: author.display_name,
             avatar_url: author.avatar_url,
+            account_type: author.account_type,
+            is_verified: author.is_verified,
+            verified_type: author.verified_type,
+            verification_expires_at: author.verification_expires_at,
           }
         : null,
       like_count: likes.length,
