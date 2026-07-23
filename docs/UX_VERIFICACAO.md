@@ -25,14 +25,17 @@ Triggers de protecção bloqueiam o cliente de se auto-verificar. Updates via se
 
 Componente: `VerifiedBadge` (`src/components/social/verified-badge.tsx`).
 
-- Disco azul sólido + check branco (sem gradiente, sem roseta/scalloped seal)
+- Roseta ("scalloped seal", 8 pontas arredondadas) + check branco
+- Azul sólido `#2196F3` — **sem gradiente** (a v1 usava gradiente
+  azul → violeta; manteve-se a silhueta com pontas, mudou-se só o fill
+  para uma cor chapada)
 - Mesma forma para `pessoa` e `organizacao` — `accountType` fica na API
   para o label acessível e para uma futura variação institucional
   distinta, mas a marca visual em si não bifurca por tipo de conta hoje.
 
-Referência visual do produto: check azul clássico usado por X/Twitter,
-Facebook e o Instagram actual (não a roseta gradiente antiga da v1, não
-o verde do WhatsApp).
+Referência visual do produto: selo azul clássico usado por X/Twitter,
+Facebook e o Instagram actual — roseta de pontas em azul chapado, não
+em gradiente, e não o verde do WhatsApp.
 
 **Fonte única de verdade**: qualquer superfície que mostra o nome de um
 perfil verificado deve renderizar este componente — nunca reimplementar
