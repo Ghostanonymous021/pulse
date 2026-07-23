@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
 import { PeopleList } from "@/components/profile/people-list";
@@ -17,18 +17,72 @@ type Tab = "sugestoes" | "seguidores" | "seguir";
  * is already loaded, no network round-trip. Full account search across
  * everyone lives in Explorar; this is "find someone I'm already
  * connected to" (Contacts-app pattern), so the two never overlap.
+ *
+ * Sugestões pagination: the full candidate pool (everyone not already
+ * followed/following/blocked) is ranked server-side and paged in via
+ * /api/people/suggestions — infinite scroll by default, "Ver mais" as
+ * fallback (see people-suggestions.tsx). While a search query is active
+ * we only filter what's already loaded and hide pagination controls,
+ * same "local filter only" rule as Seguidores/A seguir below.
  */
 export function PeopleHub({
-  suggestions,
+  initialSuggestions,
+  initialSuggestionsNextOffset,
   followers,
   following,
 }: {
-  suggestions: PeopleSuggestion[];
+  initialSuggestions: PeopleSuggestion[];
+  initialSuggestionsNextOffset: number | null;
   followers: FollowListPerson[];
   following: FollowListPerson[];
 }) {
   const [tab, setTab] = useState<Tab>("sugestoes");
   const [query, setQuery] = useState("");
+
+  const [suggestions, setSuggestions] = useState(initialSuggestions);
+  const [suggestionsNextOffset, setSuggestionsNextOffset] = useState(
+    initialSuggestionsNextOffset,
+  );
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(
+    null,
+  );
+  const loadingSuggestionsRef = useRef(false);
+
+  const loadMoreSuggestions = useCallback(() => {
+    if (suggestionsNextOffset == null || loadingSuggestionsRef.current) {
+      return;
+    }
+    loadingSuggestionsRef.current = true;
+    setSuggestionsLoading(true);
+    setSuggestionsError(null);
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/people/suggestions?offset=${suggestionsNextOffset}&limit=20`,
+        );
+        if (!res.ok) throw new Error("Falha ao carregar mais pessoas.");
+        const body = (await res.json()) as {
+          suggestions?: PeopleSuggestion[];
+          nextOffset?: number | null;
+        };
+        const more = body.suggestions ?? [];
+        setSuggestions((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          return [...prev, ...more.filter((p) => !seen.has(p.id))];
+        });
+        setSuggestionsNextOffset(body.nextOffset ?? null);
+      } catch (e) {
+        setSuggestionsError(
+          e instanceof Error ? e.message : "Falha ao carregar mais pessoas.",
+        );
+      } finally {
+        loadingSuggestionsRef.current = false;
+        setSuggestionsLoading(false);
+      }
+    })();
+  }, [suggestionsNextOffset]);
 
   const q = query.trim().toLowerCase();
 
@@ -101,7 +155,14 @@ export function PeopleHub({
         (filteredSuggestions.length === 0 && q ? (
           <SearchEmpty query={query} />
         ) : (
-          <PeopleSuggestions suggestions={filteredSuggestions} />
+          <PeopleSuggestions
+            suggestions={filteredSuggestions}
+            hasMore={suggestionsNextOffset != null}
+            loading={suggestionsLoading}
+            error={suggestionsError}
+            onLoadMore={loadMoreSuggestions}
+            paginationDisabled={Boolean(q)}
+          />
         ))}
 
       {tab === "seguidores" &&

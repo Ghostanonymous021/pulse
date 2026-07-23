@@ -23,15 +23,36 @@ export type PeopleSuggestion = Pick<
   sameCampus: boolean;
 };
 
-const MAX_SUGGESTIONS = 40;
+export type PeopleSuggestionsPage = {
+  suggestions: PeopleSuggestion[];
+  nextOffset: number | null;
+};
+
+/** First paint page size; also the /api/people/suggestions page size. */
+export const PEOPLE_SUGGESTIONS_PAGE_SIZE = 20;
+
+/**
+ * Hard ceiling on how many non-excluded profiles we pull into the
+ * ranking pass per request. Fine at campus-app scale (hundreds of
+ * accounts) — at thousands+ this is the spot to swap for a proper
+ * server-side ranked materialized view / cursor instead of ranking
+ * the whole pool in memory on every page request.
+ */
+const CANDIDATE_POOL_CEILING = 3000;
+
+/** Discovery accounts (no mutual/context signal) get one slot out of
+ * every N in the final order, instead of being dumped after every
+ * signal-having account — this is what actually makes "everyone gets
+ * a shot at being seen" true rather than theoretical. */
+const DISCOVERY_INTERLEAVE_EVERY = 4;
 
 /**
  * Free-text campus/university/course fields have no canonical form
  * (users typed them at onboarding: accents, case, extra commas/spaces,
  * typos). Lowercases, strips accents/punctuation, and keeps only the
  * first comma-separated token ("chongoene, xaixai" -> "chongoene")
- * so an ILIKE substring match actually lines up viewer and candidate
- * rows that mean the same place.
+ * so a substring match actually lines up viewer and candidate rows
+ * that mean the same place.
  */
 function normalizeContextValue(value: string | null | undefined): string {
   if (!value) return "";
@@ -42,6 +63,70 @@ function normalizeContextValue(value: string | null | undefined): string {
     .toLowerCase()
     .trim();
 }
+
+function contextMatches(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): boolean {
+  const na = normalizeContextValue(a);
+  const nb = normalizeContextValue(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+/**
+ * Stable per-candidate, per-day hash in [0, 1). Same (id, day) always
+ * gives the same number — critical so ordering stays put across pages
+ * of the same infinite-scroll session (otherwise you'd re-shuffle
+ * mid-scroll and skip or repeat accounts) — but the day component
+ * means the tiebreak, and therefore who surfaces near the top of the
+ * "sem sinal ainda" tier, rotates day to day. FNV-1a: simple, fast,
+ * good-enough distribution for a tiebreaker (not cryptographic).
+ */
+function dailyJitter(id: string, dayKey: string): number {
+  const s = `${id}:${dayKey}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return ((h >>> 0) % 100000) / 100000;
+}
+
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Round-robin merge that guarantees one `secondary` item every `every`
+ * slots instead of appending it after `primary` runs out. */
+function interleave<T>(primary: T[], secondary: T[], every: number): T[] {
+  const result: T[] = [];
+  let pi = 0;
+  let si = 0;
+  let slot = 0;
+  while (pi < primary.length || si < secondary.length) {
+    slot++;
+    const takeSecondary = slot % every === 0 && si < secondary.length;
+    if (takeSecondary) {
+      result.push(secondary[si++]);
+    } else if (pi < primary.length) {
+      result.push(primary[pi++]);
+    } else {
+      result.push(secondary[si++]);
+    }
+  }
+  return result;
+}
+
+type RankedCandidate = {
+  profile: Profile;
+  mutualCount: number;
+  sameCampus: boolean;
+  sameCourse: boolean;
+  sameUniversity: boolean;
+  hasSignal: boolean;
+  jitter: number;
+};
 
 /**
  * "Pessoas que talvez conheças" (Facebook PYMK pattern, adapted):
@@ -57,22 +142,33 @@ function normalizeContextValue(value: string | null | undefined): string {
  *      follow the candidate. This is *the* strongest PYMK signal in
  *      published descriptions of the feature (2nd-degree graph).
  *   2. Shared context — same university/campus/course, i.e. the offline
- *      network you'd actually recognize. Pulse already uses this exact
- *      signal in onboarding (see onboarding/page.tsx); this reuses it
- *      as a ranking booster rather than a hard filter.
+ *      network you'd actually recognize.
  *
- * Both signals are combined (mutuals weighted higher, since a mutual
- * follow is a much stronger "you probably know this person" signal than
- * merely sharing a campus), already-followed / pending / blocked /
- * self accounts are excluded, and results degrade gracefully to
- * "recently joined" when the graph is too sparse (new users, small
- * network) — same fallback the onboarding flow already uses.
+ * On top of that, two things every big-app PYMK also does that a naive
+ * "rank once, show top 40" implementation misses:
+ *
+ *   - Pagination over the FULL candidate pool (everyone not already
+ *     followed/following/blocked/self), not a small fixed slice — so
+ *     nobody in the network is permanently unreachable, only reachable
+ *     by scrolling further. "Ver mais" / infinite scroll, not a cap.
+ *   - Exposure fairness — accounts with no mutuals and no shared
+ *     context ("discovery" tier) are interleaved into the order at a
+ *     steady rate (see DISCOVERY_INTERLEAVE_EVERY) instead of being
+ *     dumped after every higher-signal account, and their relative
+ *     order rotates daily (dailyJitter) so it's not always the exact
+ *     same strangers stuck at the back of that tier forever.
+ *
+ * already-followed / pending / blocked / self accounts are excluded.
  */
 export async function loadPeopleSuggestions(
   supabase: SupabaseClient,
   viewerId: string,
   viewerProfile: Pick<Profile, "university" | "campus" | "course">,
-): Promise<PeopleSuggestion[]> {
+  opts?: { limit?: number; offset?: number },
+): Promise<PeopleSuggestionsPage> {
+  const limit = opts?.limit ?? PEOPLE_SUGGESTIONS_PAGE_SIZE;
+  const offset = opts?.offset ?? 0;
+
   const [{ data: following }, { data: followers }, { data: blockedRows }] =
     await Promise.all([
       supabase
@@ -126,140 +222,124 @@ export async function loadPeopleSuggestions(
     }
   }
 
-  // Signal 2: shared context (same campus beats same university/course
-  // as a "you'd probably recognize them" signal).
-  //
-  // These are free-text fields users typed themselves at onboarding —
-  // "Chongoene", "chongoene, xaixai", "Xai-Xai", "Xai xai", "Chonguene"
-  // (typo) all mean the same place in practice. An exact `.eq()` match
-  // was silently matching almost nobody (e.g. one real account with
-  // campus "chongoene, xaixai" matched 0 of the 25 accounts with
-  // exactly "Chongoene"), which is why suggestions looked starved even
-  // though the DB has 100+ profiles. `ilike` with the first normalized
-  // token gives a fuzzy-but-cheap substring match without needing a
-  // dedicated normalization migration.
-  let contextRows: Profile[] = [];
-  const normalizedCampus = normalizeContextValue(viewerProfile.campus);
-  const normalizedCourse = normalizeContextValue(viewerProfile.course);
-  const normalizedUniversity = normalizeContextValue(viewerProfile.university);
-  if (normalizedCampus) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .ilike("campus", `%${normalizedCampus}%`)
-      .neq("id", viewerId)
-      .limit(200);
-    contextRows = (data ?? []) as Profile[];
-  } else if (normalizedCourse) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .ilike("course", `%${normalizedCourse}%`)
-      .neq("id", viewerId)
-      .limit(200);
-    contextRows = (data ?? []) as Profile[];
-  } else if (normalizedUniversity) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .ilike("university", `%${normalizedUniversity}%`)
-      .neq("id", viewerId)
-      .limit(200);
-    contextRows = (data ?? []) as Profile[];
+  // Full candidate pool: everyone not already excluded. This is what
+  // makes every account in the network reachable — ranking below only
+  // decides *order*, pagination (offset/limit) decides how much of it
+  // is sent per request, never a hard visibility cap.
+  const { data: poolRows, error: poolError } = await supabase
+    .from("profiles")
+    .select("*")
+    .not(
+      "id",
+      "in",
+      `(${Array.from(excludeIds).join(",") || "00000000-0000-0000-0000-000000000000"})`,
+    )
+    .limit(CANDIDATE_POOL_CEILING);
+
+  if (poolError) {
+    console.error("loadPeopleSuggestions", poolError.message);
+    return { suggestions: [], nextOffset: null };
   }
 
-  const candidateIds = new Set<string>([
-    ...mutualCounts.keys(),
-    ...contextRows.filter((r) => !excludeIds.has(r.id)).map((r) => r.id),
-  ]);
+  const dayKey = todayKey();
+  const ranked: RankedCandidate[] = ((poolRows ?? []) as Profile[]).map(
+    (profile) => {
+      const mutualCount = mutualCounts.get(profile.id) ?? 0;
+      const sameCampus = contextMatches(profile.campus, viewerProfile.campus);
+      const sameCourse = contextMatches(profile.course, viewerProfile.course);
+      const sameUniversity = contextMatches(
+        profile.university,
+        viewerProfile.university,
+      );
+      return {
+        profile,
+        mutualCount,
+        sameCampus,
+        sameCourse,
+        sameUniversity,
+        hasSignal:
+          mutualCount > 0 || sameCampus || sameCourse || sameUniversity,
+        jitter: dailyJitter(profile.id, dayKey),
+      };
+    },
+  );
 
-  // Cold start / thin graph: top up with recent joiners whenever the
-  // graph+context signal doesn't fill a full page of suggestions, not
-  // only when it's near-empty. A viewer who already follows a dozen
-  // people can still have a graph too sparse to fill MAX_SUGGESTIONS
-  // (e.g. 17 candidates from mutuals alone) — previously that showed
-  // only those 17 forever, looking like "suggestions are broken" even
-  // though it was working as coded. Same fallback the onboarding flow
-  // already uses, just triggered by a realistic threshold instead of 5.
-  if (candidateIds.size < MAX_SUGGESTIONS) {
-    const { data: recent } = await supabase
-      .from("profiles")
-      .select("*")
-      .neq("id", viewerId)
-      .order("created_at", { ascending: false })
-      .limit(MAX_SUGGESTIONS * 2);
-    for (const r of (recent ?? []) as Profile[]) {
-      if (candidateIds.size >= MAX_SUGGESTIONS) break;
-      if (!excludeIds.has(r.id)) candidateIds.add(r.id);
-    }
+  function score(r: RankedCandidate): number {
+    return (
+      r.mutualCount * 10 +
+      (r.sameCampus ? 3 : 0) +
+      (r.sameCourse ? 2 : 0) +
+      (r.sameUniversity ? 1 : 0)
+    );
   }
 
-  if (candidateIds.size === 0) return [];
+  const signalTier = ranked
+    .filter((r) => r.hasSignal)
+    .sort((a, b) => {
+      const scoreA = score(a);
+      const scoreB = score(b);
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      // Same score: rotate daily instead of always the same order.
+      if (b.jitter !== a.jitter) return b.jitter - a.jitter;
+      return a.profile.display_name.localeCompare(b.profile.display_name, "pt");
+    });
 
-  const idsToFetch = Array.from(candidateIds).slice(0, 200);
-  const profileById = new Map<string, Profile>();
-  for (const r of contextRows) profileById.set(r.id, r);
+  // Discovery tier: no mutual/context signal at all yet. Pure daily
+  // rotating order — this is the "everyone gets a fair shot at being
+  // seen" mechanism for accounts the graph doesn't vouch for yet.
+  const discoveryTier = ranked
+    .filter((r) => !r.hasSignal)
+    .sort((a, b) => {
+      if (b.jitter !== a.jitter) return b.jitter - a.jitter;
+      return a.profile.display_name.localeCompare(b.profile.display_name, "pt");
+    });
 
-  const missingIds = idsToFetch.filter((id) => !profileById.has(id));
-  if (missingIds.length) {
-    const { data: fetched } = await supabase
-      .from("profiles")
-      .select("*")
-      .in("id", missingIds);
-    for (const r of (fetched ?? []) as Profile[]) profileById.set(r.id, r);
+  const finalOrder = interleave(
+    signalTier,
+    discoveryTier,
+    DISCOVERY_INTERLEAVE_EVERY,
+  );
+
+  const total = finalOrder.length;
+  const pageSlice = finalOrder.slice(offset, offset + limit);
+  const nextOffset = offset + pageSlice.length < total ? offset + pageSlice.length : null;
+
+  if (pageSlice.length === 0) {
+    return { suggestions: [], nextOffset: null };
   }
 
+  const pageIds = pageSlice.map((r) => r.profile.id);
   const { data: pendingRows } = await supabase
     .from("follows")
     .select("following_id, status")
     .eq("follower_id", viewerId)
-    .in("following_id", idsToFetch);
+    .in("following_id", pageIds);
   const pendingMap = new Map(
     (pendingRows ?? []).map((f) => [f.following_id as string, f.status as string]),
   );
 
-  const contextIds = new Set(contextRows.map((r) => r.id));
+  const suggestions: PeopleSuggestion[] = pageSlice.map((r) => {
+    const p = r.profile;
+    const status = pendingMap.get(p.id);
+    const followState: FollowUiState = status === "pending" ? "pending" : "none";
+    return {
+      id: p.id,
+      username: p.username,
+      display_name: p.display_name,
+      avatar_url: p.avatar_url,
+      university: p.university,
+      campus: p.campus,
+      course: p.course,
+      account_type: p.account_type,
+      is_private: p.is_private,
+      is_verified: p.is_verified,
+      verified_type: p.verified_type,
+      verification_expires_at: p.verification_expires_at,
+      followState,
+      mutualCount: r.mutualCount,
+      sameCampus: r.sameCampus,
+    } satisfies PeopleSuggestion;
+  });
 
-  const ranked = idsToFetch
-    .map((id) => profileById.get(id))
-    .filter((p): p is Profile => Boolean(p))
-    .map((p) => {
-      const mutualCount = mutualCounts.get(p.id) ?? 0;
-      // contextIds is already the fuzzy-matched set (see
-      // normalizeContextValue above); an exact-string re-check here
-      // would silently undo that and go back to matching almost
-      // nobody, so just trust membership in the fuzzy set.
-      const sameCampus = contextIds.has(p.id) && Boolean(normalizedCampus);
-      const status = pendingMap.get(p.id);
-      const followState: FollowUiState =
-        status === "pending" ? "pending" : "none";
-      return {
-        id: p.id,
-        username: p.username,
-        display_name: p.display_name,
-        avatar_url: p.avatar_url,
-        university: p.university,
-        campus: p.campus,
-        course: p.course,
-        account_type: p.account_type,
-        is_private: p.is_private,
-        is_verified: p.is_verified,
-        verified_type: p.verified_type,
-        verification_expires_at: p.verification_expires_at,
-        followState,
-        mutualCount,
-        sameCampus,
-      } satisfies PeopleSuggestion;
-    })
-    .sort((a, b) => {
-      // Mutuals dominate ranking (strongest "you probably know them"
-      // signal); shared campus is a tiebreaker/secondary boost.
-      const scoreA = a.mutualCount * 10 + (a.sameCampus ? 1 : 0);
-      const scoreB = b.mutualCount * 10 + (b.sameCampus ? 1 : 0);
-      if (scoreB !== scoreA) return scoreB - scoreA;
-      return a.display_name.localeCompare(b.display_name, "pt");
-    })
-    .slice(0, MAX_SUGGESTIONS);
-
-  return ranked;
+  return { suggestions, nextOffset };
 }

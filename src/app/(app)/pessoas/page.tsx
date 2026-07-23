@@ -19,7 +19,7 @@ export const metadata = {
 export default async function PessoasPage() {
   const { supabase, profile } = await requireProfile();
 
-  const [suggestions, followers, following] = await Promise.all([
+  const [suggestionsPage, followers, following] = await Promise.all([
     loadPeopleSuggestions(supabase, profile.id, {
       university: profile.university,
       campus: profile.campus,
@@ -33,7 +33,8 @@ export default async function PessoasPage() {
     <div className="pb-4">
       <PageHeader title="Pessoas" />
       <PeopleHub
-        suggestions={suggestions}
+        initialSuggestions={suggestionsPage.suggestions}
+        initialSuggestionsNextOffset={suggestionsPage.nextOffset}
         followers={followers}
         following={following}
       />
