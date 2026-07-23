@@ -160,15 +160,18 @@ type RankedCandidate = {
  *
  * already-followed / pending / blocked / self accounts are excluded.
  */
-export async function loadPeopleSuggestions(
+/**
+ * Shared by loadPeopleSuggestions (pagination) and searchPeopleSuggestions
+ * (search-as-you-type). Both need the exact same exclusion set (self /
+ * already-following / already-follower / blocked, both directions) and
+ * the same mutual-connection counts — computing them once here keeps the
+ * two code paths from silently drifting apart (e.g. one excluding
+ * followers and the other forgetting to).
+ */
+async function computeExclusionAndMutuals(
   supabase: SupabaseClient,
   viewerId: string,
-  viewerProfile: Pick<Profile, "university" | "campus" | "course">,
-  opts?: { limit?: number; offset?: number },
-): Promise<PeopleSuggestionsPage> {
-  const limit = opts?.limit ?? PEOPLE_SUGGESTIONS_PAGE_SIZE;
-  const offset = opts?.offset ?? 0;
-
+): Promise<{ excludeIds: Set<string>; mutualCounts: Map<string, number> }> {
   const [{ data: following }, { data: followers }, { data: blockedRows }] =
     await Promise.all([
       supabase
@@ -221,6 +224,42 @@ export async function loadPeopleSuggestions(
       mutualCounts.set(id, (mutualCounts.get(id) ?? 0) + 1);
     }
   }
+
+  return { excludeIds, mutualCounts };
+}
+
+async function buildFollowStateMap(
+  supabase: SupabaseClient,
+  viewerId: string,
+  candidateIds: string[],
+): Promise<Map<string, FollowUiState>> {
+  if (candidateIds.length === 0) return new Map();
+  const { data: pendingRows } = await supabase
+    .from("follows")
+    .select("following_id, status")
+    .eq("follower_id", viewerId)
+    .in("following_id", candidateIds);
+  return new Map(
+    (pendingRows ?? []).map((f) => [
+      f.following_id as string,
+      (f.status as string) === "pending" ? "pending" : "none",
+    ]),
+  );
+}
+
+export async function loadPeopleSuggestions(
+  supabase: SupabaseClient,
+  viewerId: string,
+  viewerProfile: Pick<Profile, "university" | "campus" | "course">,
+  opts?: { limit?: number; offset?: number },
+): Promise<PeopleSuggestionsPage> {
+  const limit = opts?.limit ?? PEOPLE_SUGGESTIONS_PAGE_SIZE;
+  const offset = opts?.offset ?? 0;
+
+  const { excludeIds, mutualCounts } = await computeExclusionAndMutuals(
+    supabase,
+    viewerId,
+  );
 
   // Full candidate pool: everyone not already excluded. This is what
   // makes every account in the network reachable — ranking below only
@@ -309,19 +348,11 @@ export async function loadPeopleSuggestions(
   }
 
   const pageIds = pageSlice.map((r) => r.profile.id);
-  const { data: pendingRows } = await supabase
-    .from("follows")
-    .select("following_id, status")
-    .eq("follower_id", viewerId)
-    .in("following_id", pageIds);
-  const pendingMap = new Map(
-    (pendingRows ?? []).map((f) => [f.following_id as string, f.status as string]),
-  );
+  const followStateMap = await buildFollowStateMap(supabase, viewerId, pageIds);
 
   const suggestions: PeopleSuggestion[] = pageSlice.map((r) => {
     const p = r.profile;
-    const status = pendingMap.get(p.id);
-    const followState: FollowUiState = status === "pending" ? "pending" : "none";
+    const followState = followStateMap.get(p.id) ?? "none";
     return {
       id: p.id,
       username: p.username,
@@ -342,4 +373,76 @@ export async function loadPeopleSuggestions(
   });
 
   return { suggestions, nextOffset };
+}
+
+/**
+ * Search-as-you-type over the FULL network, scoped to the same
+ * PeopleHub "Sugestões" tab — not just whatever pages of pagination
+ * happen to be loaded client-side.
+ *
+ * Bug this fixes: PeopleHub's search box only ever filtered the
+ * suggestions array already sitting in React state (see filterPeople()
+ * in people-hub.tsx, pre-fix). Sugestões loads a full pool but pages it
+ * in 20 at a time — a real account many pages deep (e.g. someone who
+ * joined a few hours ago, position ~60 of 121 reachable candidates)
+ * would search as "no results" simply because the viewer had not
+ * scrolled that far yet, even though the account exists and is fully
+ * reachable via Explorar's search_profiles RPC. "Pesquisei e não
+ * aparece" was this, not a missing-data bug.
+ *
+ * Reuses search_profiles (supabase/migrations/20260722200100_search_
+ * profiles_fn.sql) — the same pg_trgm-backed, typo-tolerant RPC
+ * Explorar already relies on — instead of duplicating ranking logic.
+ * Applies the exact same exclusion set as loadPeopleSuggestions (self /
+ * following / followers / blocked) so a search never surfaces someone
+ * who is already in Seguidores or A seguir as a "stranger to discover".
+ */
+export async function searchPeopleSuggestions(
+  supabase: SupabaseClient,
+  viewerId: string,
+  query: string,
+  limit = 40,
+): Promise<PeopleSuggestion[]> {
+  const q = query.trim();
+  if (!q) return [];
+
+  const [{ excludeIds, mutualCounts }, { data: matches, error }] =
+    await Promise.all([
+      computeExclusionAndMutuals(supabase, viewerId),
+      supabase.rpc("search_profiles", { p_query: q, p_limit: limit * 3 }),
+    ]);
+
+  if (error) {
+    console.error("searchPeopleSuggestions", error.message);
+    return [];
+  }
+
+  const candidates = ((matches ?? []) as Profile[]).filter(
+    (p) => !excludeIds.has(p.id),
+  );
+  if (candidates.length === 0) return [];
+
+  const pageIds = candidates.slice(0, limit).map((p) => p.id);
+  const followStateMap = await buildFollowStateMap(supabase, viewerId, pageIds);
+
+  return candidates.slice(0, limit).map(
+    (p) =>
+      ({
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+        university: p.university,
+        campus: p.campus,
+        course: p.course,
+        account_type: p.account_type,
+        is_private: p.is_private,
+        is_verified: p.is_verified,
+        verified_type: p.verified_type,
+        verification_expires_at: p.verification_expires_at,
+        followState: followStateMap.get(p.id) ?? "none",
+        mutualCount: mutualCounts.get(p.id) ?? 0,
+        sameCampus: false,
+      }) satisfies PeopleSuggestion,
+  );
 }

@@ -123,7 +123,7 @@ export function PeopleSuggestions({
 
       {!paginationDisabled && <div ref={sentinel} className="h-8" aria-hidden />}
 
-      {!paginationDisabled && error && (
+      {error && (
         <button
           type="button"
           onClick={onLoadMore}
@@ -133,7 +133,7 @@ export function PeopleSuggestions({
         </button>
       )}
 
-      {!paginationDisabled && loading && (
+      {loading && (
         <div className="flex items-center justify-center py-4">
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         </div>
