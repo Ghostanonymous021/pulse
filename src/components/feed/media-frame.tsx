@@ -52,7 +52,7 @@ export function MediaFrame({
   if (total === 0) return null;
 
   return (
-    <div className={cn("relative w-full", mode === "feed" && "max-h-[70vh]")}>
+    <div className="relative w-full">
       <div
         role="link"
         tabIndex={0}
@@ -67,7 +67,11 @@ export function MediaFrame({
           }
         }}
         className={cn(
-          "relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-none bg-muted md:rounded-xl",
+          // Fixed 4:5 frame — height never depends on the photo's own
+          // aspect ratio, so the feed never reflows/jumps as images load
+          // (docs/UX_PUBLICACOES.md §2). Same frame in feed and detail;
+          // only the lightbox breaks free to full-screen.
+          "relative aspect-[4/5] w-full cursor-pointer overflow-hidden rounded-none bg-muted md:rounded-xl",
           mode === "detail" && "cursor-zoom-in",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/25",
         )}
@@ -78,7 +82,7 @@ export function MediaFrame({
             alt="Publicação"
             loaded={!!loadedMap[media[0].id]}
             onLoaded={() => setLoadedMap((prev) => ({ ...prev, [media[0].id]: true }))}
-            className="block max-h-[70vh] max-w-full object-contain object-center"
+            className="absolute inset-0 h-full w-full object-contain object-center"
             draggable={false}
           />
         ) : (
@@ -86,16 +90,16 @@ export function MediaFrame({
             ref={scroller}
             onScroll={onScroll}
             onClick={(e) => e.stopPropagation()}
-            className="carousel-x flex w-full snap-x snap-mandatory overflow-x-auto"
+            className="carousel-x flex h-full w-full snap-x snap-mandatory overflow-x-auto"
           >
             {media.map((m) => (
-              <div key={m.id} className="relative h-[70vh] max-h-[70vh] w-full min-w-full shrink-0 snap-center">
+              <div key={m.id} className="relative h-full w-full min-w-full shrink-0 snap-center">
                 <Picture
                   src={m.url!}
                   alt="Publicação"
                   loaded={!!loadedMap[m.id]}
                   onLoaded={() => setLoadedMap((prev) => ({ ...prev, [m.id]: true }))}
-                  className="object-cover object-center"
+                  className="absolute inset-0 h-full w-full object-contain object-center"
                   draggable={false}
                 />
               </div>
@@ -173,7 +177,7 @@ function Picture({
   const [currentSrc, setCurrentSrc] = useState(src);
 
   return (
-    <div className="relative">
+    <div className="relative h-full w-full">
       <img
         src={currentSrc}
         alt={alt}
@@ -189,9 +193,7 @@ function Picture({
         )}
       />
       {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--separator)] border-t-foreground/20" />
-        </div>
+        <div className="absolute inset-0 skeleton-shimmer" aria-hidden />
       )}
     </div>
   );

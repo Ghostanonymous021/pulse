@@ -176,7 +176,7 @@ export function PwaRegister() {
           <div className="pointer-events-auto flex max-w-md items-center gap-2.5 rounded-2xl border border-[var(--separator)] bg-[var(--elevated)] px-3.5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl">
             <Download
               className="h-5 w-5 shrink-0 text-foreground/80"
-              strokeWidth={1.75}
+              strokeWidth={1.5}
               aria-hidden
             />
             <div className="min-w-0 flex-1">
@@ -200,7 +200,7 @@ export function PwaRegister() {
               aria-label="Fechar"
               className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
             >
-              <X className="h-4 w-4" strokeWidth={1.75} />
+              <X className="h-4 w-4" strokeWidth={1.5} />
             </button>
           </div>
         </div>

@@ -352,7 +352,7 @@ function CommentLike({
           "h-3.5 w-3.5",
           liked && "fill-destructive text-destructive",
         )}
-        strokeWidth={1.75}
+        strokeWidth={1.5}
       />
       {count > 0 && <span className="tabular-nums">{count}</span>}
     </button>

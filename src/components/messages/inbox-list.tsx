@@ -300,7 +300,7 @@ function InboxRow({
               {c.muted && (
                 <VolumeX
                   className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                  strokeWidth={1.75}
+                  strokeWidth={1.5}
                   aria-label="Silenciada"
                 />
               )}
@@ -424,9 +424,9 @@ function RowMenuItem({
 /** Small media-type glyph before the preview text (photo/doc/sticker/audio). */
 function MediaTypeIcon({ type }: { type?: string | null }) {
   const cls = "h-3.5 w-3.5 shrink-0 text-muted-foreground";
-  if (type === "image") return <ImageIcon className={cls} strokeWidth={1.75} />;
-  if (type === "document") return <FileText className={cls} strokeWidth={1.75} />;
-  if (type === "sticker") return <Sticker className={cls} strokeWidth={1.75} />;
-  if (type === "audio") return <Mic className={cls} strokeWidth={1.75} />;
+  if (type === "image") return <ImageIcon className={cls} strokeWidth={1.5} />;
+  if (type === "document") return <FileText className={cls} strokeWidth={1.5} />;
+  if (type === "sticker") return <Sticker className={cls} strokeWidth={1.5} />;
+  if (type === "audio") return <Mic className={cls} strokeWidth={1.5} />;
   return null;
 }

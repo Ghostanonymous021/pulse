@@ -96,7 +96,7 @@ export function AvatarPicker({
           </span>
         )}
         <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/45 py-1 text-[11px] font-medium text-white">
-          <Camera className="h-3 w-3" strokeWidth={1.75} />
+          <Camera className="h-3 w-3" strokeWidth={1.5} />
           {loading ? "..." : "Foto"}
         </span>
         <input

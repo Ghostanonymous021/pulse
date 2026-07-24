@@ -110,10 +110,10 @@ export function PostCard({
         </Link>
 
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-1.5">
+          <div className="flex min-w-0 items-center gap-1">
             <Link
               href={handle ? `/u/${handle}` : "#"}
-              className="min-w-0 truncate text-[14px] font-semibold tracking-[-0.02em] hover:opacity-70"
+              className="min-w-0 truncate text-[14.5px] font-semibold leading-tight tracking-[-0.02em] hover:opacity-70"
               title={name}
             >
               {name}
@@ -124,17 +124,16 @@ export function PostCard({
                 size="sm"
               />
             )}
+          </div>
+          <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
             {post.is_highlighted && (
-              <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
+              <span className="shrink-0 rounded-full bg-brand-accent-soft px-1.5 py-[1px] text-[10.5px] font-semibold tracking-[-0.01em] text-brand-accent">
                 Destaque
               </span>
             )}
-            <span className="shrink-0 text-[12px] text-muted-foreground" aria-hidden>
-              ·
-            </span>
             <time
               dateTime={post.created_at}
-              className="shrink-0 text-[12px] text-muted-foreground"
+              className="shrink-0 text-[12.5px] leading-tight text-muted-foreground"
             >
               {when}
             </time>

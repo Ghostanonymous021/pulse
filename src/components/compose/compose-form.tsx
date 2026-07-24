@@ -204,7 +204,7 @@ export function ComposeForm({
             onClick={() => fileRef.current?.click()}
             className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-95"
           >
-            <ImagePlus className="h-5 w-5" strokeWidth={1.75} />
+            <ImagePlus className="h-5 w-5" strokeWidth={1.5} />
             Foto
           </button>
         </div>

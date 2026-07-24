@@ -91,15 +91,17 @@ export function PostActions({
         >
           <Heart
             className={cn(
-              "h-[22px] w-[22px] transition-all duration-200 ease-out",
-              liked ? "fill-brand text-brand scale-110" : "text-foreground",
+              "h-5 w-5 transition-all duration-200 ease-out",
+              liked
+                ? "fill-destructive text-destructive scale-110"
+                : "text-foreground",
             )}
             strokeWidth={1.5}
           />
           {animating && liked && (
             <Heart
               aria-hidden
-              className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 heart-pop text-brand"
+              className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 heart-pop text-destructive"
               strokeWidth={1.5}
             />
           )}
@@ -110,7 +112,7 @@ export function PostActions({
           onClick={() => rememberFeedScroll()}
           className="rounded-full p-2 transition-all duration-200 ease-out hover:bg-muted/80 active:scale-95"
         >
-          <MessageCircle className="h-[22px] w-[22px]" strokeWidth={1.5} />
+          <MessageCircle className="h-5 w-5" strokeWidth={1.5} />
         </Link>
       </div>
 

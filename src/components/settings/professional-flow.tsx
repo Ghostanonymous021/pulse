@@ -500,7 +500,7 @@ function StatusBlock({
   return (
     <div className="flex flex-col items-center px-5 pt-14 text-center">
       <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-card">
-        <Icon className="h-7 w-7 text-foreground" strokeWidth={1.75} aria-hidden />
+        <Icon className="h-7 w-7 text-foreground" strokeWidth={1.5} aria-hidden />
       </div>
       <h1 className="text-[20px] font-semibold tracking-[-0.03em]">{title}</h1>
       <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted-foreground">

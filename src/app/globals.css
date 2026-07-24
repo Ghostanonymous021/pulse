@@ -28,6 +28,7 @@
   --brand-secondary: #0369a1;
   --brand-accent: #b45309;
   --brand-accent-foreground: #f8fafc;
+  --brand-accent-soft: rgba(180, 83, 9, 0.1);
 
   /* Semantic (light: darker step for text-contrast; fills unaffected) */
   --success: #15803d;
@@ -63,6 +64,7 @@
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --color-brand-accent-soft: var(--brand-accent-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-destructive: var(--destructive);
@@ -89,6 +91,7 @@
     --brand-secondary: #38bdf8;
     --brand-accent: #f59e0b;
     --brand-accent-foreground: #0b1220;
+    --brand-accent-soft: rgba(245, 158, 11, 0.14);
 
     --success: #22c55e;
     --warning: #eab308;

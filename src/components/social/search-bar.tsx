@@ -76,8 +76,8 @@ export function SearchBar({
         )}
       >
         <Search
-          className="h-[17px] w-[17px] shrink-0 text-muted-foreground"
-          strokeWidth={2}
+          className="h-[18px] w-[18px] shrink-0 text-muted-foreground"
+          strokeWidth={1.5}
         />
         <input
           ref={inputRef}
@@ -98,7 +98,7 @@ export function SearchBar({
             onClick={clear}
             className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-foreground/15 text-foreground/70"
           >
-            <X className="h-3 w-3" strokeWidth={2.5} />
+            <X className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
         )}
       </div>

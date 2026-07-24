@@ -61,7 +61,7 @@ export function ForwardSheet({
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted/60"
           >
-            <X className="h-4 w-4" strokeWidth={1.75} />
+            <X className="h-4 w-4" strokeWidth={1.5} />
           </button>
         </div>
 

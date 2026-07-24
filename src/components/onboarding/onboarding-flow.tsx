@@ -244,7 +244,7 @@ export function OnboardingFlow({
                   initial
                 )}
                 <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground shadow">
-                  <Camera className="h-4 w-4" strokeWidth={1.75} />
+                  <Camera className="h-4 w-4" strokeWidth={1.5} />
                 </span>
               </button>
               <input

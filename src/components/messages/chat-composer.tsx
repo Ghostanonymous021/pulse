@@ -712,7 +712,7 @@ export function ChatComposer({
                   "absolute h-5 w-5 transition-all duration-200 ease-out",
                   hasContent ? "scale-50 opacity-0" : "scale-100 opacity-100",
                 )}
-                strokeWidth={1.75}
+                strokeWidth={1.5}
                 aria-hidden
               />
               <SendHorizontal
@@ -720,7 +720,7 @@ export function ChatComposer({
                   "absolute h-5 w-5 transition-all duration-200 ease-out",
                   hasContent ? "scale-100 opacity-100" : "scale-50 opacity-0",
                 )}
-                strokeWidth={1.75}
+                strokeWidth={1.5}
                 aria-hidden
               />
             </button>
