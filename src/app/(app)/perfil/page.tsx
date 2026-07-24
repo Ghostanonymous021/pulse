@@ -7,13 +7,18 @@ import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
 import { requireProfile } from "@/lib/auth/session";
 import { listProfileLinks } from "@/lib/links/profile-links";
-import { loadFeedPosts } from "@/lib/posts/feed";
+import { loadFeedPosts, type FeedScope } from "@/lib/posts/feed";
 
 export const metadata = {
   title: "Perfil",
 };
 
-export default async function PerfilPage() {
+type Props = { searchParams: Promise<{ scope?: string }> };
+
+export default async function PerfilPage({ searchParams }: Props) {
+  const { scope: scopeParam } = await searchParams;
+  const scope: FeedScope = scopeParam === "temporarias" ? "temporarias" : "all";
+
   const { supabase, profile } = await requireProfile();
 
   const [
@@ -37,7 +42,11 @@ export default async function PerfilPage() {
       .select("*", { count: "exact", head: true })
       .eq("follower_id", profile.id)
       .eq("status", "accepted"),
-    loadFeedPosts(supabase, profile.id, { authorId: profile.id, limit: 40 }),
+    loadFeedPosts(supabase, profile.id, {
+      authorId: profile.id,
+      limit: 40,
+      scope,
+    }),
     listProfileLinks(supabase, profile.id),
   ]);
 
@@ -69,7 +78,7 @@ export default async function PerfilPage() {
 
       <ProfileCompleteBanner profile={profile} />
 
-      <ProfileTabs posts={posts} />
+      <ProfileTabs posts={posts} scope={scope} basePath="/perfil" />
     </div>
   );
 }

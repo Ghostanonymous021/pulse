@@ -22,11 +22,14 @@ export async function GET(request: Request) {
     Math.max(1, Number(searchParams.get("limit") ?? FEED_PAGE_SIZE) || FEED_PAGE_SIZE),
   );
   const authorId = searchParams.get("authorId") || undefined;
+  const scopeParam = searchParams.get("scope");
+  const scope = scopeParam === "temporarias" ? "temporarias" : "all";
 
   const page = await loadFeedPage(supabase, user.id, {
     offset,
     limit,
     authorId,
+    scope,
   });
 
   return NextResponse.json(

@@ -15,7 +15,7 @@ export const runtime = "nodejs";
  * Client only calls the heavy feed fetch when `latestId` differs from
  * what it already has at the top of the list.
  */
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,12 +24,20 @@ export async function GET() {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const { searchParams } = new URL(request.url);
+  const scope = searchParams.get("scope") === "temporarias" ? "temporarias" : "all";
+
+  let query = supabase
     .from("posts")
     .select("id, created_at")
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  if (scope === "temporarias") {
+    query = query.not("expires_at", "is", null);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

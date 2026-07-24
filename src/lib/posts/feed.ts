@@ -15,12 +15,15 @@ import { rankFeedCandidates } from "@/lib/ranking/rank-feed";
 /** First paint: short page. More via /api/feed. */
 export const FEED_PAGE_SIZE = 15;
 
+export type FeedScope = "all" | "temporarias";
+
 type RawPost = {
   id: string;
   author_id: string;
   body: string | null;
   is_highlighted: boolean;
   highlighted_at: string | null;
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
   author: PostWithAuthor["author"] | PostWithAuthor["author"][] | null;
@@ -134,6 +137,7 @@ async function mapPosts(
       body: raw.body,
       is_highlighted: raw.is_highlighted,
       highlighted_at: raw.highlighted_at,
+      expires_at: raw.expires_at,
       created_at: raw.created_at,
       updated_at: raw.updated_at,
       author: oneAuthor(raw.author),
@@ -155,6 +159,7 @@ const SELECT = `
   body,
   is_highlighted,
   highlighted_at,
+  expires_at,
   created_at,
   updated_at,
   author:profiles!posts_author_id_fkey (
@@ -188,7 +193,12 @@ export type FeedPage = {
 export async function loadFeedPosts(
   supabase: SupabaseClient,
   userId: string,
-  opts?: { authorId?: string; limit?: number; offset?: number },
+  opts?: {
+    authorId?: string;
+    limit?: number;
+    offset?: number;
+    scope?: FeedScope;
+  },
 ): Promise<PostWithAuthor[]> {
   const page = await loadFeedPage(supabase, userId, opts);
   return page.posts;
@@ -204,10 +214,16 @@ export async function loadFeedPosts(
 export async function loadFeedPage(
   supabase: SupabaseClient,
   userId: string,
-  opts?: { authorId?: string; limit?: number; offset?: number },
+  opts?: {
+    authorId?: string;
+    limit?: number;
+    offset?: number;
+    scope?: FeedScope;
+  },
 ): Promise<FeedPage> {
   const limit = opts?.limit ?? FEED_PAGE_SIZE;
   const offset = opts?.offset ?? 0;
+  const scope = opts?.scope ?? "all";
 
   // Profile grid / author filter: keep simple chronology
   if (opts?.authorId) {
@@ -215,16 +231,22 @@ export async function loadFeedPage(
       authorId: opts.authorId,
       limit,
       offset,
+      scope,
     });
   }
 
-  return loadRankedHomePage(supabase, userId, { limit, offset });
+  return loadRankedHomePage(supabase, userId, { limit, offset, scope });
 }
 
 async function loadChronologicalPage(
   supabase: SupabaseClient,
   userId: string,
-  opts: { authorId?: string; limit: number; offset: number },
+  opts: {
+    authorId?: string;
+    limit: number;
+    offset: number;
+    scope: FeedScope;
+  },
 ): Promise<FeedPage> {
   let query = supabase
     .from("posts")
@@ -234,6 +256,12 @@ async function loadChronologicalPage(
 
   if (opts.authorId) {
     query = query.eq("author_id", opts.authorId);
+  }
+
+  // "Temporarias": so publicacoes com tempo de vida definido (ainda validas
+  // -- as expiradas ja saem por RLS). "Todas" nao filtra por expires_at.
+  if (opts.scope === "temporarias") {
+    query = query.not("expires_at", "is", null);
   }
 
   const { data, error } = await query;
@@ -252,7 +280,7 @@ async function loadChronologicalPage(
 async function loadRankedHomePage(
   supabase: SupabaseClient,
   userId: string,
-  opts: { limit: number; offset: number },
+  opts: { limit: number; offset: number; scope: FeedScope },
 ): Promise<FeedPage> {
   const weights = getRankingWeights();
   const pool = Math.max(
@@ -262,11 +290,17 @@ async function loadRankedHomePage(
 
   // Candidate pool: recent posts visible under RLS (private already gated).
   // Order by created_at only — ranking reorders by score, not verified.
-  const { data, error } = await supabase
+  let poolQuery = supabase
     .from("posts")
     .select(SELECT)
     .order("created_at", { ascending: false })
     .limit(pool);
+
+  if (opts.scope === "temporarias") {
+    poolQuery = poolQuery.not("expires_at", "is", null);
+  }
+
+  const { data, error } = await poolQuery;
 
   if (error) {
     console.error("loadRankedHomePage", error.message, error.details);

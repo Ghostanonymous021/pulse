@@ -8,20 +8,25 @@ import { ProfileTabs } from "@/components/profile/profile-tabs";
 import { FollowButton } from "@/components/social/follow-button";
 import { requireUser } from "@/lib/auth/session";
 import { listProfileLinks } from "@/lib/links/profile-links";
-import { loadFeedPosts } from "@/lib/posts/feed";
+import { loadFeedPosts, type FeedScope } from "@/lib/posts/feed";
 import { getFollowState } from "@/lib/social/follow";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/types/database";
 
-type Props = { params: Promise<{ username: string }> };
+type Props = {
+  params: Promise<{ username: string }>;
+  searchParams: Promise<{ scope?: string }>;
+};
 
 export async function generateMetadata({ params }: Props) {
   const { username } = await params;
   return { title: `@${username}` };
 }
 
-export default async function PublicProfilePage({ params }: Props) {
+export default async function PublicProfilePage({ params, searchParams }: Props) {
   const { username } = await params;
+  const { scope: scopeParam } = await searchParams;
+  const scope: FeedScope = scopeParam === "temporarias" ? "temporarias" : "all";
   const { supabase, user } = await requireUser();
 
   const { data: profile } = await supabase
@@ -79,7 +84,7 @@ export default async function PublicProfilePage({ params }: Props) {
       .eq("follower_id", p.id)
       .eq("status", "accepted"),
     canSeeContent
-      ? loadFeedPosts(supabase, user.id, { authorId: p.id, limit: 40 })
+      ? loadFeedPosts(supabase, user.id, { authorId: p.id, limit: 40, scope })
       : Promise.resolve([]),
     listProfileLinks(supabase, p.id),
   ]);
@@ -132,7 +137,7 @@ export default async function PublicProfilePage({ params }: Props) {
           </p>
         </div>
       ) : (
-        <ProfileTabs posts={posts} />
+        <ProfileTabs posts={posts} scope={scope} basePath={`/u/${p.username}`} />
       )}
     </div>
   );

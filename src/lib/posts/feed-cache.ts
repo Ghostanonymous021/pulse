@@ -14,7 +14,11 @@ import type { PostWithAuthor } from "@/components/feed/post-card";
  */
 
 const MEMORY_KEY = "home";
-const STORAGE_KEY = "pulse:feed-snapshot-v1";
+const STORAGE_KEY_PREFIX = "pulse:feed-snapshot-v1";
+
+function storageKeyFor(key: string) {
+  return key === MEMORY_KEY ? STORAGE_KEY_PREFIX : `${STORAGE_KEY_PREFIX}:${key}`;
+}
 /** Soft-fresh: paint instantly, revalidate in background after this. */
 export const FEED_SOFT_TTL_MS = 45_000;
 /** Hard-stale: discard snapshot entirely (signed URLs may be dead). */
@@ -37,12 +41,12 @@ export function readFeedSnapshot(key = MEMORY_KEY): FeedSnapshot | null {
   if (mem) return mem;
   if (!canUseStorage()) return null;
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(storageKeyFor(key));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as FeedSnapshot;
     if (!parsed?.posts || !Array.isArray(parsed.posts)) return null;
     if (Date.now() - parsed.savedAt > FEED_HARD_TTL_MS) {
-      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(storageKeyFor(key));
       return null;
     }
     memory.set(key, parsed);
@@ -65,7 +69,7 @@ export function writeFeedSnapshot(
   memory.set(key, snap);
   if (!canUseStorage()) return;
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
+    sessionStorage.setItem(storageKeyFor(key), JSON.stringify(snap));
   } catch {
     /* quota / private mode — memory still helps */
   }
@@ -81,7 +85,7 @@ export function invalidateFeedSnapshot(key = MEMORY_KEY) {
   memory.delete(key);
   if (!canUseStorage()) return;
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(storageKeyFor(key));
   } catch {
     /* ignore */
   }

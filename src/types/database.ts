@@ -69,6 +69,8 @@ export type Post = {
   body: string | null;
   is_highlighted: boolean;
   highlighted_at: string | null;
+  /** Nulo = publicacao permanente. Preenchido = deixa de ser retornada apos esta data (RLS + queries). */
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -389,6 +391,7 @@ type Tables = {
       body?: string | null;
       is_highlighted?: boolean;
       highlighted_at?: string | null;
+      expires_at?: string | null;
     };
     Update: Partial<Post>;
     Relationships: [];

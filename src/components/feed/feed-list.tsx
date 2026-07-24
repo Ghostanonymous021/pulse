@@ -12,7 +12,7 @@ import {
   readFeedSnapshot,
   writeFeedSnapshot,
 } from "@/lib/posts/feed-cache";
-import { FEED_PAGE_SIZE } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, type FeedScope } from "@/lib/posts/feed";
 
 const SCROLL_KEY = "pulse:feed-scroll";
 /** How often to ask "anything new?" — not a full re-rank. */
@@ -23,14 +23,17 @@ const NEAR_TOP_PX = 80;
 export function FeedList({
   initialPosts,
   initialNextOffset,
+  scope = "all",
 }: {
   initialPosts: PostWithAuthor[];
   initialNextOffset: number | null;
+  scope?: FeedScope;
 }) {
+  const cacheKey = scope === "temporarias" ? "home:temporarias" : "home";
   // Prefer a soft-fresh client snapshot over a cold RSC paint when the
   // user just left and came back (staleTimes + this = native tab feel).
   const boot = (() => {
-    const snap = readFeedSnapshot();
+    const snap = readFeedSnapshot(cacheKey);
     if (
       snap &&
       isFeedSoftFresh(snap) &&
@@ -83,7 +86,9 @@ export function FeedList({
   useEffect(() => {
     postsRef.current = posts;
     for (const p of posts) acknowledgedHeads.current.add(p.id);
-    writeFeedSnapshot(posts, nextOffset);
+    writeFeedSnapshot(posts, nextOffset, cacheKey);
+    // cacheKey is stable per mount (scope switch remounts via key= upstream)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, nextOffset]);
 
   useEffect(() => {
@@ -151,7 +156,7 @@ export function FeedList({
     (async () => {
       try {
         const res = await fetch(
-          `/api/feed?offset=${nextOffset}&limit=${FEED_PAGE_SIZE}`,
+          `/api/feed?offset=${nextOffset}&limit=${FEED_PAGE_SIZE}&scope=${scope}`,
           { signal: controller.signal },
         );
         if (!res.ok) throw new Error("Falha ao carregar mais.");
@@ -216,9 +221,10 @@ export function FeedList({
       signal: AbortSignal,
       probedId: string | null,
     ) => {
-      const res = await fetch(`/api/feed?offset=0&limit=${FEED_PAGE_SIZE}`, {
-        signal,
-      });
+      const res = await fetch(
+        `/api/feed?offset=0&limit=${FEED_PAGE_SIZE}&scope=${scope}`,
+        { signal },
+      );
       if (!res.ok || cancelled) return;
       const body = (await res.json()) as { posts?: PostWithAuthor[] };
       const latest = body.posts ?? [];
@@ -269,7 +275,7 @@ export function FeedList({
       abortRef.current = controller;
 
       try {
-        const checkRes = await fetch("/api/feed/check", {
+        const checkRes = await fetch(`/api/feed/check?scope=${scope}`, {
           signal: controller.signal,
         });
         if (!checkRes.ok || cancelled) {

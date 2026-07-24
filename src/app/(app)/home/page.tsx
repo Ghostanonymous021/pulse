@@ -2,15 +2,21 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 
 import { FeedList } from "@/components/feed/feed-list";
+import { FeedScopeTabs } from "@/components/feed/feed-scope-tabs";
 import { NotificationBell } from "@/components/nav/notification-bell";
 import { requireUser } from "@/lib/auth/session";
 import { countUnreadNotifications } from "@/lib/notifications/load";
-import { FEED_PAGE_SIZE, loadFeedPage } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, loadFeedPage, type FeedScope } from "@/lib/posts/feed";
 
-export default async function HomePage() {
+type Props = { searchParams: Promise<{ scope?: string }> };
+
+export default async function HomePage({ searchParams }: Props) {
+  const { scope: scopeParam } = await searchParams;
+  const scope: FeedScope = scopeParam === "temporarias" ? "temporarias" : "all";
+
   const { supabase, user } = await requireUser();
   const [page, unread] = await Promise.all([
-    loadFeedPage(supabase, user.id, { limit: FEED_PAGE_SIZE, offset: 0 }),
+    loadFeedPage(supabase, user.id, { limit: FEED_PAGE_SIZE, offset: 0, scope }),
     countUnreadNotifications(supabase, user.id),
   ]);
 
@@ -30,9 +36,13 @@ export default async function HomePage() {
         </div>
       </header>
 
+      <FeedScopeTabs basePath="/home" scope={scope} />
+
       <FeedList
+        key={scope}
         initialPosts={page.posts}
         initialNextOffset={page.nextOffset}
+        scope={scope}
       />
     </div>
   );

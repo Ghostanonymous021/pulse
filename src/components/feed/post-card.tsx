@@ -137,6 +137,14 @@ export function PostCard({
             >
               {when}
             </time>
+            {post.expires_at && (
+              <>
+                <span className="text-muted-foreground/50">·</span>
+                <span className="shrink-0 truncate text-[12.5px] leading-tight text-muted-foreground">
+                  {formatExpiresIn(post.expires_at)}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -195,6 +203,17 @@ export function PostCard({
       )}
     </article>
   );
+}
+
+function formatExpiresIn(iso: string) {
+  const diff = new Date(iso).getTime() - Date.now();
+  if (diff <= 0) return "a expirar";
+  const min = Math.ceil(diff / 60000);
+  if (min < 60) return `expira em ${min} min`;
+  const h = Math.ceil(min / 60);
+  if (h < 24) return `expira em ${h} h`;
+  const d = Math.ceil(h / 24);
+  return `expira em ${d} d`;
 }
 
 function formatRelative(iso: string) {
