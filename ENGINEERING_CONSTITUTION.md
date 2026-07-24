@@ -37,6 +37,7 @@ Conflito entre codigo e estes documentos = o documento ganha ate Mallony decidir
 - Metadado de curso/campus/ano so no perfil
 - Conta publica/privada controlada pelo utilizador
 - Copy minima e madura; icones de um unico set (Lucide)
+- Cor de marca: Pulse Blue (`#2563EB`), nunca amber/laranja como dominante — amber e exclusivo de badge/conquista/reconhecimento. Fonte de verdade: `src/app/globals.css` + `docs/BRAND_IDENTITY.md`. Nunca hardcodar hex de marca fora desse ficheiro.
 
 ## 5. Qualidade
 
