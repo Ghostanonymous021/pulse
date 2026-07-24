@@ -29,7 +29,7 @@ export function EmptyState({
       )}
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-soft spring-active">
-        <Icon className="h-5 w-5 text-brand-foreground" strokeWidth={1.5} />
+        <Icon className="h-5 w-5 text-brand" strokeWidth={1.5} />
       </div>
       <div className="space-y-1">
         <p className="text-[15px] font-medium">{title}</p>
