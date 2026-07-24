@@ -319,7 +319,7 @@ export function ComposeForm({
             "flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-all duration-200 ease-out active:scale-95",
             lifespanPreset === "permanent"
               ? "text-muted-foreground hover:bg-muted hover:text-foreground"
-              : "bg-brand-accent-soft text-brand-accent",
+              : "bg-brand-soft text-brand",
           )}
         >
           <Clock className="h-[18px] w-[18px]" strokeWidth={1.5} />
