@@ -103,7 +103,7 @@ export function PushToggle() {
   }
 
   return (
-    <div className="mx-4 mt-3 flex items-center gap-3 rounded-[10px] border border-[var(--separator)] bg-card px-3.5 py-3">
+    <div className="mx-4 mt-3 flex items-center gap-3 rounded-[12px] border border-[var(--separator)] bg-card px-3.5 py-3">
       {enabled ? (
         <Bell className="h-4.5 w-4.5 shrink-0 text-foreground" strokeWidth={1.5} />
       ) : (

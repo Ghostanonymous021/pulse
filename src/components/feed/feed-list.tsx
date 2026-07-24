@@ -354,7 +354,7 @@ export function FeedList({
           <button
             type="button"
             onClick={showNewPosts}
-            className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-[13px] font-semibold text-black shadow-lg transition-transform active:scale-95"
+            className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-[13px] font-semibold text-brand-foreground shadow-lg transition-transform active:scale-95"
           >
             <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
             {newPosts.length === 1

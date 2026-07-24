@@ -206,7 +206,7 @@ function IntroStep({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="px-5 pt-8">
       <div className="flex flex-col items-center text-center">
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-[18px] bg-card">
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-card">
           <Building2
             className="h-8 w-8 text-foreground/90"
             strokeWidth={1.5}

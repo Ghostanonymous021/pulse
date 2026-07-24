@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 
 import { FollowButton } from "@/components/social/follow-button";
 import { UserAvatar } from "@/components/profile/user-avatar";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import { VerifiedBadge } from "@/components/social/verified-badge";
 import {
   isVerificationActive,
@@ -135,7 +135,7 @@ export function PeopleSuggestions({
 
       {loading && (
         <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          <PulseLoader size="sm" />
         </div>
       )}
 
