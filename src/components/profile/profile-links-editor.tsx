@@ -107,7 +107,7 @@ export function ProfileLinksEditor({
       <ul className="overflow-hidden rounded-[12px] bg-card divide-y divide-[var(--separator)]">
         {links.length === 0 && (
           <li className="px-3.5 py-3.5 text-[14px] text-muted-foreground">
-            Nenhum link ainda.
+            Ainda sem links. Adiciona o teu portfolio, GitHub ou o que quiseres mostrar.
           </li>
         )}
         {links.map((l, i) => (

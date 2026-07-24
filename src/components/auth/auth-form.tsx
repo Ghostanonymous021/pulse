@@ -168,7 +168,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         };
 
         if (!res.ok) {
-          throw new Error(payload.error || "Não foi possível criar a conta.");
+          throw new Error(payload.error || "Não conseguimos criar a conta agora. Tenta outra vez.");
         }
 
         if (payload.login?.kind === "phone") {
@@ -372,13 +372,13 @@ function UsernameStatus({
 function humanizeAuthError(message: string) {
   const m = message.toLowerCase();
   if (m.includes("invalid login") || m.includes("invalid credentials")) {
-    return "Credenciais incorrectas.";
+    return "Telefone/e-mail ou palavra-passe incorrectos.";
   }
   if (m.includes("already") || m.includes("registered")) {
     return "Ja existe uma conta com estes dados.";
   }
   if (m.includes("rate") || m.includes("demasiadas")) {
-    return "Demasiadas tentativas. Tenta mais tarde.";
+    return "Calma — demasiadas tentativas. Tenta de novo dentro de um pouco.";
   }
   if (m.includes("username")) {
     return message;

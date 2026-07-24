@@ -12,7 +12,7 @@ export default function SignupPage() {
       <div className="mb-10 space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
         <p className="text-sm text-muted-foreground">
-          Nome, username e telefone. O perfil podes completar depois.
+          Nome, username e telefone. O resto do perfil fica para depois, sem pressa.
         </p>
       </div>
       <AuthForm mode="signup" />

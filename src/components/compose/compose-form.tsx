@@ -43,7 +43,7 @@ export function ComposeForm({
         continue;
       }
       if (next.length >= maxPostImages()) {
-        setError(`No máximo ${maxPostImages()} imagens.`);
+        setError(`Ate ${maxPostImages()} imagens por publicacao.`);
         break;
       }
       const result = await compressImageForUpload(raw);
@@ -77,7 +77,7 @@ export function ComposeForm({
     e.preventDefault();
     const text = body.trim();
     if (!text && images.length === 0) {
-      setError("Escreve algo ou adiciona uma foto.");
+      setError("Escreve algo ou adiciona uma foto para partilhar.");
       return;
     }
 
@@ -89,7 +89,7 @@ export function ComposeForm({
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Sessão expirada.");
+      if (!user) throw new Error("A tua sessao expirou. Entra outra vez.");
 
       const { data: post, error: insertError } = await supabase
         .from("posts")
@@ -101,7 +101,7 @@ export function ComposeForm({
         .select("id")
         .single();
 
-      if (insertError || !post) throw insertError ?? new Error("Falha ao criar.");
+      if (insertError || !post) throw insertError ?? new Error("Nao foi possivel publicar. Tenta outra vez.");
 
       if (images.length) {
         await uploadPostImages(supabase, user.id, post.id, images);
@@ -125,7 +125,7 @@ export function ComposeForm({
       router.push("/home");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Não foi possível publicar.",
+        err instanceof Error ? err.message : "Não foi possível publicar. Tenta outra vez.",
       );
     } finally {
       setLoading(false);
@@ -166,7 +166,7 @@ export function ComposeForm({
         rows={5}
         value={body}
         onChange={setBody}
-        placeholder="O que queres partilhar? Usa @ para mencionar"
+        placeholder="O que tens em mente? Usa @ para mencionar alguem"
         maxLength={5000}
         className="w-full resize-none rounded-xl border border-border bg-card p-4 text-sm outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
       />

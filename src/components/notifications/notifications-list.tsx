@@ -62,8 +62,8 @@ export function NotificationsList({
     return (
       <EmptyState
         icon={Bell}
-        title="Sem actividade"
-        description="Curtidas, comentários e seguidores novos aparecem aqui."
+        title="Tudo tranquilo por aqui"
+        description="Curtidas, comentarios e novas pessoas a seguir-te aparecem aqui."
       />
     );
   }

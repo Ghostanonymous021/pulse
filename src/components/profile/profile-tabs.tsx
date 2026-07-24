@@ -17,7 +17,7 @@ export function ProfileTabs({ posts }: { posts: PostWithAuthor[] }) {
       <div className="min-h-[12rem]">
         {posts.length === 0 ? (
           <p className="px-4 py-16 text-center text-[14px] text-muted-foreground">
-            Ainda sem publicacoes.
+            Ainda sem publicacoes. O que quiseres partilhar comeca aqui.
           </p>
         ) : (
           <PostsGrid posts={posts} />

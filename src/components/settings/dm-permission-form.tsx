@@ -10,7 +10,7 @@ import { Check } from "lucide-react";
 const OPTIONS: { value: DmPermission; label: string }[] = [
   { value: "everyone", label: "Todos" },
   { value: "following", label: "Só quem sigo" },
-  { value: "none", label: "Ninguém novo" },
+  { value: "none", label: "Só quem já fala contigo" },
 ];
 
 export function DmPermissionForm({

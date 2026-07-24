@@ -28,7 +28,7 @@ export default async function EspacosPage() {
         <div className="mt-4 flex items-center justify-between">
           <p className="text-[14px] text-muted-foreground">
             {workspaces.length === 0
-              ? "Ainda não participas em nenhum espaço."
+              ? "Ainda nao fazes parte de nenhum espaco."
               : `${workspaces.length} espaço(s)`}
           </p>
         </div>
@@ -67,10 +67,10 @@ export default async function EspacosPage() {
               </span>
             </div>
             <p className="mt-4 text-[15px] font-medium">
-              Ainda sem espaços
+              Ainda sem espacos
             </p>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Cria o primeiro espaço para começar a colaborar.
+              Cria o teu primeiro espaco e comeca a partilhar ideias.
             </p>
             <Link
               href="/w/new"

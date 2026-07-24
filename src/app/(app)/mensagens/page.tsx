@@ -45,7 +45,7 @@ export default async function MensagensPage({
         <EmptyState
           icon={MessageCircle}
           title="As tuas conversas"
-          description="Abre um perfil e toca em Mensagem."
+          description="Abre o perfil de alguem e toca em Mensagem para comecar."
           action={{ label: "Explorar", href: "/explorar" }}
         />
       ) : (

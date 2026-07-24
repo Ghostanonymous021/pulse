@@ -789,7 +789,7 @@ export function ChatView({
               {peerName}
             </p>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Envia a primeira mensagem.
+              Envia a primeira mensagem. Toda conversa comeca por algum lado.
             </p>
           </div>
         )}

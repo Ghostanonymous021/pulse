@@ -362,7 +362,7 @@ function CommentLike({
 function CommentComposer({
   postId,
   parentId,
-  placeholder = "Adiciona um comentario...",
+  placeholder = "Escreve um comentario...",
   onPosted,
 }: {
   postId: string;

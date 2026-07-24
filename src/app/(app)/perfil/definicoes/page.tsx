@@ -45,7 +45,7 @@ export const metadata = {
 const DM_LABEL: Record<DmPermission, string> = {
   everyone: "Todos",
   following: "So quem sigo",
-  none: "Ninguém novo",
+  none: "Só quem já fala contigo",
 };
 
 /**

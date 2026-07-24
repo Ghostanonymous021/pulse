@@ -43,7 +43,7 @@ export function ProfileMenu({ userId }: { userId: string }) {
     try {
       await fn();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Algo correu mal.");
+      setMessage(e instanceof Error ? e.message : "Algo correu mal. Tenta outra vez.");
     } finally {
       setPending(false);
     }

@@ -161,7 +161,7 @@ export function OnboardingFlow({
         {step === "welcome" && (
           <StepShell
             title="Bem-vindo ao Pulse"
-            subtitle="A camada social da tua universidade. Feed unico, mensagens e perfil — sem ruido."
+            subtitle="O teu espaco para pessoas, ideias e conversas que valem a pena. Sem ruido."
           >
             <div className="mt-10 flex flex-1 flex-col justify-end gap-3">
               <PrimaryButton onClick={next} label="Começar" />
@@ -172,7 +172,7 @@ export function OnboardingFlow({
         {step === "campus" && (
           <StepShell
             title="Onde estudas"
-            subtitle="Ajuda o feed a encontrar colegas. Podes alterar isto depois."
+            subtitle="Ajuda-nos a mostrar-te pessoas com quem faz sentido cruzar. Podes mudar isto sempre que quiseres."
           >
             <div className="mt-8 space-y-3">
               <Field
@@ -220,7 +220,7 @@ export function OnboardingFlow({
         {step === "photo" && (
           <StepShell
             title="Foto de perfil"
-            subtitle="As pessoas reconhecem-te melhor. Opcional."
+            subtitle="As pessoas conhecem-te melhor com uma cara. Totalmente opcional."
           >
             <div className="mt-12 flex flex-1 flex-col items-center">
               <button
@@ -277,13 +277,13 @@ export function OnboardingFlow({
 
         {step === "follow" && (
           <StepShell
-            title="Segue gente da tua rede"
-            subtitle="O feed começa a fazer sentido com as pessoas certas."
+            title="Comeca por seguir alguem"
+            subtitle="O teu feed fica bom com as pessoas certas — comeca por estas."
           >
             <ul className="-mx-6 mt-6 max-h-[50vh] flex-1 divide-y divide-[var(--separator)] overflow-y-auto border-y border-[var(--separator)]">
               {suggestions.length === 0 && (
                 <li className="px-6 py-12 text-center text-[14px] text-muted-foreground">
-                  Ainda há poucas contas. Encontra pessoas em Explorar.
+                  Ainda ha poucas pessoas por aqui. Se calhar es de quem comeca — explora e encontra as primeiras.
                 </li>
               )}
               {suggestions.map((s) => {
@@ -331,7 +331,7 @@ export function OnboardingFlow({
                 icon
               />
               <p className="text-center text-[12px] text-muted-foreground">
-                Podes seguir mais gente em Explorar a qualquer altura.
+                Podes seguir mais gente quando quiseres, em Explorar.
               </p>
             </div>
           </StepShell>

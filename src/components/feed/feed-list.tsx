@@ -341,7 +341,7 @@ export function FeedList({
       <EmptyState
         icon={Sparkles}
         title="O teu feed ainda está quieto"
-        description="Segue colegas no Explorar ou publica a primeira coisa do dia."
+        description="Segue pessoas em Explorar ou se calhar es tu quem partilha a primeira coisa hoje."
         action={{ label: "Explorar pessoas", href: "/explorar" }}
       />
     );

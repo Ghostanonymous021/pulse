@@ -44,14 +44,14 @@ export function SuggestFollows({ suggestions }: { suggestions: Suggestion[] }) {
           Sugestoes para seguir
         </h1>
         <p className="text-[15px] leading-relaxed text-muted-foreground">
-          Para o teu feed comecar com gente relevante. Podes saltar.
+          Para o teu feed comecar com pessoas relevantes. Podes saltar.
         </p>
       </div>
 
       <ul className="flex-1 divide-y divide-[var(--separator)] border-y border-[var(--separator)]">
         {suggestions.length === 0 && (
           <li className="px-6 py-12 text-center text-[14px] text-muted-foreground">
-            Ainda ha poucas contas. Continua e encontra pessoas no Explorar.
+            Ainda ha poucas pessoas por aqui. Continua e explora para encontrar mais.
           </li>
         )}
         {suggestions.map((s) => {

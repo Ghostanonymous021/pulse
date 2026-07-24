@@ -116,7 +116,7 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
           label="Bio"
           fieldKey="bio"
           value={bio}
-          placeholder="Uma linha"
+          placeholder="Uma linha sobre ti"
           active={active}
           onActivate={setActive}
           onChange={setBio}

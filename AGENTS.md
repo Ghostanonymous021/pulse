@@ -182,6 +182,9 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
 - [ ] CRUD de projetos no Portfolio (UI de criacao/edicao)
 - [ ] Rate limit distribuido (Redis/Upstash) multi-instancia
 - [ ] Webhook M-Pesa real (substituir sim)
+- [x] Decisao de posicionamento de marca (24/07/2026): a copy do produto deixa de se apresentar como "ferramenta de universidade" e passa a falar como comunidade de pessoas — conexoes, ideias, conversas, oportunidades. **Isto e mudanca de linguagem/copy, nao de escopo tecnico**: schema, RLS, universidade-piloto, feed unico e stack continuam exactamente como em `PULSE_VISAO_PRODUTO.md`. Guia de voz completo em `docs/UX_VOICE.md` (secao 0 explica o limite exacto da mudanca). Nenhuma feature nova (ex.: "Comunidades") foi aprovada por esta decisao — aplicacao de copy ainda pendente, string por string, sob checklist §4.
+
+- [x] `docs/UX_VOICE.md` aplicado ao codigo (24/07/2026): onboarding, compose, comentarios, feed vazio, perfil (bio/links/publicacoes), mensagens, notificacoes, definicoes (permissao DM), erros de auth e erros genericos de accao. So trocas de string literal, nenhuma logica/estrutura alterada. Excepcoes deliberadas mantidas fora do tom "vivo" (guia secao 6): mensagens de seguranca/RLS, contas bloqueadas, apagar conta.
 
 **Próxima decisão pendente:** CRUD portfolio, virtualizacao do feed, ou activity nas notificacoes.
 
