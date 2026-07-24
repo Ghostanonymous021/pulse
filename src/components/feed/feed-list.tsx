@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Sparkles } from "lucide-react";
+import { ArrowUp, Rss } from "lucide-react";
 
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -345,7 +345,7 @@ export function FeedList({
   if (posts.length === 0) {
     return (
       <EmptyState
-        icon={Sparkles}
+        icon={Rss}
         title="O teu feed ainda está quieto"
         description="Segue pessoas em Explorar ou se calhar es tu quem partilha a primeira coisa hoje."
         action={{ label: "Explorar pessoas", href: "/explorar" }}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, ImagePlus, Sparkles, X } from "lucide-react";
+import { Clock, ImagePlus, Star, X } from "lucide-react";
 
 import { ImageEditorSheet } from "@/components/compose/image-editor-sheet";
 import { ImageStrip, type ComposeImage } from "@/components/compose/image-strip";
@@ -249,7 +249,7 @@ export function ComposeForm({
           onClick={() => router.back()}
           className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-muted"
         >
-          <X className="h-5 w-5" strokeWidth={1.75} />
+          <X className="h-5 w-5" strokeWidth={1.5} />
         </button>
         <button
           type="submit"
@@ -309,7 +309,7 @@ export function ComposeForm({
           aria-label="Adicionar foto"
           className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-all duration-200 ease-out hover:bg-muted hover:text-foreground active:scale-90"
         >
-          <ImagePlus className="h-[21px] w-[21px]" strokeWidth={1.5} />
+          <ImagePlus className="h-5 w-5" strokeWidth={1.5} />
         </button>
 
         <button
@@ -322,7 +322,7 @@ export function ComposeForm({
               : "bg-brand-accent-soft text-brand-accent",
           )}
         >
-          <Clock className="h-4 w-4" strokeWidth={1.75} />
+          <Clock className="h-[18px] w-[18px]" strokeWidth={1.5} />
           {lifespanPreset === "permanent"
             ? "Tempo de vida"
             : describeLifespan(lifespanPreset, customDate)}
@@ -340,7 +340,7 @@ export function ComposeForm({
             )}
             title={`Destacar (ate ${highlightWeeklyLimit}/semana)`}
           >
-            <Sparkles className="h-4 w-4" strokeWidth={1.75} />
+            <Star className="h-[18px] w-[18px]" strokeWidth={1.5} />
             Destaque
           </button>
         )}

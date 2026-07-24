@@ -63,7 +63,7 @@ export function LifespanSheet({
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted/60"
           >
-            <X className="h-4 w-4" strokeWidth={1.5} />
+            <X className="h-[18px] w-[18px]" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -82,7 +82,7 @@ export function LifespanSheet({
                 {LIFESPAN_LABELS[preset]}
               </span>
               {selected === preset && (
-                <Check className="h-4 w-4 text-brand" strokeWidth={2} />
+                <Check className="h-3.5 w-3.5 text-brand" strokeWidth={2} />
               )}
             </button>
           ))}
