@@ -28,7 +28,7 @@ export function SettingsSwitch({
       className={cn(
         "relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 ease-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 focus-visible:ring-offset-2 focus-visible:ring-offset-card",
-        checked ? "bg-success" : "bg-[#39393d]",
+        checked ? "bg-success" : "bg-muted",
         disabled && "cursor-not-allowed opacity-50",
       )}
     >
