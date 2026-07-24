@@ -4,28 +4,13 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, ChevronRight } from "lucide-react";
 
-import { UserAvatar } from "@/components/profile/user-avatar";
+import { PeopleSuggestions } from "@/components/social/people-suggestions";
 import { PulseLoader } from "@/components/ui/pulse-loader";
 import { avatarFallbackTone } from "@/lib/profile/avatar";
-import {
-  FollowButton,
-  type FollowUiState,
-} from "@/components/social/follow-button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import type { PeopleSuggestion } from "@/lib/social/suggestions";
 import type { Profile } from "@/types/database";
-
-export type OnboardingSuggestion = Pick<
-  Profile,
-  | "id"
-  | "username"
-  | "display_name"
-  | "avatar_url"
-  | "university"
-  | "campus"
-  | "course"
-  | "account_type"
-> & { followState: FollowUiState };
 
 type Step = "welcome" | "campus" | "photo" | "follow";
 
@@ -37,15 +22,62 @@ const STEPS: Step[] = ["welcome", "campus", "photo", "follow"];
  */
 export function OnboardingFlow({
   profile,
-  suggestions,
+  initialSuggestions,
+  initialSuggestionsNextOffset,
 }: {
   profile: Profile;
-  suggestions: OnboardingSuggestion[];
+  initialSuggestions: PeopleSuggestion[];
+  initialSuggestionsNextOffset: number | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("welcome");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // Mesmo motor de Pessoas > Sugestoes (paginacao real, "ver mais"),
+  // nao uma lista estatica so deste ecran — ver nota em onboarding/page.tsx.
+  const [suggestions, setSuggestions] = useState(initialSuggestions);
+  const [suggestionsNextOffset, setSuggestionsNextOffset] = useState(
+    initialSuggestionsNextOffset,
+  );
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
+  const loadingSuggestionsRef = useRef(false);
+
+  const loadMoreSuggestions = useMemo(
+    () => () => {
+      if (suggestionsNextOffset == null || loadingSuggestionsRef.current) return;
+      loadingSuggestionsRef.current = true;
+      setSuggestionsLoading(true);
+      setSuggestionsError(null);
+      void (async () => {
+        try {
+          const res = await fetch(
+            `/api/people/suggestions?offset=${suggestionsNextOffset}&limit=20`,
+          );
+          if (!res.ok) throw new Error("Falha ao carregar mais pessoas.");
+          const body = (await res.json()) as {
+            suggestions?: PeopleSuggestion[];
+            nextOffset?: number | null;
+          };
+          const more = body.suggestions ?? [];
+          setSuggestions((prev) => {
+            const seen = new Set(prev.map((p) => p.id));
+            return [...prev, ...more.filter((p) => !seen.has(p.id))];
+          });
+          setSuggestionsNextOffset(body.nextOffset ?? null);
+        } catch (e) {
+          setSuggestionsError(
+            e instanceof Error ? e.message : "Falha ao carregar mais pessoas.",
+          );
+        } finally {
+          loadingSuggestionsRef.current = false;
+          setSuggestionsLoading(false);
+        }
+      })();
+    },
+    [suggestionsNextOffset],
+  );
 
   const [university, setUniversity] = useState(profile.university ?? "");
   const [campus, setCampus] = useState(profile.campus ?? "");
@@ -280,48 +312,15 @@ export function OnboardingFlow({
             title="Comeca por seguir alguem"
             subtitle="O teu feed fica bom com as pessoas certas — comeca por estas."
           >
-            <ul className="-mx-6 mt-6 max-h-[50vh] flex-1 divide-y divide-[var(--separator)] overflow-y-auto border-y border-[var(--separator)]">
-              {suggestions.length === 0 && (
-                <li className="px-6 py-12 text-center text-[14px] text-muted-foreground">
-                  Ainda ha poucas pessoas por aqui. Se calhar es de quem comeca — explora e encontra as primeiras.
-                </li>
-              )}
-              {suggestions.map((s) => {
-                const meta = [s.campus, s.course].filter(Boolean).join(" · ");
-                return (
-                  <li
-                    key={s.id}
-                    className="flex items-center gap-3 px-4 py-3.5"
-                  >
-                    <UserAvatar
-                      userId={s.id}
-                      avatarUrl={s.avatar_url}
-                      name={s.display_name || s.username}
-                      size={44}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">
-                        {s.display_name || s.username}
-                      </p>
-                      <p className="truncate text-[13px] text-muted-foreground">
-                        @{s.username}
-                        {s.account_type === "organizacao" ? " · Organização" : ""}
-                      </p>
-                      {meta ? (
-                        <p className="truncate text-[12px] text-muted-foreground">
-                          {meta}
-                        </p>
-                      ) : null}
-                    </div>
-                    <FollowButton
-                      targetUserId={s.id}
-                      initialState={s.followState}
-                      className="w-[7.25rem] shrink-0"
-                    />
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="-mx-6 mt-6 max-h-[50vh] flex-1 overflow-y-auto border-y border-[var(--separator)]">
+              <PeopleSuggestions
+                suggestions={suggestions}
+                hasMore={suggestionsNextOffset != null}
+                loading={suggestionsLoading}
+                error={suggestionsError}
+                onLoadMore={loadMoreSuggestions}
+              />
+            </div>
             <div className="mt-auto space-y-3 pt-6">
               <PrimaryButton
                 onClick={goHome}

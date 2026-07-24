@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: "Pulse",
     template: "%s · Pulse",
   },
-  description: "A camada social dos estudantes universitários",
+  description: "Pessoas, ideias e conversas que valem a pena.",
   applicationName: "Pulse",
   authors: [{ name: "Pulse" }],
   generator: "Next.js",
@@ -62,12 +62,12 @@ export const metadata: Metadata = {
     locale: "pt_MZ",
     siteName: "Pulse",
     title: "Pulse",
-    description: "A camada social dos estudantes universitários",
+    description: "Pessoas, ideias e conversas que valem a pena.",
   },
   twitter: {
     card: "summary",
     title: "Pulse",
-    description: "A camada social dos estudantes universitários",
+    description: "Pessoas, ideias e conversas que valem a pena.",
   },
   other: {
     "mobile-web-app-capable": "yes",

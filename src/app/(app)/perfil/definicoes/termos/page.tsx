@@ -11,8 +11,8 @@ export default async function TermosPage() {
       <PageHeader title="Termos de uso" backHref="/perfil/definicoes" />
       <article className="space-y-4 px-4 pt-4 text-[15px] leading-relaxed text-foreground/90">
         <p>
-          O Pulse e a camada social das universidades. Ao usares a app,
-          aceitas estas regras basicas de utilizacao.
+          O Pulse e um espaco para pessoas, ideias e conversas que valem a
+          pena. Ao usares a app, aceitas estas regras basicas de utilizacao.
         </p>
         <p>
           Publicas apenas conteudo que tens o direito de partilhar. Nao

@@ -24,11 +24,10 @@ export default async function LandingPage() {
       <div className="space-y-3 pt-12">
         <p className="text-sm font-medium text-muted-foreground">Pulse</p>
         <h1 className="text-3xl font-semibold tracking-tight">
-          A camada social dos estudantes universitários
+          Pessoas, ideias e conversas que valem a pena
         </h1>
         <p className="max-w-sm text-base leading-relaxed text-muted-foreground">
-          Colegas, campus, oportunidades e talento — num só lugar. Sem ruído
-          institucional.
+          O teu espaco para partilhar, descobrir talento e construir a tua rede. Sem ruido.
         </p>
       </div>
 
