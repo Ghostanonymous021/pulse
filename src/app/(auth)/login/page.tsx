@@ -16,6 +16,15 @@ export default function LoginPage() {
         </p>
       </div>
       <AuthForm mode="login" />
+      <div className="mt-6 text-center">
+        <Link
+          href="/recuperar-senha"
+          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+        >
+          Esqueceste a palavra-passe?
+        </Link>
+      </div>
+
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Ainda sem conta?{" "}
         <Link href="/signup" className="font-medium text-foreground">

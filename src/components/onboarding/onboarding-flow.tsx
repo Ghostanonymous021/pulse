@@ -19,7 +19,6 @@ export type OnboardingSuggestion = Pick<
   | "username"
   | "display_name"
   | "avatar_url"
-  | "university"
   | "campus"
   | "course"
   | "account_type"
@@ -45,7 +44,6 @@ export function OnboardingFlow({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [university, setUniversity] = useState(profile.university ?? "");
   const [campus, setCampus] = useState(profile.campus ?? "");
   const [course, setCourse] = useState(profile.course ?? "");
   const [year, setYear] = useState(profile.year ?? "");
@@ -78,7 +76,6 @@ export function OnboardingFlow({
       const { error: upErr } = await supabase
         .from("profiles")
         .update({
-          university: university.trim() || null,
           campus: campus.trim() || null,
           course: course.trim() || null,
           year: year.trim() || null,
@@ -174,16 +171,10 @@ export function OnboardingFlow({
           >
             <div className="mt-8 space-y-3">
               <Field
-                label="Universidade"
-                value={university}
-                onChange={setUniversity}
-                placeholder="Nome da tua universidade"
-              />
-              <Field
                 label="Campus"
                 value={campus}
                 onChange={setCampus}
-                placeholder="Xai-Xai, Maxixe…"
+                placeholder="Xai-Xai, Maxixe, Maputo…"
               />
               <Field
                 label="Curso"

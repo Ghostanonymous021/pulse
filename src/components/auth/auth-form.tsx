@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 import {
   looksLikeEmail,
@@ -29,6 +30,13 @@ type Availability = {
   reason?: string;
 };
 
+type MultipleAccount = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
@@ -43,6 +51,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [multipleAccounts, setMultipleAccounts] = useState<MultipleAccount[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSuggestedFromName = useRef("");
 
@@ -131,6 +142,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    setMultipleAccounts([]);
 
     const supabase = createClient();
     const value = identifier.trim();
@@ -188,12 +200,38 @@ export function AuthForm({ mode }: { mode: Mode }) {
         router.refresh();
         return;
       } else {
+        // LOGIN
         if (looksLikePhone(value)) {
+          // Verificar se tem múltiplas contas
+          const checkRes = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identifier: value,
+              password,
+            }),
+          });
+
+          const checkData = await checkRes.json();
+
+          if (!checkRes.ok) {
+            throw new Error(checkData.error || "Erro ao verificar contas.");
+          }
+
+          if (checkData.multipleAccounts && checkData.accounts?.length > 0) {
+            // Mostrar seletor de contas
+            setMultipleAccounts(checkData.accounts);
+            setLoading(false);
+            return;
+          }
+
+          // Login normal (1 conta ou email)
           const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: phoneToAuthEmail(normalizePhone(value)),
+            email: checkData.email || phoneToAuthEmail(normalizePhone(value)),
             password,
           });
           if (signInError) throw signInError;
+
         } else if (looksLikeEmail(value)) {
           const { error: signInError } = await supabase.auth.signInWithPassword({
             email: value.toLowerCase(),
@@ -212,6 +250,47 @@ export function AuthForm({ mode }: { mode: Mode }) {
         err instanceof Error
           ? humanizeAuthError(err.message)
           : "Não foi possível continuar.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loginWithSelectedAccount(accountId: string) {
+    if (!accountId || !password) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+
+      // Buscar o email da conta selecionada
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", accountId)
+        .single();
+
+      if (!profile) {
+        throw new Error("Conta não encontrada.");
+      }
+
+      // Fazer login com a senha (o Supabase usa o email associado)
+      // Como temos o identifier, vamos usar a lógica normal de login
+      const value = identifier.trim();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: phoneToAuthEmail(normalizePhone(value)),
+        password,
+      });
+
+      if (signInError) throw signInError;
+
+      router.push("/home");
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Falha ao entrar na conta.";
       setError(message);
     } finally {
       setLoading(false);
@@ -300,6 +379,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
         autoComplete={mode === "signup" ? "new-password" : "current-password"}
         required
         minLength={mode === "signup" ? PASSWORD_MIN_LENGTH : 1}
+        showPasswordToggle
+        onTogglePassword={() => setShowPassword(!showPassword)}
+        showPasswordValue={showPassword}
       />
 
       {error && (
@@ -308,17 +390,70 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={
-          loading ||
-          (mode === "signup" &&
-            (availability.checking || availability.available === false))
-        }
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-      >
-        {loading ? "Aguarde..." : mode === "signup" ? "Continuar" : "Entrar"}
-      </button>
+      {/* Seletor de múltiplas contas */}
+      {multipleAccounts.length > 0 && mode === "login" && (
+        <div className="space-y-3 pt-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Este número tem {multipleAccounts.length} contas. Escolhe uma:
+          </p>
+          <div className="space-y-2">
+            {multipleAccounts.map((account) => (
+              <button
+                key={account.id}
+                type="button"
+                onClick={() => loginWithSelectedAccount(account.id)}
+                disabled={loading}
+                className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition hover:bg-muted disabled:opacity-50"
+              >
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted text-sm font-medium">
+                  {account.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={account.avatar_url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (account.display_name || account.username).charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">
+                    {account.display_name || account.username}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    @{account.username}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setMultipleAccounts([]);
+              setError(null);
+            }}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Voltar
+          </button>
+        </div>
+      )}
+
+      {!multipleAccounts.length && (
+        <button
+          type="submit"
+          disabled={
+            loading ||
+            (mode === "signup" &&
+              (availability.checking || availability.available === false))
+          }
+          className="flex h-12 w-full items-center justify-center rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? "Aguarde..." : mode === "signup" ? "Continuar" : "Entrar"}
+        </button>
+      )}
     </form>
   );
 }
@@ -396,6 +531,9 @@ function Field({
   minLength,
   optional,
   placeholder,
+  showPasswordToggle = false,
+  onTogglePassword,
+  showPasswordValue,
 }: {
   label: string;
   id: string;
@@ -408,7 +546,13 @@ function Field({
   minLength?: number;
   optional?: boolean;
   placeholder?: string;
+  showPasswordToggle?: boolean;
+  onTogglePassword?: () => void;
+  showPasswordValue?: boolean;
 }) {
+  const isPassword = type === "password";
+  const effectiveType = isPassword && showPasswordToggle && showPasswordValue ? "text" : type;
+
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-sm font-medium">
@@ -419,18 +563,34 @@ function Field({
           </span>
         )}
       </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        inputMode={inputMode}
-        required={required}
-        minLength={minLength}
-        placeholder={placeholder}
-        className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
-      />
+      <div className="relative">
+        <input
+          id={id}
+          type={effectiveType}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          inputMode={inputMode}
+          required={required}
+          minLength={minLength}
+          placeholder={placeholder}
+          className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2 pr-12"
+        />
+        {showPasswordToggle && isPassword && (
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPasswordValue ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+          >
+            {showPasswordValue ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

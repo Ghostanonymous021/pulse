@@ -123,6 +123,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // Verificar limite de 6 contas por telefone
+    if (phone) {
+      const { data: existingAccounts } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("phone", phone)
+        .limit(10);
+
+      if (existingAccounts && existingAccounts.length >= 6) {
+        securityLog("signup_failed", { reason: "max_accounts_per_phone" });
+        return NextResponse.json(
+          { error: "Este número já tem o máximo de 6 contas permitidas." },
+          { status: 409 },
+        );
+      }
+    }
+
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password,

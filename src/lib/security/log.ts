@@ -17,7 +17,9 @@ export type SecurityEvent =
   | "origin_rejected"
   | "ssrf_blocked"
   | "link_preview_rate_limited"
-  | "chat_link_preview_rate_limited";
+  | "chat_link_preview_rate_limited"
+  | "login_rate_limited"
+  | "login_account_failed";
 
 export function securityLog(
   event: SecurityEvent,
