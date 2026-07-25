@@ -7,6 +7,7 @@ export type SecurityEvent =
   | "signup_rate_limited"
   | "signup_failed"
   | "signup_ok"
+  | "signup_phone_limit_reached"
   | "username_check_rate_limited"
   | "verification_pay_blocked"
   | "verification_pay_simulated"

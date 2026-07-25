@@ -20,12 +20,98 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
+const PHONE_ACCOUNT_LIMIT_MESSAGE =
+  "Esse numero ja tem o maximo de contas Pulse permitidas. Usa outro numero ou entra numa das contas existentes.";
+
 type Body = {
   identifier?: string;
   password?: string;
   display_name?: string;
   username?: string;
 };
+
+type CreateAuthUserInput = {
+  email: string;
+  password: string;
+  display_name: string;
+  username: string;
+  phone: string | null;
+};
+
+type CreateAuthUserResult =
+  | { ok: true; user: { id: string } }
+  | {
+      ok: false;
+      reason: "phone_limit" | "already_registered" | "other";
+      message: string;
+    };
+
+/**
+ * Cria o utilizador via Admin REST API directamente (fetch), em vez do
+ * SDK supabase-js: o SDK descarta o corpo de erros 500 do Admin API
+ * (fica `{}`), o que impede distinguir o erro de negocio
+ * PHONE_ACCOUNT_LIMIT_REACHED (levantado pelo trigger `handle_new_user`,
+ * errcode P0001) de qualquer outra falha 500. A API REST devolve o corpo
+ * completo `{ code, message }` do Postgres.
+ */
+async function createAuthUser(
+  admin: ReturnType<typeof createAdminClient>,
+  input: CreateAuthUserInput,
+): Promise<CreateAuthUserResult> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+  const res = await fetch(`${url}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
+    },
+    body: JSON.stringify({
+      email: input.email,
+      password: input.password,
+      email_confirm: true,
+      user_metadata: {
+        display_name: input.display_name,
+        username: input.username,
+        phone: input.phone ?? undefined,
+      },
+    }),
+  });
+
+  if (res.ok) {
+    const data = (await res.json()) as { id?: string };
+    if (!data.id) {
+      return { ok: false, reason: "other", message: "Resposta invalida do servico de autenticacao." };
+    }
+    return { ok: true, user: { id: data.id } };
+  }
+
+  let body: { code?: string; message?: string; error_code?: string; msg?: string } = {};
+  try {
+    body = (await res.json()) as typeof body;
+  } catch {
+    // sem corpo JSON — segue para o fallback generico abaixo
+  }
+
+  const message = body.message || body.msg || "Nao foi possivel criar a conta.";
+
+  if (body.code === "P0001" && message.includes("PHONE_ACCOUNT_LIMIT_REACHED")) {
+    return { ok: false, reason: "phone_limit", message };
+  }
+
+  const lower = message.toLowerCase();
+  if (
+    body.error_code === "email_exists" ||
+    lower.includes("already") ||
+    lower.includes("registered")
+  ) {
+    return { ok: false, reason: "already_registered", message };
+  }
+
+  return { ok: false, reason: "other", message };
+}
 
 export async function POST(request: Request) {
   const origin = assertSameOrigin(request);
@@ -123,29 +209,41 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await admin.auth.admin.createUser({
+    // Nota: o SDK supabase-js engole o corpo de erros 500 do Admin API
+    // (fica so `{}`), incluindo a rejeicao vinda do trigger `handle_new_user`
+    // (limite de contas por telefone, errcode P0001). Usamos fetch direto
+    // para este passo, para conseguirmos distinguir esse caso especifico
+    // do utilizador e devolver uma mensagem util em vez de um erro generico.
+    const created = await createAuthUser(admin, {
       email,
       password,
-      email_confirm: true,
-      user_metadata: {
-        display_name: displayName || username,
-        username,
-        phone: phone ?? undefined,
-      },
+      display_name: displayName || username,
+      username,
+      phone,
     });
 
-    if (error) {
-      const msg = error.message.toLowerCase();
-      if (msg.includes("already") || msg.includes("registered")) {
+    if (!created.ok) {
+      if (created.reason === "phone_limit") {
+        securityLog("signup_phone_limit_reached", {
+          phone_suffix: phone ? phone.slice(-4) : null,
+        });
+        return NextResponse.json(
+          { error: PHONE_ACCOUNT_LIMIT_MESSAGE },
+          { status: 409 },
+        );
+      }
+      if (created.reason === "already_registered") {
         securityLog("signup_failed", { reason: "already_registered" });
         return NextResponse.json(
           { error: "Ja existe uma conta com estes dados." },
           { status: 409 },
         );
       }
-      securityLog("signup_failed", { reason: error.message.slice(0, 80) });
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      securityLog("signup_failed", { reason: created.message.slice(0, 80) });
+      return NextResponse.json({ error: created.message }, { status: 400 });
     }
+
+    const data = { user: created.user };
 
     if (data.user && phone) {
       await admin.from("profiles").update({ phone }).eq("id", data.user.id);
