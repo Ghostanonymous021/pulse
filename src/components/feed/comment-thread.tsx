@@ -72,7 +72,7 @@ export function CommentThread({
       >
         {nodes.length === 0 && (
           <p className="py-6 text-center text-[14px] text-muted-foreground">
-            Ainda sem comentarios.
+            Ainda sem comentarios. Diz a primeira coisa.
           </p>
         )}
         {nodes.map((node) => (
@@ -109,9 +109,7 @@ export function CommentThread({
             setReplyTo(null);
           }}
           placeholder={
-            replyTo
-              ? `Resposta a ${replyTo.label}`
-              : "Adiciona um comentário..."
+            replyTo ? `Resposta a ${replyTo.label}` : undefined
           }
         />
       </FixedBottomBar>

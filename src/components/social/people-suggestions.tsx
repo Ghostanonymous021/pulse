@@ -65,7 +65,7 @@ export function PeopleSuggestions({
   if (suggestions.length === 0) {
     return (
       <p className="px-4 py-16 text-center text-[14px] text-muted-foreground">
-        Sem sugestões por agora. Volta mais tarde.
+        Ainda sem sugestões. Explora para encontrar pessoas novas.
       </p>
     );
   }
