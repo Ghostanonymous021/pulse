@@ -196,7 +196,13 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
   - Novo token `--brand-accent-soft` (fundo suave do accent, dark e light) adicionado a `globals.css` para suportar o pill acima e qualquer badge futuro do mesmo tipo.
   - Build (`next build`), `tsc --noEmit` e `eslint` limpos — zero avisos novos comparado ao estado anterior.
 
-**Próxima decisão pendente:** CRUD portfolio, virtualizacao do feed, ou activity nas notificacoes.
+- [x] Escrita/UX debt no preview (`feat/design-polish-feed`, 25/07/2026, commit `beaef8a`):
+  - `PasswordInput` reutilizavel (`src/components/ui/password-input.tsx`, lucide `Eye`/`EyeOff`) — todo `type="password"` cru (login/signup, `password-form.tsx`, `delete-account-form.tsx`) passou a usar este componente. Qualquer novo campo de senha deve usa-lo, nunca reintroduzir `<input type="password">` a mao.
+  - Recuperacao de senha por link (§7 do documento-mae) estava totalmente ausente — so a rota `/recuperar` era referenciada no middleware, nunca implementada. Agora: `ForgotPasswordForm` (`/recuperar`) chama `resetPasswordForEmail` sem nunca revelar se o e-mail existe; `ResetPasswordForm` (`/recuperar/nova-senha`) espera o evento `PASSWORD_RECOVERY` do Supabase antes de mostrar o formulario de nova senha, e trata link expirado/invalido explicitamente. Link "Esqueceste-te?" adicionado ao login.
+  - Onboarding "Onde estudas": placeholder do campus deixou de citar Xai-Xai/Maxixe (cidades da universidade-piloto hardcoded na copy, contra a decisao de posicionamento de 24/07 em `docs/UX_VOICE.md`) — campo volta a ser generico.
+  - `tsc --noEmit`, `next build` e a suite de 36 testes limpos apos a mudanca.
+
+**Próxima decisão pendente:** o "maior problema, foco da missao" ainda a discutir com o humano — CRUD portfolio, virtualizacao do feed, e activity nas notificacoes continuam na fila.
 
 ### 6.3. Identidade visual — Pulse Blue (substitui a secao de cor descrita implicitamente em 6.1/6.2)
 
