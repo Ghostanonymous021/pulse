@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { PasswordInput } from "@/components/ui/password-input";
+
 const CONSEQUENCES = [
   "Perfil e dados de conta",
   "Publicações e fotos",
@@ -85,9 +87,8 @@ export function DeleteAccountForm() {
         >
           Senha actual
         </label>
-        <input
+        <PasswordInput
           id="delete_password"
-          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"

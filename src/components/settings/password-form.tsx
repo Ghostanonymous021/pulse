@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { PasswordInput } from "@/components/ui/password-input";
 import { PulseLoader } from "@/components/ui/pulse-loader";
 import { phoneToAuthEmail } from "@/lib/auth/phone";
 import {
@@ -212,6 +213,9 @@ function Field({
   autoFocus?: boolean;
   minLength?: number;
 }) {
+  const inputClassName =
+    "h-12 w-full rounded-[12px] border-0 bg-card px-3.5 text-[16px] outline-none ring-1 ring-[var(--separator)] placeholder:text-muted-foreground focus:ring-2 focus:ring-foreground/20";
+
   return (
     <div>
       <label
@@ -220,16 +224,28 @@ function Field({
       >
         {label}
       </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        minLength={minLength}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        autoFocus={autoFocus}
-        className="h-12 w-full rounded-[12px] border-0 bg-card px-3.5 text-[16px] outline-none ring-1 ring-[var(--separator)] placeholder:text-muted-foreground focus:ring-2 focus:ring-foreground/20"
-      />
+      {type === "password" ? (
+        <PasswordInput
+          id={id}
+          value={value}
+          minLength={minLength}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
+          className={inputClassName}
+        />
+      ) : (
+        <input
+          id={id}
+          type={type}
+          value={value}
+          minLength={minLength}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
+          className={inputClassName}
+        />
+      )}
     </div>
   );
 }

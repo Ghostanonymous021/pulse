@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +19,7 @@ import {
   PASSWORD_MIN_LENGTH,
   validatePassword,
 } from "@/lib/security/password";
+import { PasswordInput } from "@/components/ui/password-input";
 import { PulseLoader } from "@/components/ui/pulse-loader";
 import { createClient } from "@/lib/supabase/client";
 
@@ -292,16 +294,30 @@ export function AuthForm({ mode }: { mode: Mode }) {
         placeholder={mode === "signup" ? "84 000 0000" : undefined}
         required
       />
-      <Field
-        label="Palavra-passe"
-        id="password"
-        type="password"
-        value={password}
-        onChange={setPassword}
-        autoComplete={mode === "signup" ? "new-password" : "current-password"}
-        required
-        minLength={mode === "signup" ? PASSWORD_MIN_LENGTH : 1}
-      />
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label htmlFor="password" className="text-sm font-medium">
+            Palavra-passe
+          </label>
+          {mode === "login" && (
+            <Link
+              href="/recuperar"
+              className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Esqueceste-te?
+            </Link>
+          )}
+        </div>
+        <PasswordInput
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          required
+          minLength={mode === "signup" ? PASSWORD_MIN_LENGTH : 1}
+          className="h-12 w-full rounded-xl border border-border bg-card pl-4 text-sm outline-none ring-foreground/10 placeholder:text-muted-foreground focus:ring-2"
+        />
+      </div>
 
       {error && (
         <p className="shake text-sm text-destructive" role="alert">

@@ -217,7 +217,7 @@ export function OnboardingFlow({
                 label="Campus"
                 value={campus}
                 onChange={setCampus}
-                placeholder="Xai-Xai, Maxixe…"
+                placeholder="Nome do campus"
               />
               <Field
                 label="Curso"
