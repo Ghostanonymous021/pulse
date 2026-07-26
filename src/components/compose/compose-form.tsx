@@ -46,7 +46,7 @@ export function ComposeForm({
 
   const [body, setBody] = useState("");
   const [images, setImages] = useState<ComposeImage[]>([]);
-  const [editQueue, setEditQueue] = useState<File[]>([]);
+  const [editQueue, setEditQueue] = useState<{ key: string; file: File }[]>([]);
   const [reEditIndex, setReEditIndex] = useState<number | null>(null);
   const [lifespanPreset, setLifespanPreset] = useState<LifespanPreset>("permanent");
   const [customDate, setCustomDate] = useState<Date | null>(null);
@@ -99,7 +99,7 @@ export function ComposeForm({
       return;
     }
 
-    const accepted: File[] = [];
+    const accepted: { key: string; file: File }[] = [];
     for (const raw of Array.from(list).slice(0, room)) {
       const err = validateImageFile(raw);
       if (err) {
@@ -107,7 +107,7 @@ export function ComposeForm({
         continue;
       }
       const result = await compressImageForUpload(raw);
-      accepted.push(result.file);
+      accepted.push({ key: makeKey(), file: result.file });
     }
     if (accepted.length) {
       setError(null);
@@ -234,7 +234,12 @@ export function ComposeForm({
   }
 
   const canPublish = (body.trim().length > 0 || images.length > 0) && !loading;
-  const editingFile = reEditIndex != null ? images[reEditIndex]?.file : editQueue[0];
+  const editingItem =
+    reEditIndex != null
+      ? images[reEditIndex]
+        ? { key: images[reEditIndex].key, file: images[reEditIndex].file }
+        : null
+      : editQueue[0] ?? null;
 
   return (
     <form onSubmit={onSubmit} className="flex min-h-[100dvh] flex-col">
@@ -346,9 +351,10 @@ export function ComposeForm({
         )}
       </div>
 
-      {editingFile && (
+      {editingItem && (
         <ImageEditorSheet
-          file={editingFile}
+          key={editingItem.key}
+          file={editingItem.file}
           onCancel={onEditorCancel}
           onDone={onEditorDone}
         />
