@@ -11,11 +11,12 @@ import {
   loadViewerContext,
 } from "@/lib/ranking/load-signals";
 import { rankFeedCandidates } from "@/lib/ranking/rank-feed";
+import { FEED_PAGE_SIZE, type FeedScope } from "@/lib/posts/feed-constants";
 
-/** First paint: short page. More via /api/feed. */
-export const FEED_PAGE_SIZE = 15;
-
-export type FeedScope = "all" | "temporarias";
+// Re-exported for server call sites so this stays the single source of
+// truth. Client components must import these from `feed-constants` directly
+// (never from here) — see feed-constants.ts for why.
+export { FEED_PAGE_SIZE, type FeedScope };
 
 type RawPost = {
   id: string;

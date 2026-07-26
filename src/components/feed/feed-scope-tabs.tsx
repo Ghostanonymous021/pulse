@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { FeedScope } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-constants";
 import { cn } from "@/lib/utils";
 
 /**

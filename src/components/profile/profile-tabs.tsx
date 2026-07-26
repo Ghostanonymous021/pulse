@@ -4,7 +4,7 @@ import { Clock, FileText } from "lucide-react";
 
 import { FeedScopeTabs } from "@/components/feed/feed-scope-tabs";
 import type { PostWithAuthor } from "@/components/feed/post-card";
-import type { FeedScope } from "@/lib/posts/feed";
+import type { FeedScope } from "@/lib/posts/feed-constants";
 
 /**
  * Profile content — posts only (workspaces/espacos removed from the

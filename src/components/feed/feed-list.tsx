@@ -12,7 +12,7 @@ import {
   readFeedSnapshot,
   writeFeedSnapshot,
 } from "@/lib/posts/feed-cache";
-import { FEED_PAGE_SIZE, type FeedScope } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, type FeedScope } from "@/lib/posts/feed-constants";
 
 const SCROLL_KEY = "pulse:feed-scroll";
 /** How often to ask "anything new?" — not a full re-rank. */
