@@ -1,44 +1,23 @@
 import type { PostWithAuthor } from "@/components/feed/post-card";
-
-/**
- * Client-side feed snapshot (module memory + sessionStorage).
- *
- * Why: App Router re-runs the Home RSC when the soft-nav cache expires
- * or on hard refresh. Showing the last good feed instantly (SWR-style)
- * removes the blank/skeleton flash that makes the app feel "always
- * reloading" — same pattern Meta/Twitter use for the home timeline.
- *
- * Security: only IDs + public-ish post fields already shown to the
- * viewer; sessionStorage is origin-scoped and cleared on tab close.
- * Signed media URLs expire; we re-fetch if the snapshot is stale.
- */
-
+import { FEED_HARD_TTL_MS, FEED_SOFT_TTL_MS } from "@/lib/posts/feed-constants";
+export { FEED_HARD_TTL_MS, FEED_SOFT_TTL_MS, feedFreshness } from "@/lib/posts/feed-constants";
 const MEMORY_KEY = "home";
 const STORAGE_KEY_PREFIX = "pulse:feed-snapshot-v1";
-
+const ALL_SCOPE_KEYS = ["home", "home:temporarias"] as const;
 function storageKeyFor(key: string) {
   return key === MEMORY_KEY ? STORAGE_KEY_PREFIX : `${STORAGE_KEY_PREFIX}:${key}`;
 }
-/** Soft-fresh: paint instantly, revalidate in background after this. */
-export const FEED_SOFT_TTL_MS = 45_000;
-/** Hard-stale: discard snapshot entirely (signed URLs may be dead). */
-export const FEED_HARD_TTL_MS = 50 * 60_000;
-
-export type FeedSnapshot = {
-  posts: PostWithAuthor[];
-  nextOffset: number | null;
-  savedAt: number;
-};
-
+export type FeedSnapshot = { posts: PostWithAuthor[]; nextOffset: number | null; savedAt: number };
 const memory = new Map<string, FeedSnapshot>();
-
 function canUseStorage() {
   return typeof window !== "undefined" && typeof sessionStorage !== "undefined";
 }
-
 export function readFeedSnapshot(key = MEMORY_KEY): FeedSnapshot | null {
   const mem = memory.get(key);
-  if (mem) return mem;
+  if (mem) {
+    if (Date.now() - mem.savedAt > FEED_HARD_TTL_MS) { memory.delete(key); return null; }
+    return mem;
+  }
   if (!canUseStorage()) return null;
   try {
     const raw = sessionStorage.getItem(storageKeyFor(key));
@@ -51,42 +30,28 @@ export function readFeedSnapshot(key = MEMORY_KEY): FeedSnapshot | null {
     }
     memory.set(key, parsed);
     return parsed;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
-
-export function writeFeedSnapshot(
-  posts: PostWithAuthor[],
-  nextOffset: number | null,
-  key = MEMORY_KEY,
-) {
-  const snap: FeedSnapshot = {
-    posts,
-    nextOffset,
-    savedAt: Date.now(),
-  };
+export function writeFeedSnapshot(posts: PostWithAuthor[], nextOffset: number | null, key = MEMORY_KEY) {
+  if (!posts.length) return;
+  const snap: FeedSnapshot = { posts, nextOffset, savedAt: Date.now() };
   memory.set(key, snap);
   if (!canUseStorage()) return;
-  try {
-    sessionStorage.setItem(storageKeyFor(key), JSON.stringify(snap));
-  } catch {
-    /* quota / private mode — memory still helps */
-  }
+  try { sessionStorage.setItem(storageKeyFor(key), JSON.stringify(snap)); } catch { /* */ }
 }
-
 export function isFeedSoftFresh(snap: FeedSnapshot | null): boolean {
   if (!snap) return false;
   return Date.now() - snap.savedAt < FEED_SOFT_TTL_MS;
 }
-
-/** Drop cache after publish / delete so next home load is authoritative. */
+export function isFeedHardValid(snap: FeedSnapshot | null): boolean {
+  if (!snap || !snap.posts.length) return false;
+  return Date.now() - snap.savedAt <= FEED_HARD_TTL_MS;
+}
 export function invalidateFeedSnapshot(key = MEMORY_KEY) {
   memory.delete(key);
   if (!canUseStorage()) return;
-  try {
-    sessionStorage.removeItem(storageKeyFor(key));
-  } catch {
-    /* ignore */
-  }
+  try { sessionStorage.removeItem(storageKeyFor(key)); } catch { /* */ }
+}
+export function invalidateAllFeedSnapshots() {
+  for (const key of ALL_SCOPE_KEYS) invalidateFeedSnapshot(key);
 }

@@ -70,7 +70,7 @@ const nextConfig: NextConfig = {
      * static: assets de layout / rotas semi-estáticas
      */
     staleTimes: {
-      dynamic: 30,
+      dynamic: 90,
       static: 180,
     },
   },
@@ -111,15 +111,6 @@ const nextConfig: NextConfig = {
         {
           key: "Cache-Control",
           value: "public, max-age=604800, immutable",
-        },
-      ],
-    },
-    {
-      source: "/_next/static/:path*",
-      headers: [
-        {
-          key: "Cache-Control",
-          value: "public, max-age=31536000, immutable",
         },
       ],
     },

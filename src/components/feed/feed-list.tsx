@@ -6,12 +6,13 @@ import { ArrowUp, Rss } from "lucide-react";
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  FEED_SOFT_TTL_MS,
-  invalidateFeedSnapshot,
+  invalidateAllFeedSnapshots,
+  isFeedHardValid,
   isFeedSoftFresh,
   readFeedSnapshot,
   writeFeedSnapshot,
 } from "@/lib/posts/feed-cache";
+import { FeedSkeleton } from "@/components/ui/skeleton";
 import { FEED_PAGE_SIZE, type FeedScope } from "@/lib/posts/feed-constants";
 
 const SCROLL_KEY = "pulse:feed-scroll";
@@ -21,54 +22,43 @@ const CHECK_BACKOFF = [90_000, 180_000, 300_000];
 const NEAR_TOP_PX = 80;
 
 export function FeedList({
-  initialPosts,
-  initialNextOffset,
+  initialPosts = [],
+  initialNextOffset = null,
   scope = "all",
 }: {
-  initialPosts: PostWithAuthor[];
-  initialNextOffset: number | null;
+  initialPosts?: PostWithAuthor[];
+  initialNextOffset?: number | null;
   scope?: FeedScope;
 }) {
   const cacheKey = scope === "temporarias" ? "home:temporarias" : "home";
-  // Prefer a soft-fresh client snapshot over a cold RSC paint when the
-  // user just left and came back (staleTimes + this = native tab feel).
+  // Native SWR: paint any hard-valid snapshot instantly; rank via /api/feed.
   const boot = (() => {
     const snap = readFeedSnapshot(cacheKey);
-    if (
-      snap &&
-      isFeedSoftFresh(snap) &&
-      snap.posts.length > 0 &&
-      // Only prefer snapshot if server sent empty or same-or-older head
-      (initialPosts.length === 0 ||
-        snap.posts[0]?.id === initialPosts[0]?.id ||
-        snap.savedAt > Date.now() - FEED_SOFT_TTL_MS)
-    ) {
-      // If server has a newer first post, trust server
+    if (isFeedHardValid(snap) && snap) {
       if (
         initialPosts[0] &&
         snap.posts[0] &&
         initialPosts[0].id !== snap.posts[0].id &&
         initialPosts[0].created_at > snap.posts[0].created_at
       ) {
-        return {
-          posts: initialPosts,
-          nextOffset: initialNextOffset,
-        };
+        return { posts: initialPosts, nextOffset: initialNextOffset, soft: false };
       }
       return {
         posts: snap.posts,
         nextOffset: snap.nextOffset,
+        soft: isFeedSoftFresh(snap),
       };
     }
-    return {
-      posts: initialPosts,
-      nextOffset: initialNextOffset,
-    };
+    if (initialPosts.length > 0) {
+      return { posts: initialPosts, nextOffset: initialNextOffset, soft: false };
+    }
+    return { posts: [] as PostWithAuthor[], nextOffset: null, soft: false };
   })();
 
   const [posts, setPosts] = useState(boot.posts);
   const [nextOffset, setNextOffset] = useState(boot.nextOffset);
   const [error, setError] = useState<string | null>(null);
+  const [booting, setBooting] = useState(boot.posts.length === 0 && initialPosts.length === 0);
   const [newPosts, setNewPosts] = useState<PostWithAuthor[]>([]);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadingMore = useRef(false);
@@ -82,6 +72,7 @@ export function FeedList({
    * the expensive rank+sign path for the same head.
    */
   const acknowledgedHeads = useRef(new Set<string>());
+  const softFreshBoot = useRef(Boolean(boot.soft));
 
   useEffect(() => {
     postsRef.current = posts;
@@ -144,6 +135,51 @@ export function FeedList({
     // Only on mount / server prop identity change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPosts, initialNextOffset]);
+
+
+  // Cold start / soft-stale: one ranked page-0. Soft-fresh skips full rank.
+  useEffect(() => {
+    if (softFreshBoot.current && postsRef.current.length > 0) {
+      setBooting(false);
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25_000);
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/feed?offset=0&limit=${FEED_PAGE_SIZE}&scope=${scope}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok || cancelled) {
+          if (!cancelled && postsRef.current.length === 0) setError("Falha ao carregar o feed.");
+          return;
+        }
+        const body = (await res.json()) as {
+          posts?: PostWithAuthor[];
+          nextOffset?: number | null;
+        };
+        if (cancelled) return;
+        setPosts(body.posts ?? []);
+        setNextOffset(body.nextOffset ?? null);
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return;
+        if (!cancelled && postsRef.current.length === 0) {
+          setError(e instanceof Error ? e.message : "Falha ao carregar.");
+        }
+      } finally {
+        clearTimeout(timer);
+        if (!cancelled) setBooting(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope]);
 
   const loadMore = useCallback(() => {
     if (nextOffset == null || loadingMore.current) return;
@@ -342,6 +378,10 @@ export function FeedList({
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  if (booting && posts.length === 0) {
+    return <FeedSkeleton count={4} />;
+  }
+
   if (posts.length === 0) {
     return (
       <EmptyState
@@ -403,5 +443,5 @@ export function rememberFeedScroll() {
 
 /** After publish/delete — next home paint should not trust stale snapshot. */
 export function bustFeedCache() {
-  invalidateFeedSnapshot();
+  invalidateAllFeedSnapshots();
 }
