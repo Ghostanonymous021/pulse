@@ -266,7 +266,7 @@ export function ComposeForm({
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 px-4 py-4">
+      <div className="flex flex-col gap-4 px-4 py-4">
         <MentionField
           rows={4}
           autoGrow
