@@ -11,7 +11,6 @@ const PRIMARY_EXACT = new Set([
   "/pessoas",
   "/explorar",
   "/mensagens",
-  "/postar",
   "/perfil",
   "/notificacoes",
 ]);
