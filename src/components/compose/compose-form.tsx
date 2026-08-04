@@ -277,7 +277,7 @@ export function ComposeForm({
           placeholder="O que tens em mente? Usa @ para mencionar alguem"
           maxLength={5000}
           autoFocus
-          className="w-full resize-none border-none bg-transparent text-[19px] font-normal leading-relaxed tracking-[-0.01em] text-foreground outline-none placeholder:text-muted-foreground"
+          className="field-borderless w-full resize-none border-none bg-transparent text-[19px] font-normal leading-[1.45] tracking-[-0.01em] text-foreground caret-brand outline-none placeholder:text-muted-foreground/80"
         />
 
         <ImageStrip

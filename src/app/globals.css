@@ -156,6 +156,13 @@ body {
   outline-offset: 2px;
 }
 
+/* Borderless compose fields (postar, comentarios, chat) — o campo e a
+   propria superficie de escrita, sem moldura; o cursor a piscar ja e
+   feedback suficiente de foco. */
+.field-borderless:focus-visible {
+  outline: none;
+}
+
 /* App chrome — no selection / no iOS callout */
 .app-chrome,
 nav,
