@@ -8,6 +8,7 @@ import { ImageEditorSheet } from "@/components/compose/image-editor-sheet";
 import { ImageStrip, type ComposeImage } from "@/components/compose/image-strip";
 import { LifespanSheet } from "@/components/compose/lifespan-sheet";
 import { MentionField } from "@/components/compose/mention-field";
+import { FixedBottomBar } from "@/components/ui/fixed-bottom-bar";
 import { PulseLoader } from "@/components/ui/pulse-loader";
 import {
   clearComposeDraft,
@@ -259,14 +260,14 @@ export function ComposeForm({
         <button
           type="submit"
           disabled={!canPublish}
-          className="flex h-9 items-center gap-2 rounded-full bg-accent px-4 text-[14px] font-semibold text-accent-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
+          className="flex h-9 items-center gap-2 rounded-full bg-brand px-4 text-[14px] font-semibold text-brand-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
         >
           {loading && <PulseLoader size="sm" />}
           {loading ? "A publicar..." : "Publicar"}
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 py-4">
+      <div className="flex flex-col gap-4 px-4 py-4 pb-24">
         <MentionField
           rows={4}
           autoGrow
@@ -296,10 +297,7 @@ export function ComposeForm({
       </div>
 
       {/* Barra de acoes — minima: foto + tempo de vida (+ destaque p/ orgs) */}
-      <div
-        data-app-chrome
-        className="sticky bottom-0 flex items-center gap-1 border-t border-[var(--separator)] bg-[var(--elevated)] px-3 py-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150"
-      >
+      <FixedBottomBar innerClassName="flex items-center gap-1 px-3 py-2">
         <input
           ref={fileRef}
           type="file"
@@ -349,7 +347,7 @@ export function ComposeForm({
             Destaque
           </button>
         )}
-      </div>
+      </FixedBottomBar>
 
       {editingItem && (
         <ImageEditorSheet
