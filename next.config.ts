@@ -18,7 +18,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://*.supabase.co",
       "media-src 'self' blob: https://*.supabase.co",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "frame-ancestors 'none'",
