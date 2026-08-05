@@ -268,17 +268,29 @@ export function ComposeForm({
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-4 pb-24">
-        <MentionField
-          rows={4}
-          autoGrow
-          maxHeight={480}
-          value={body}
-          onChange={setBody}
-          placeholder="O que tens em mente? Usa @ para mencionar alguem"
-          maxLength={5000}
-          autoFocus
-          className="field-borderless w-full resize-none border-none bg-transparent text-[19px] font-normal leading-[1.45] tracking-[-0.01em] text-foreground caret-brand outline-none placeholder:text-muted-foreground/80"
-        />
+        <div className="relative">
+          <MentionField
+            rows={4}
+            autoGrow
+            maxHeight={480}
+            value={body}
+            onChange={setBody}
+            placeholder="O que tens em mente? Usa @ para mencionar alguem"
+            maxLength={5000}
+            autoFocus
+            className="field-borderless w-full resize-none border-none bg-transparent text-[20px] font-normal leading-[1.4] tracking-[-0.015em] text-foreground antialiased caret-brand outline-none selection:bg-brand/20 placeholder:font-normal placeholder:text-muted-foreground/70"
+          />
+          {body.length > 4880 && (
+            <span
+              className={cn(
+                "pointer-events-none absolute -bottom-1 right-0 translate-y-full text-[12px] font-medium tabular-nums transition-colors duration-200",
+                body.length >= 5000 ? "text-destructive" : "text-muted-foreground",
+              )}
+            >
+              {5000 - body.length}
+            </span>
+          )}
+        </div>
 
         <ImageStrip
           images={images}
