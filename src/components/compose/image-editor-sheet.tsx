@@ -4,8 +4,24 @@ import { useRef, useState } from "react";
 import { AlertCircle, Check, FlipHorizontal, RotateCcw, RotateCw, X } from "lucide-react";
 import { Cropper, type CropperRef } from "react-advanced-cropper";
 import "react-advanced-cropper/dist/style.css";
+import type { CoreSettings, CropperState, Size } from "advanced-cropper/types";
 
 import { PulseLoader } from "@/components/ui/pulse-loader";
+
+/**
+ * Tamanho inicial do crop = a foto inteira.
+ *
+ * A biblioteca por omissao usa 80% da area visivel, centrado — ou seja,
+ * se o utilizador nao mexer em nada, a foto sai cortada nas bordas sem
+ * ele perceber. Apps profissionais (Instagram, X) fazem o oposto: o
+ * crop comeca a mostrar a foto INTEIRA, e o utilizador so perde partes
+ * dela se deliberadamente apertar o enquadramento. "Nao mexer" deve
+ * significar "publicar a foto completa".
+ */
+function fullImageSize(state: CropperState, settings: CoreSettings): Size {
+  const area = state.visibleArea ?? state.imageSize;
+  return { width: area.width, height: area.height };
+}
 
 /**
  * Editor de imagem full-screen: crop, girar, inverter.
@@ -111,6 +127,7 @@ export function ImageEditorSheet({
         <Cropper
           ref={cropperRef}
           src={src}
+          defaultSize={fullImageSize}
           className="h-full w-full"
           backgroundClassName="bg-black"
         />
