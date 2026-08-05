@@ -36,8 +36,9 @@ export function PostMenu({
     (async () => {
       const supabase = createClient();
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user || cancelled) return;
       setIsOwner(user.id === authorId);
     })();
@@ -92,8 +93,9 @@ export function PostMenu({
   async function reportPost(reason: string) {
     const supabase = createClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase.from("reports").insert({
       reporter_id: user.id,
@@ -124,8 +126,9 @@ export function PostMenu({
   async function blockAuthor() {
     const supabase = createClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase
       .from("blocks")
