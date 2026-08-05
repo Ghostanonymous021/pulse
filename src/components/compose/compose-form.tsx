@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, ImagePlus, Star, X } from "lucide-react";
+import { AlertCircle, Clock, ImagePlus, Star, X } from "lucide-react";
 
 import { ImageEditorSheet } from "@/components/compose/image-editor-sheet";
 import { ImageStrip, type ComposeImage } from "@/components/compose/image-strip";
@@ -253,14 +253,14 @@ export function ComposeForm({
           type="button"
           aria-label="Cancelar"
           onClick={() => router.back()}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-muted"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/80 transition-all duration-200 ease-out hover:bg-muted active:scale-90"
         >
           <X className="h-5 w-5" strokeWidth={1.5} />
         </button>
         <button
           type="submit"
           disabled={!canPublish}
-          className="flex h-9 items-center gap-2 rounded-full bg-brand px-4 text-[14px] font-semibold text-brand-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
+          className="flex h-9 items-center gap-2 rounded-full bg-brand px-4 text-[14px] font-semibold text-brand-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:bg-muted disabled:text-muted-foreground"
         >
           {loading && <PulseLoader size="sm" />}
           {loading ? "A publicar..." : "Publicar"}
@@ -302,7 +302,11 @@ export function ComposeForm({
         />
 
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p
+            className="flex w-fit items-center gap-1.5 rounded-full bg-destructive/15 px-3.5 py-2 text-[12.5px] font-medium text-destructive"
+            role="alert"
+          >
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
             {error}
           </p>
         )}
