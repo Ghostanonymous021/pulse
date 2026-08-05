@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, FlipHorizontal, RotateCcw, RotateCw, X } from "lucide-react";
+import { AlertCircle, Check, FlipHorizontal, RotateCcw, RotateCw, X } from "lucide-react";
 import { Cropper, type CropperRef } from "react-advanced-cropper";
 import "react-advanced-cropper/dist/style.css";
 
@@ -77,15 +77,18 @@ export function ImageEditorSheet({
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-black">
+      {/* Scrim: garante contraste dos icones sobre qualquer foto, clara ou escura —
+          mesmo tratamento que apps de camera/galeria nativos usam. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-black/70 to-transparent" />
       <div
         data-app-chrome
-        className="flex items-center justify-between px-3 py-3 pt-[env(safe-area-inset-top)]"
+        className="relative z-20 flex items-center justify-between px-3 py-3 pt-[env(safe-area-inset-top)]"
       >
         <button
           type="button"
           aria-label="Cancelar"
           onClick={cancel}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-white/90 hover:bg-white/10"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-white/90 transition-all duration-200 ease-out hover:bg-white/10 active:scale-95"
         >
           <X className="h-5 w-5" strokeWidth={1.5} />
         </button>
@@ -95,9 +98,9 @@ export function ImageEditorSheet({
           aria-label="Concluir edicao"
           onClick={confirm}
           disabled={busy}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-brand hover:bg-white/10 disabled:opacity-50"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-brand-foreground transition-all duration-200 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
         >
-          {busy ? <PulseLoader size="sm" tone="on-brand" /> : <Check className="h-5 w-5" strokeWidth={2} />}
+          {busy ? <PulseLoader size="sm" tone="on-brand" /> : <Check className="h-5 w-5" strokeWidth={2.5} />}
         </button>
       </div>
 
@@ -114,17 +117,25 @@ export function ImageEditorSheet({
       </div>
 
       {error && (
-        <p className="px-6 pb-2 text-center text-[13px] text-destructive" role="alert">
-          {error}
-        </p>
+        <div className="relative z-20 flex justify-center px-6 pb-3">
+          <p
+            className="flex items-center gap-1.5 rounded-full bg-destructive/15 px-3.5 py-2 text-[12.5px] font-medium text-destructive backdrop-blur-sm"
+            role="alert"
+          >
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+            {error}
+          </p>
+        </div>
       )}
 
-      <div className="flex items-center justify-center gap-8 px-6 py-5 pb-[env(safe-area-inset-bottom)]">
+      {/* Scrim inferior — mesmo raciocinio do topo. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-black/70 to-transparent" />
+      <div className="relative z-20 flex items-center justify-center gap-8 px-6 py-5 pb-[env(safe-area-inset-bottom)]">
         <button
           type="button"
           aria-label="Girar para a esquerda"
           onClick={() => rotate(-90)}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition-transform hover:bg-white/10 active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition-all duration-200 ease-out hover:bg-white/10 active:scale-90"
         >
           <RotateCcw className="h-5 w-5" strokeWidth={1.5} />
         </button>
@@ -132,7 +143,7 @@ export function ImageEditorSheet({
           type="button"
           aria-label="Inverter"
           onClick={flip}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition-transform hover:bg-white/10 active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition-all duration-200 ease-out hover:bg-white/10 active:scale-90"
         >
           <FlipHorizontal className="h-5 w-5" strokeWidth={1.5} />
         </button>
@@ -140,7 +151,7 @@ export function ImageEditorSheet({
           type="button"
           aria-label="Girar para a direita"
           onClick={() => rotate(90)}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition-transform hover:bg-white/10 active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition-all duration-200 ease-out hover:bg-white/10 active:scale-90"
         >
           <RotateCw className="h-5 w-5" strokeWidth={1.5} />
         </button>
