@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function SignupPage() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-lg flex-col justify-center px-6 py-12">
+    <>
       <div className="mb-10 space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
         <p className="text-sm text-muted-foreground">
@@ -22,6 +22,6 @@ export default function SignupPage() {
           Entrar
         </Link>
       </p>
-    </div>
+    </>
   );
 }

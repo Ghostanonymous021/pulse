@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { PulseWordmark } from "@/components/brand/pulse-wordmark";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,8 +22,8 @@ export default async function LandingPage() {
       data-app-chrome
       className="mx-auto flex min-h-full w-full max-w-lg flex-col justify-between px-6 py-16"
     >
-      <div className="space-y-3 pt-12">
-        <p className="text-sm font-medium text-muted-foreground">Pulse</p>
+      <div className="space-y-5 pt-12">
+        <PulseWordmark className="h-8 w-auto text-foreground" />
         <h1 className="text-3xl font-semibold tracking-tight">
           Pessoas, ideias e conversas que valem a pena
         </h1>
@@ -34,7 +35,7 @@ export default async function LandingPage() {
       <div className="flex flex-col gap-3 pb-8">
         <Link
           href="/signup"
-          className="flex h-12 items-center justify-center rounded-xl bg-accent text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+          className="flex h-12 items-center justify-center rounded-xl bg-brand text-sm font-medium text-brand-foreground transition-opacity hover:opacity-90"
         >
           Criar conta
         </Link>
