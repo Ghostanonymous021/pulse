@@ -88,6 +88,19 @@ export function FeedList({
     newPostsRef.current = newPosts;
   }, [newPosts]);
 
+  const handleLikeChange = useCallback(
+    (postId: string, liked: boolean, likeCount: number) => {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, liked_by_me: liked, like_count: likeCount }
+            : p,
+        ),
+      );
+    },
+    [],
+  );
+
   // Restore scroll after back-navigation
   useEffect(() => {
     try {
@@ -415,7 +428,7 @@ export function FeedList({
       )}
 
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} onLikeChange={handleLikeChange} />
       ))}
       <div ref={sentinel} aria-hidden className="h-px" />
       {isLoadingMore && !error && (

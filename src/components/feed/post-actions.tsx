@@ -17,11 +17,16 @@ export function PostActions({
   initialLiked,
   initialLikeCount,
   commentCount,
+  onLikeChange,
 }: {
   postId: string;
   initialLiked: boolean;
   initialLikeCount: number;
   commentCount: number;
+  /** Avisa quem for dono dos dados (ex.: a cache do feed) do novo estado —
+   * sem isto, um "gosto" fica preso so no estado local deste botao e
+   * desaparece assim que o feed repinta a partir de uma cache antiga. */
+  onLikeChange?: (liked: boolean, likeCount: number) => void;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -32,6 +37,19 @@ export function PostActions({
   // na chave primaria user_id+post_id de um duplo-toque) nao deve desfazer
   // o que o utilizador decidiu depois.
   const attempt = useRef(0);
+  const mounted = useRef(false);
+
+  // Propaga liked/likeCount para cima sempre que mudam — otimista e no
+  // rollback, automaticamente (mesmo efeito cobre os dois casos). Ignora
+  // o primeiro render: nao ha nada de novo pra sincronizar so por montar.
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    onLikeChange?.(liked, likeCount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liked, likeCount]);
 
   useEffect(() => {
     if (liked) {

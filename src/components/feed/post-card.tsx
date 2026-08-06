@@ -62,9 +62,11 @@ export type PostWithAuthor = Post & {
 export function PostCard({
   post,
   variant = "feed",
+  onLikeChange,
 }: {
   post: PostWithAuthor;
   variant?: "feed" | "detail";
+  onLikeChange?: (postId: string, liked: boolean, likeCount: number) => void;
 }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -190,6 +192,11 @@ export function PostCard({
           initialLiked={Boolean(post.liked_by_me)}
           initialLikeCount={post.like_count ?? 0}
           commentCount={post.comment_count ?? 0}
+          onLikeChange={
+            onLikeChange
+              ? (liked, likeCount) => onLikeChange(post.id, liked, likeCount)
+              : undefined
+          }
         />
       </div>
 
