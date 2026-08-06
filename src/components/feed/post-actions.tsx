@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -25,8 +25,13 @@ export function PostActions({
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [pending, setPending] = useState(false);
   const [animating, setAnimating] = useState(false);
+  // Numera cada tentativa: se o utilizador tocar varias vezes seguidas
+  // (rede lenta, indeciso), so a resposta da tentativa MAIS RECENTE pode
+  // reverter o estado. Uma tentativa antiga que falhe tarde (ex.: colisao
+  // na chave primaria user_id+post_id de um duplo-toque) nao deve desfazer
+  // o que o utilizador decidiu depois.
+  const attempt = useRef(0);
 
   useEffect(() => {
     if (liked) {
@@ -37,13 +42,16 @@ export function PostActions({
   }, [liked]);
 
   async function toggleLike() {
-    if (pending) return;
     const next = !liked;
     const prevLiked = liked;
     const prevCount = likeCount;
+    // Feedback instantaneo sempre — nunca "engole" um toque. E assim que
+    // X/Instagram fazem: o coracao responde ao toque, a rede que se
+    // desenrasque em segundo plano.
     setLiked(next);
     setLikeCount((c) => c + (next ? 1 : -1));
-    setPending(true);
+
+    const myAttempt = ++attempt.current;
 
     try {
       const supabase = createClient();
@@ -52,16 +60,23 @@ export function PostActions({
       } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user) {
-        setLiked(prevLiked);
-        setLikeCount(prevCount);
+        if (attempt.current === myAttempt) {
+          setLiked(prevLiked);
+          setLikeCount(prevCount);
+        }
         return;
       }
 
       if (next) {
-        const { error } = await supabase.from("likes").insert({
-          user_id: user.id,
-          post_id: postId,
-        });
+        // upsert + ignoreDuplicates: um segundo toque rapido que ja tinha
+        // side efeito de um insert anterior em curso nao rebenta contra a
+        // primary key (user_id, post_id) — so e ignorado, sem erro.
+        const { error } = await supabase
+          .from("likes")
+          .upsert(
+            { user_id: user.id, post_id: postId },
+            { onConflict: "user_id,post_id", ignoreDuplicates: true },
+          );
         if (error) throw error;
       } else {
         const { error } = await supabase
@@ -72,10 +87,11 @@ export function PostActions({
         if (error) throw error;
       }
     } catch {
-      setLiked(prevLiked);
-      setLikeCount(prevCount);
-    } finally {
-      setPending(false);
+      // So reverte se esta ainda for a tentativa mais recente.
+      if (attempt.current === myAttempt) {
+        setLiked(prevLiked);
+        setLikeCount(prevCount);
+      }
     }
   }
 
@@ -85,10 +101,9 @@ export function PostActions({
         <button
           type="button"
           onClick={toggleLike}
-          disabled={pending}
           aria-label={liked ? "Remover gosto" : "Gostar"}
           aria-pressed={liked}
-          className="relative rounded-full p-2 transition-colors hover:bg-muted/80 active:scale-95 disabled:opacity-50"
+          className="relative rounded-full p-2 transition-colors hover:bg-muted/80 active:scale-95"
         >
           <Heart
             className={cn(

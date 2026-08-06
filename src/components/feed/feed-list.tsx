@@ -5,6 +5,7 @@ import { ArrowUp, Rss } from "lucide-react";
 
 import { PostCard, type PostWithAuthor } from "@/components/feed/post-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PulseLoader } from "@/components/ui/pulse-loader";
 import {
   invalidateAllFeedSnapshots,
   isFeedHardValid,
@@ -60,6 +61,7 @@ export function FeedList({
   const [error, setError] = useState<string | null>(null);
   const [booting, setBooting] = useState(boot.posts.length === 0 && initialPosts.length === 0);
   const [newPosts, setNewPosts] = useState<PostWithAuthor[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadingMore = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -184,6 +186,7 @@ export function FeedList({
   const loadMore = useCallback(() => {
     if (nextOffset == null || loadingMore.current) return;
     loadingMore.current = true;
+    setIsLoadingMore(true);
     setError(null);
 
     const controller = new AbortController();
@@ -213,6 +216,7 @@ export function FeedList({
       } finally {
         clearTimeout(id);
         loadingMore.current = false;
+        setIsLoadingMore(false);
       }
     })();
   }, [nextOffset]);
@@ -413,7 +417,13 @@ export function FeedList({
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
-      <div ref={sentinel} className="h-8" aria-hidden />
+      <div ref={sentinel} aria-hidden className="h-px" />
+      {isLoadingMore && !error && (
+        <div className="flex items-center justify-center gap-2 py-6 text-[13px] text-muted-foreground">
+          <PulseLoader size="sm" />
+          A carregar mais publicações…
+        </div>
+      )}
       {error && (
         <button
           type="button"
