@@ -2,12 +2,27 @@
  * Generates Pulse PWA icons from the official brand mark (EKG heartbeat).
  * Source of truth: public/brand/icon-source.svg (same path as PulseMark / PulseLoader).
  *
- * Run: node scripts/generate-pwa-icons.mjs
+ * PNGs are committed under public/icons/ — do NOT run this in `npm run build`
+ * (Vercel/CI must not depend on native SVG tooling).
+ *
+ * Local regenerate only:
+ *   npm install --no-save @resvg/resvg-js && npm run icons
  */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Resvg } from "@resvg/resvg-js";
+
+let Resvg;
+try {
+  ({ Resvg } = await import("@resvg/resvg-js"));
+} catch {
+  console.error(
+    "Missing @resvg/resvg-js. Install once for local icon generation:\n" +
+      "  npm install --no-save @resvg/resvg-js\n" +
+      "Committed PNGs in public/icons/ are already production-ready.",
+  );
+  process.exit(1);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
