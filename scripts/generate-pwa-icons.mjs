@@ -1,167 +1,80 @@
 /**
- * Generates Pulse PWA icons (PNG) without external deps.
- * Brand: near-black plate + soft white "P" mark (maskable-safe center).
+ * Generates Pulse PWA icons from the official brand mark (EKG heartbeat).
+ * Source of truth: public/brand/icon-source.svg (same path as PulseMark / PulseLoader).
  *
  * Run: node scripts/generate-pwa-icons.mjs
  */
-import { deflateSync } from "node:zlib";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Resvg } from "@resvg/resvg-js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT = join(__dirname, "../public/icons");
+const ROOT = join(__dirname, "..");
+const OUT = join(ROOT, "public/icons");
+const SOURCE = join(ROOT, "public/brand/icon-source.svg");
 
 const SIZES = [72, 96, 128, 144, 152, 180, 192, 384, 512];
 
-function crcTable() {
-  const table = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    table[n] = c;
-  }
-  return table;
-}
-const CRC = crcTable();
+/** Full-bleed blue plate + white EKG (matches icon-source.svg). */
+function svgForSize(size, { maskable = false } = {}) {
+  // Maskable: keep ~20% safe padding so the mark survives Android circle crop.
+  const pad = maskable ? 0.18 : 0.12;
+  const inner = 1 - pad * 2;
+  // Original path viewBox roughly 3687 5399 888 896
+  const vbX = 3687;
+  const vbY = 5399;
+  const vbW = 888;
+  const vbH = 896;
+  const scale = (size * inner) / Math.max(vbW, vbH);
+  const drawW = vbW * scale;
+  const drawH = vbH * scale;
+  const tx = (size - drawW) / 2 - vbX * scale;
+  const ty = (size - drawH) / 2 - vbY * scale;
 
-function crc32(buf) {
-  let c = 0xffffffff;
-  for (let i = 0; i < buf.length; i++) c = CRC[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
-  return (c ^ 0xffffffff) >>> 0;
-}
+  const path =
+    "M3927.15 5942.17c12.36,0 14.61,-20.26 18.32,-31.24l60.96 -172.37c4.17,-12.09 7.67,-21.95 12.29,-34.33 4.02,-10.78 6,-25.61 15.1,-32.6 6.03,9.41 5.68,22.88 6.79,34.44l25.59 251.42c5.2,52.39 22.45,248.81 29,284.09 6.76,36.42 61.13,44.2 72.83,15.26 24.21,-59.86 128.29,-354.78 142.46,-364.85 17.32,18.24 10.93,50.19 30,50.19l166.67 0c24.35,0 40.45,-7.08 45.32,-27.34 23.59,-98.17 -129.27,-41.54 -156.98,-60.52 -10.82,-11.75 -39.67,-101.74 -49.24,-124.05 -9.75,-22.72 -43.52,-25.28 -59.39,-14.61 -18.42,12.38 -66.09,154.95 -76.07,180.68 -5.13,13.24 -36.81,114.22 -50.3,118.57 -4.5,-8.77 -47.8,-445.7 -55.56,-527.09 -2.61,-27.36 0.85,-45.78 -20.23,-59.4 -20.48,-13.23 -48.49,-13.55 -60.82,4.31 -10.59,15.33 -137.74,397.63 -152.49,423.54 -30.33,1.93 -125.55,-4.22 -145.16,5.37 -21.64,10.59 -38.05,80.54 27.59,80.54l173.33 0z";
 
-function chunk(type, data) {
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length);
-  const typeBuf = Buffer.from(type, "ascii");
-  const crcBuf = Buffer.alloc(4);
-  const crcData = Buffer.concat([typeBuf, data]);
-  crcBuf.writeUInt32BE(crc32(crcData));
-  return Buffer.concat([len, typeBuf, data, crcBuf]);
-}
-
-function encodePng(width, height, rgba) {
-  const raw = Buffer.alloc((width * 4 + 1) * height);
-  for (let y = 0; y < height; y++) {
-    const rowStart = y * (width * 4 + 1);
-    raw[rowStart] = 0; // filter none
-    rgba.copy(raw, rowStart + 1, y * width * 4, (y + 1) * width * 4);
-  }
-  const compressed = deflateSync(raw, { level: 9 });
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(width, 0);
-  ihdr.writeUInt32BE(height, 4);
-  ihdr[8] = 8; // bit depth
-  ihdr[9] = 6; // RGBA
-  ihdr[10] = 0;
-  ihdr[11] = 0;
-  ihdr[12] = 0;
-  return Buffer.concat([
-    signature,
-    chunk("IHDR", ihdr),
-    chunk("IDAT", compressed),
-    chunk("IEND", Buffer.alloc(0)),
-  ]);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <rect width="${size}" height="${size}" fill="#2563EB"/>
+  <g transform="translate(${tx.toFixed(3)} ${ty.toFixed(3)}) scale(${scale.toFixed(6)})">
+    <path fill="#F8FAFC" d="${path}"/>
+  </g>
+</svg>`;
 }
 
-function drawIcon(size, { maskable = false } = {}) {
-  const rgba = Buffer.alloc(size * size * 4);
-  const bg = maskable ? [9, 9, 11, 255] : [9, 9, 11, 255]; // zinc-950
-  const fg = [255, 159, 10, 255]; // brand orange
-
-  // Fill background
-  for (let i = 0; i < size * size; i++) {
-    rgba[i * 4] = bg[0];
-    rgba[i * 4 + 1] = bg[1];
-    rgba[i * 4 + 2] = bg[2];
-    rgba[i * 4 + 3] = bg[3];
-  }
-
-  const cx = size / 2;
-  const cy = size / 2;
-  // Safe zone for maskable ~80%; regular uses more of the canvas
-  const outerR = size * (maskable ? 0.36 : 0.42);
-  const ringW = size * 0.055;
-
-  function setPx(x, y, color) {
-    if (x < 0 || y < 0 || x >= size || y >= size) return;
-    const i = (y * size + x) * 4;
-    rgba[i] = color[0];
-    rgba[i + 1] = color[1];
-    rgba[i + 2] = color[2];
-    rgba[i + 3] = color[3];
-  }
-
-  // Soft rounded square plate (not pure circle — app-like)
-  const plateR = size * (maskable ? 0.34 : 0.4);
-  const corner = plateR * 0.28;
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const dx = Math.abs(x + 0.5 - cx);
-      const dy = Math.abs(y + 0.5 - cy);
-      // rounded rect SDF-ish
-      const hx = Math.max(dx - (plateR - corner), 0);
-      const hy = Math.max(dy - (plateR - corner), 0);
-      const d = Math.hypot(hx, hy) - corner;
-      if (d <= 0) {
-        // subtle gradient
-        const t = (y / size) * 0.12;
-        setPx(x, y, [
-          Math.min(255, bg[0] + 18 + t * 40),
-          Math.min(255, bg[1] + 18 + t * 40),
-          Math.min(255, bg[2] + 22 + t * 50),
-          255,
-        ]);
-      }
-    }
-  }
-
-  // Pulse ring (outer arc)
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
-      if (Math.abs(d - outerR) < ringW * 0.55) {
-        setPx(x, y, fg);
-      }
-    }
-  }
-
-  // Inner filled circle (pulse core)
-  const coreR = size * (maskable ? 0.14 : 0.16);
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
-      if (d <= coreR) setPx(x, y, fg);
-    }
-  }
-
-  return encodePng(size, size, rgba);
+function renderPng(size, opts) {
+  const svg = svgForSize(size, opts);
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: "width", value: size },
+  });
+  return resvg.render().asPng();
 }
 
 mkdirSync(OUT, { recursive: true });
 
 for (const size of SIZES) {
-  const buf = drawIcon(size, { maskable: false });
+  const buf = renderPng(size, { maskable: false });
   const name =
     size === 180
       ? "apple-touch-icon.png"
-      : size === 192
-        ? "icon-192.png"
-        : size === 512
-          ? "icon-512.png"
-          : `icon-${size}.png`;
+      : `icon-${size}.png`;
   writeFileSync(join(OUT, name), buf);
-  if (size === 180) {
-    // also keep generic name
-    writeFileSync(join(OUT, "icon-180.png"), buf);
-  }
+  if (size === 180) writeFileSync(join(OUT, "icon-180.png"), buf);
   console.log("wrote", name, buf.length);
 }
 
-// Dedicated maskable 512 (more padding)
-writeFileSync(join(OUT, "icon-maskable-512.png"), drawIcon(512, { maskable: true }));
-writeFileSync(join(OUT, "icon-maskable-192.png"), drawIcon(192, { maskable: true }));
+writeFileSync(join(OUT, "icon-maskable-192.png"), renderPng(192, { maskable: true }));
+writeFileSync(join(OUT, "icon-maskable-512.png"), renderPng(512, { maskable: true }));
 console.log("wrote maskable icons");
+
+// Keep a favicon-sized copy at public root if referenced
+try {
+  writeFileSync(join(ROOT, "public/favicon.ico"), renderPng(48, { maskable: false }));
+} catch {
+  /* optional */
+}
+
 console.log("OK", OUT);
+console.log("Brand mark: EKG heartbeat on Pulse Blue (#2563EB) — same as PulseLoader.");

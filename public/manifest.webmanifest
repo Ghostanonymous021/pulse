@@ -11,7 +11,7 @@
   "display_override": ["standalone", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "theme_color": "#2563EB",
   "categories": ["social", "education"],
   "prefer_related_applications": false,
   "icons": [
