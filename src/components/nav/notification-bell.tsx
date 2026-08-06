@@ -29,8 +29,9 @@ export function NotificationBell({
 
     async function setup() {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user || cancelled) return;
 
       channel = supabase

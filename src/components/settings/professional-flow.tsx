@@ -97,8 +97,9 @@ export function ProfessionalFlow({
       try {
         const supabase = createClient();
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const user = session?.user;
         if (!user) throw new Error("Sessão expirada.");
 
         const { data, error: insertError } = await supabase

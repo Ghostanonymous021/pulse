@@ -65,7 +65,7 @@ export function WorkspaceComposer({
 
     const { error } = await supabase.from("project_entries").insert({
       project_id: projectId,
-      author_id: (await supabase.auth.getUser()).data.user?.id || "",
+      author_id: (await supabase.auth.getSession()).data.session?.user?.id || "",
       entry_type: entryType,
       body: body.trim() || null,
       url: url.trim() || null,

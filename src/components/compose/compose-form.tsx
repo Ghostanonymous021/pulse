@@ -178,8 +178,9 @@ export function ComposeForm({
     try {
       const supabase = createClient();
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) throw new Error("A tua sessao expirou. Entra outra vez.");
 
       const expiresAt = resolveExpiresAt(lifespanPreset, customDate);

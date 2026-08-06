@@ -52,8 +52,9 @@ export function ProfileMenu({ userId }: { userId: string }) {
   async function reportProfile(reason: string) {
     const supabase = createClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase.from("reports").insert({
       reporter_id: user.id,
@@ -70,8 +71,9 @@ export function ProfileMenu({ userId }: { userId: string }) {
   async function blockUser() {
     const supabase = createClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
     const { error } = await supabase
       .from("blocks")

@@ -36,8 +36,9 @@ export function NotificationToggles({
     try {
       const supabase = createClient();
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) throw new Error("no session");
 
       const payload = {
