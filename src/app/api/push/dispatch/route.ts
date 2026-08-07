@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       actor_id: (record.actor_id as string) ?? null,
       reference_id: (record.reference_id as string) ?? null,
     });
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({ success: true, sent: result.ok, failed: result.fail });
   } catch (e) {
     console.error("push/dispatch", e);
     return NextResponse.json(

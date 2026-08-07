@@ -33,7 +33,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error } = await supabase.from("device_push_tokens").upsert(
+  // Table exists in DB; generated Database types may lag behind migrations.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { error } = await db.from("device_push_tokens").upsert(
     {
       profile_id: user.id,
       token,
@@ -71,7 +74,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "token obrigatório." }, { status: 400 });
   }
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { error } = await db
     .from("device_push_tokens")
     .delete()
     .eq("profile_id", user.id)
