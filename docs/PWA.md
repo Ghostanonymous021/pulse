@@ -2,6 +2,9 @@
 
 Documento de conformidade e operacao PWA (v1 instalavel).
 
+O contentor Capacitor (`docs/NATIVE.md`) **nao** usa este SW. `PwaRegister`
+desregista qualquer service worker quando `Capacitor.isNativePlatform()`.
+
 ## Arquitectura
 
 | Camada | Implementacao |

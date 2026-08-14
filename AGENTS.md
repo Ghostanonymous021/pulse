@@ -186,7 +186,9 @@ Qualquer "não" ou "não sei" nesta lista = tarefa volta para o agente responsá
 
 - [x] `docs/UX_VOICE.md` aplicado ao codigo (24/07/2026): onboarding, compose, comentarios, feed vazio, perfil (bio/links/publicacoes), mensagens, notificacoes, definicoes (permissao DM), erros de auth e erros genericos de accao. So trocas de string literal, nenhuma logica/estrutura alterada. Excepcoes deliberadas mantidas fora do tom "vivo" (guia secao 6): mensagens de seguranca/RLS, contas bloqueadas, apagar conta.
 
-**Próxima decisão pendente:** CRUD portfolio, virtualizacao do feed, ou activity nas notificacoes.
+- [x] Contentor nativo Capacitor (14/08/2026): Flutter fica de lado. O produto na loja e o Next.js vivo em `https://pulseax.vercel.app` dentro de um WebView (`server.url`). Nao ha `output: 'export'`. Deteccao em `src/lib/native/runtime.ts`, boot em `NativeShell`, SW desligado no nativo, config em `capacitor.config.ts`. Ver `docs/NATIVE.md`. Fase 1 = contentor. Fase 2 = FCM + deep links.
+
+**Próxima decisão pendente:** Fase 2 do contentor nativo (FCM + deep links), CRUD portfolio, ou virtualizacao do feed.
 
 ### 6.1. `PulseLoader` — padrão único de "processando"
 

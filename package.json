@@ -8,9 +8,19 @@
     "start": "node node_modules/next/dist/bin/next start",
     "lint": "node node_modules/eslint/bin/eslint.js",
     "icons": "node scripts/generate-pwa-icons.mjs",
-    "test": "node --experimental-strip-types --test src/lib/ranking/score.test.ts src/lib/security/*.test.ts src/lib/mentions/*.test.ts"
+    "test": "node --experimental-strip-types --test src/lib/ranking/score.test.ts src/lib/security/*.test.ts src/lib/mentions/*.test.ts",
+    "native:sync": "npx cap sync",
+    "native:android": "npx cap open android",
+    "native:ios": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^7.6.8",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.8",
+    "@capacitor/ios": "^7.6.8",
+    "@capacitor/keyboard": "^7.0.6",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "lucide-react": "^1.25.0",
@@ -19,6 +29,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.6.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   compress: true,
+  transpilePackages: [
+    "@capacitor/core",
+    "@capacitor/app",
+    "@capacitor/keyboard",
+    "@capacitor/status-bar",
+    "@capacitor/splash-screen",
+  ],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

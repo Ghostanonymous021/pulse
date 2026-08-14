@@ -15,6 +15,7 @@ A camada social das universidades.
 
 - Next.js (App Router) + TypeScript + Tailwind CSS — PWA
 - Supabase (Postgres + Auth + Storage + Realtime)
+- Capacitor (contentor nativo da origem web — `docs/NATIVE.md`)
 
 ## Arranque
 

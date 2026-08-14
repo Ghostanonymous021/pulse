@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Bell, BellOff } from "lucide-react";
 
+import { isNativeApp } from "@/lib/native/runtime";
+
 /**
  * Push notifications toggle — real OS notifications with sound/
  * vibration, on top of the in-app bell. Needs:
@@ -22,6 +24,9 @@ export function PushToggle() {
 
   useEffect(() => {
     if (!vapidKey) return;
+    // Native shell uses FCM via /api/push/device — Web Push does not
+    // survive iOS WKWebView and is unreliable in Android WebView.
+    if (isNativeApp()) return;
     if (
       typeof window === "undefined" ||
       !("serviceWorker" in navigator) ||

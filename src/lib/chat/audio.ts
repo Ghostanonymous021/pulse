@@ -1,3 +1,5 @@
+import { isNativeApp } from "@/lib/native/runtime";
+
 /** Helpers for voice notes (MediaRecorder). */
 
 export function pickAudioMime(): { mime: string; ext: string } {
@@ -39,7 +41,9 @@ export function formatDuration(totalSec: number) {
 export function humanizeMicError(err: unknown): string {
   if (err instanceof DOMException) {
     if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-      return "Permite o microfone nas definições do browser para gravar áudio.";
+      return isNativeApp()
+        ? "Permite o microfone nas definições da app para gravar áudio."
+        : "Permite o microfone nas definições do browser para gravar áudio.";
     }
     if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
       return "Nenhum microfone encontrado.";

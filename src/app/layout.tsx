@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { NativeShell } from "@/components/native/native-shell";
 import { PwaRegister } from "@/components/pwa-register";
 
 import "./globals.css";
@@ -115,6 +116,7 @@ export default function RootLayout({
         <div id="main" className="flex min-h-full flex-1 flex-col">
           {children}
         </div>
+        <NativeShell />
         <PwaRegister />
       </body>
     </html>

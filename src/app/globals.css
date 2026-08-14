@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Native WebView: kill the tap flash the system browser paints. */
+html[data-pulse-native] {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Pulse surface system — Apple-like calm, not Instagram chrome */
 :root {
   --background: #f5f5f7;

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Download, RefreshCw, X } from "lucide-react";
 
+import { isNativeApp } from "@/lib/native/runtime";
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -26,6 +28,31 @@ export function PwaRegister() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Capacitor WebView: never install the PWA SW. A leftover registration
+    // from a previous in-webview visit would fight HTTP cache + session.
+    if (isNativeApp()) {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((regs) => {
+            for (const r of regs) void r.unregister();
+          })
+          .catch(() => {});
+      }
+      if (typeof caches !== "undefined") {
+        caches
+          .keys()
+          .then((keys) => {
+            for (const key of keys) {
+              if (key.startsWith("pulse-pwa-")) void caches.delete(key);
+            }
+          })
+          .catch(() => {});
+      }
+      return;
+    }
+
     if (!("serviceWorker" in navigator)) return;
     if (process.env.NODE_ENV !== "production") return;
 
